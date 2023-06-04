@@ -1,4 +1,4 @@
-import { ensureDirSync, readJSONSync, readdirSync, statSync } from "fs-extra";
+import { ensureDirSync, existsSync, readJSONSync, readdirSync, statSync } from "fs-extra";
 import * as path from "path";
 
 export const plugins: Record<string, Plugin> = {};
@@ -60,6 +60,7 @@ export interface Plugin {
 
 export function parsePlugin(dir: string) {
     const manifestFile = `${dir}${s}qqntim.json`;
+    if (!existsSync(manifestFile)) return;
     const manifest = readJSONSync(manifestFile) as Manifest;
 
     return {
@@ -85,6 +86,7 @@ export function collectPlugins() {
         const folderPath = `${pluginDir}${s}${folder}`;
         if (statSync(folderPath).isDirectory()) {
             const plugin = parsePlugin(folderPath);
+            if (!plugin) return;
             if (plugins[plugin.id]) return;
             plugins[plugin.id] = plugin;
         }
