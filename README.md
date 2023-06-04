@@ -38,6 +38,8 @@ sudo ./uninstall.sh
 
 ### 安装插件
 
+目前，你可以到 [Plugins Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy) 下载插件。
+
 将下载的插件**解压到插件文件夹下并重启 QQ**，插件即可生效。
 
 #### Windows
