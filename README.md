@@ -8,7 +8,7 @@ QQNT-Improved (简称 QQNTim) 是一个给 QQNT 的插件管理器，目前处�
 
 安装前请确保电脑上已经安装了 QQNT (Windows 版需要有内测资格)。
 请右键使用 PowerShell 运行 `install.ps1` 安装插件管理器，`uninstall.ps1` 卸载插件管理器。
-建议在安装后安装插件 `预制主题.zip`。
+建议在安装后安装插件。
 
 **注意:** 如果遇到脚本无法打开的情况，请在运行 (Win+R) 中输入以允许 PowerShell 运行脚本：
 
