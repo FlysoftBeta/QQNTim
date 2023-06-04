@@ -1,0 +1,63 @@
+name: Build
+
+on: push
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v3
+
+            - name: Use Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18.x
+
+            - name: Setup Corepack
+              run: corepack enable
+
+            - name: Cache Yarn dependencies
+              id: yarn-cache
+              uses: actions/cache@v3
+              with:
+                  path: |
+                      .yarn/cache
+                      .yarn/unplugged
+                      .yarn/install-state.gz
+                      .pnp.cjs
+                  key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-yarn-
+
+            - name: Install Yarn dependencies
+              run: yarn
+
+            - name: Build
+              run: yarn build
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v3
+              with:
+                  name: build
+                  path: dist/*
+
+            - name: Compress release
+              run: |
+                  pushd dist
+                  tar -zcvf ../qqntim-build.tar.gz .
+                  zip -r9 ../qqntim-build.zip .
+                  popd
+
+            - name: Create release
+              uses: softprops/action-gh-release@v1
+              with:
+                  files: |
+                      qqntim-build.tar.gz
+                      qqntim-build.zip
+                  generate_release_notes: true
+                  append_body: true
+                  prerelease: true
+                  tag_name: dev
+                  name: Latest Development Release
