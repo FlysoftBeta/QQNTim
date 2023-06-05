@@ -1,28 +1,20 @@
 import { build } from "esbuild";
 import { copySync, emptyDirSync } from "fs-extra";
 
+const isDebug = process.env["NODE_ENV"] == "development";
+
 emptyDirSync("dist");
 
 build({
     bundle: true,
     target: "node18",
+    platform: "node",
     entryPoints: ["src/main.ts"],
     outfile: "dist/qqntim.js",
     write: true,
     allowOverwrite: true,
-    external: [
-        "fs",
-        "path",
-        "util",
-        "assert",
-        "stream",
-        "constants",
-        "vm",
-        "module",
-        "crypto",
-        "electron",
-    ],
-    sourcemap: "inline",
+    external: ["electron"],
+    sourcemap: isDebug ? "inline" : false,
     minify: true,
     treeShaking: true,
 });
@@ -35,21 +27,8 @@ build({
     outfile: "dist/qqntim-renderer.js",
     write: true,
     allowOverwrite: true,
-    external: [
-        "fs",
-        "path",
-        "util",
-        "assert",
-        "stream",
-        "constants",
-        "vm",
-        "module",
-        "crypto",
-        "electron",
-        "./major.node",
-        "../major.node",
-    ],
-    sourcemap: "inline",
+    external: ["electron", "./major.node", "../major.node"],
+    sourcemap: isDebug ? "inline" : false,
     minify: true,
     treeShaking: true,
 });
