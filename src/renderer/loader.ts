@@ -1,9 +1,9 @@
 import * as electron from "electron";
 import * as path from "path";
 import * as fs from "fs-extra";
-import { readFileSync } from "fs-extra";
 import type { Plugin } from "../plugins";
-import { InterruptIPC, addInterruptIpc } from "./patch";
+import { addInterruptIpc } from "./patch";
+import type { InterruptIPC } from "../ipc";
 
 const s = path.sep;
 
@@ -62,16 +62,15 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
                 return;
             injection.stylesheet &&
                 stylesheets.push(
-                    readFileSync(`${plugin.dir}${s}${injection.stylesheet}`).toString()
+                    fs.readFileSync(`${plugin.dir}${s}${injection.stylesheet}`).toString()
                 );
             injection.script && scripts.push(`${plugin.dir}${s}${injection.script}`);
         });
         scripts.forEach((script) => {
             try {
                 require(script)({
-                    ipc: {
-                        interruptIpc: (newInterruptIpc: InterruptIPC) =>
-                            addInterruptIpc(newInterruptIpc),
+                    interrupt: {
+                        ipc: (func: InterruptIPC) => addInterruptIpc(func),
                     },
                     modules: {
                         electron: electron,
@@ -90,9 +89,7 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
                             });
                         },
                     },
-                    onLoad: (cb: Function) => {
-                        windowLoadPromise.then(() => cb());
-                    },
+                    windowLoadPromise: windowLoadPromise,
                 });
             } catch (reason) {
                 console.error(`Failed to run plugin script: ${script}`, reason);

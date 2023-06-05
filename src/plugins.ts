@@ -1,4 +1,4 @@
-import { ensureDirSync, existsSync, readJSONSync, readdirSync, statSync } from "fs-extra";
+import * as fs from "fs-extra";
 import * as path from "path";
 
 export const plugins: Record<string, Plugin> = {};
@@ -17,8 +17,8 @@ function getPluginDir() {
 export function prepareConfigDir() {
     const configDir = getConfigDir(),
         pluginDir = getPluginDir();
-    ensureDirSync(configDir);
-    ensureDirSync(pluginDir);
+    fs.ensureDirSync(configDir);
+    fs.ensureDirSync(pluginDir);
 }
 
 interface ManifestInjectionMain {
@@ -60,8 +60,8 @@ export interface Plugin {
 
 export function parsePlugin(dir: string) {
     const manifestFile = `${dir}${s}qqntim.json`;
-    if (!existsSync(manifestFile)) return;
-    const manifest = readJSONSync(manifestFile) as Manifest;
+    if (!fs.existsSync(manifestFile)) return;
+    const manifest = fs.readJSONSync(manifestFile) as Manifest;
 
     return {
         id: manifest.id,
@@ -80,11 +80,11 @@ export function parsePlugin(dir: string) {
 
 export function collectPlugins() {
     const pluginDir = getPluginDir();
-    const folders = readdirSync(pluginDir);
+    const folders = fs.readdirSync(pluginDir);
 
     folders.forEach((folder) => {
         const folderPath = `${pluginDir}${s}${folder}`;
-        if (statSync(folderPath).isDirectory()) {
+        if (fs.statSync(folderPath).isDirectory()) {
             const plugin = parsePlugin(folderPath);
             if (!plugin) return;
             if (plugins[plugin.id]) return;

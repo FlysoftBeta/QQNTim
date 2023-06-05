@@ -1,12 +1,11 @@
 import * as path from "path";
 import { Module } from "module";
 import { plugins } from "./loader";
+import type { InterruptWindowCreation, InterruptIPC, IPCArgs } from "./ipc";
 
 const s = path.sep;
 
-type IPCArgs = [{ type: string; eventName: string; callbackId: string }, any[]];
-export type InterruptIPC = (args: IPCArgs) => boolean | undefined;
-
+const interruptWindowCreation: InterruptWindowCreation[] = [];
 const interruptIpcs: InterruptIPC[] = [];
 
 export function patchElectron() {
@@ -20,6 +19,7 @@ export function patchElectron() {
         ) as typeof Electron.CrossProcessExports;
         if (request == "electron") {
             if (patchedElectron) return patchedElectron;
+
             const ipcMain = {
                 ...loadedModule.ipcMain,
                 on(channel: string, listener: (event: any, ...args: any[]) => void) {
@@ -42,7 +42,7 @@ export function patchElectron() {
             const BrowserWindow = function (
                 args: Electron.BrowserWindowConstructorOptions
             ) {
-                const win = new loadedModule.BrowserWindow({
+                let patchedArgs: Electron.BrowserWindowConstructorOptions = {
                     ...args,
                     webPreferences: {
                         ...args.webPreferences,
@@ -53,7 +53,11 @@ export function patchElectron() {
                         nodeIntegrationInSubFrames: true,
                         sandbox: false,
                     },
-                });
+                };
+                interruptWindowCreation.forEach(
+                    (func) => (patchedArgs = func(patchedArgs))
+                );
+                const win = new loadedModule.BrowserWindow(patchedArgs);
                 win.webContents.on("ipc-message-sync", (_, channel) => {
                     if (channel == "___!boot") {
                         _.returnValue = {
@@ -91,6 +95,9 @@ export function patchElectron() {
     };
 }
 
-export function addInterruptIpc(newInterruptIpc: InterruptIPC) {
-    interruptIpcs.push(newInterruptIpc);
+export function addInterruptIpc(func: InterruptIPC) {
+    interruptIpcs.push(func);
+}
+export function addInterruptWindowCreation(func: InterruptWindowCreation) {
+    interruptWindowCreation.push(func);
 }

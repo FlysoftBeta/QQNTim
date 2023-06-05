@@ -1,7 +1,5 @@
 import { Module } from "module";
-
-type IPCArgs = [{ type: string; eventName: string; callbackId: string }, any[]];
-export type InterruptIPC = (args: IPCArgs) => boolean | undefined;
+import type { IPCArgs, InterruptIPC } from "../ipc";
 
 const interruptIpcs: InterruptIPC[] = [];
 
@@ -66,6 +64,6 @@ export function patchElectron() {
     };
 }
 
-export function addInterruptIpc(newInterruptIpc: InterruptIPC) {
-    interruptIpcs.push(newInterruptIpc);
+export function addInterruptIpc(func: InterruptIPC) {
+    interruptIpcs.push(func);
 }
