@@ -1,3 +1,5 @@
+import * as semver from "semver";
+import * as os from "os";
 import * as fs from "fs-extra";
 import * as path from "path";
 
@@ -32,11 +34,22 @@ interface ManifestInjectionRenderer {
     stylesheet?: string;
     script?: string;
 }
+interface ManifestRequirementOS {
+    platform: NodeJS.Platform;
+    lte?: string;
+    lt?: string;
+    gte?: string;
+    gt?: string;
+    eq?: string;
+}
 type ManifestInjection = ManifestInjectionMain | ManifestInjectionRenderer;
 interface Manifest {
     id: number;
     name: string;
     injections: ManifestInjection[];
+    requirements?: {
+        os: ManifestRequirementOS[];
+    };
 }
 
 interface PluginInjectionMain {
@@ -60,8 +73,29 @@ export interface Plugin {
 
 export function parsePlugin(dir: string) {
     const manifestFile = `${dir}${s}qqntim.json`;
-    if (!fs.existsSync(manifestFile)) return;
+    if (!fs.existsSync(manifestFile)) return null;
     const manifest = fs.readJSONSync(manifestFile) as Manifest;
+
+    if (manifest.requirements?.os) {
+        let meetRequirements = false;
+        const osRelease = os.release();
+        for (const item of manifest.requirements.os) {
+            if (item.platform != process.platform) continue;
+            if (item.lte && !semver.lte(item.lte, osRelease)) continue;
+            if (item.lt && !semver.lt(item.lt, osRelease)) continue;
+            if (item.gte && !semver.gte(item.gte, osRelease)) continue;
+            if (item.gt && !semver.gt(item.gt, osRelease)) continue;
+            if (item.eq && !semver.eq(item.eq, osRelease)) continue;
+            meetRequirements = true;
+            break;
+        }
+        if (!meetRequirements) {
+            console.error(
+                `[!Plugins] 跳过加载插件：${manifest.id}（操作系统需求不满足）`
+            );
+            return null;
+        }
+    }
 
     return {
         id: manifest.id,
