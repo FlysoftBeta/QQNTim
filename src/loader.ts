@@ -14,6 +14,7 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
         if (plugins[id]) continue;
         const plugin = newPlugins[id];
         plugins[id] = plugin;
+        console.log(`[!Loader] 正在加载插件：${id}`);
 
         const scripts: string[] = [];
         plugin.injections.forEach((injection) => {
@@ -34,7 +35,10 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
                     },
                 });
             } catch (reason) {
-                console.error(`Failed to run plugin script: ${script}`, reason);
+                console.error(
+                    `[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者解决`
+                );
+                console.error(reason);
             }
         });
     }

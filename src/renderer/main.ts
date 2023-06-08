@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 import { setPlugins } from "./loader";
 import { patchElectron } from "./patch";
 
-console.log("QQNTim");
+console.log("[!Main] QQNTim 加载成功");
 const { plugins, resourceDir } = ipcRenderer.sendSync("___!boot");
 
 patchElectron();
