@@ -1,9 +1,9 @@
 import * as path from "path";
 import * as electron from "electron";
 import * as fs from "fs-extra";
-import type { Plugin } from "./plugins";
+import type { Plugin } from "../plugin";
 import { addInterruptIpc, addInterruptWindowCreation } from "./patch";
-import type { InterruptIPC, InterruptWindowCreation } from "./ipc";
+import type { InterruptIPC, InterruptWindowCreation } from "../ipc";
 
 const s = path.sep;
 

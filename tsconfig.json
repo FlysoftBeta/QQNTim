@@ -5,7 +5,8 @@
         "target": "ESNext",
         "strictNullChecks": true,
         "strictFunctionTypes": true,
-        "outDir": "dist"
+        "outDir": "dist",
+        "noEmit": true
     },
     "include": ["src"],
     "exclude": ["node_modules", "**/node_modules/*"]

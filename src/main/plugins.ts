@@ -2,6 +2,7 @@ import * as semver from "semver";
 import * as os from "os";
 import * as fs from "fs-extra";
 import * as path from "path";
+import type { Plugin, Manifest } from "../plugin";
 
 export const plugins: Record<string, Plugin> = {};
 const s = path.sep;
@@ -21,54 +22,6 @@ export function prepareConfigDir() {
         pluginDir = getPluginDir();
     fs.ensureDirSync(configDir);
     fs.ensureDirSync(pluginDir);
-}
-
-interface ManifestInjectionMain {
-    type: "main";
-    script?: string;
-}
-interface ManifestInjectionRenderer {
-    type: "renderer";
-    page?: "login" | "main";
-    pattern?: string;
-    stylesheet?: string;
-    script?: string;
-}
-interface ManifestRequirementOS {
-    platform: NodeJS.Platform;
-    lte?: string;
-    lt?: string;
-    gte?: string;
-    gt?: string;
-    eq?: string;
-}
-type ManifestInjection = ManifestInjectionMain | ManifestInjectionRenderer;
-interface Manifest {
-    id: number;
-    name: string;
-    injections: ManifestInjection[];
-    requirements?: {
-        os: ManifestRequirementOS[];
-    };
-}
-
-interface PluginInjectionMain {
-    type: "main";
-    script: string | undefined;
-}
-interface PluginInjectionRenderer {
-    type: "renderer";
-    page: ("login" | "main" | "settings" | "others")[] | undefined;
-    pattern: RegExp | undefined;
-    stylesheet: string | undefined;
-    script: string | undefined;
-}
-export type PluginInjection = PluginInjectionMain | PluginInjectionRenderer;
-export interface Plugin {
-    id: number;
-    name: string;
-    dir: string;
-    injections: PluginInjection[];
 }
 
 export function parsePlugin(dir: string) {

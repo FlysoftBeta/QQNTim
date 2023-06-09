@@ -1,36 +1,34 @@
-import { build } from "esbuild";
+import { execSync } from "child_process";
+import { BuildOptions, build } from "esbuild";
 import { copySync, emptyDirSync } from "fs-extra";
 
-const isDebug = process.env["NODE_ENV"] == "development";
+const isProduction = process.env["NODE_ENV"] == "production";
 
 emptyDirSync("dist");
 
-build({
+const commonOptions: Partial<BuildOptions> = {
     bundle: true,
-    target: "node18",
     platform: "node",
-    entryPoints: ["src/main.ts"],
-    outfile: "dist/qqntim.js",
     write: true,
     allowOverwrite: true,
-    external: ["electron"],
-    sourcemap: isDebug ? "inline" : false,
-    minify: true,
-    treeShaking: true,
-});
+    sourcemap: isProduction ? false : "linked",
+    minify: isProduction,
+    treeShaking: isProduction,
+};
 
 build({
-    bundle: true,
+    ...commonOptions,
     target: "node18",
-    platform: "node",
+    entryPoints: ["src/main/main.ts"],
+    outfile: "dist/qqntim.js",
+    external: ["electron"],
+});
+build({
+    ...commonOptions,
+    target: "node18",
     entryPoints: ["src/renderer/main.ts"],
     outfile: "dist/qqntim-renderer.js",
-    write: true,
-    allowOverwrite: true,
     external: ["electron", "./major.node", "../major.node"],
-    sourcemap: isDebug ? "inline" : false,
-    minify: true,
-    treeShaking: true,
 });
 
-copySync("publish", "dist");
+if (isProduction) copySync("publish", "dist");
