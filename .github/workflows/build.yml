@@ -50,7 +50,19 @@ jobs:
                   zip -r9 ../qqntim-build.zip .
                   popd
 
-            - name: Create release
+            - name: Remove old development release
+              uses: actions/github-script@v6
+              with:
+                  script: |
+                      const { owner, repo } = context.repo;
+                      try {
+                          await github.rest.git.deleteRef({ owner, repo, ref: "tags/dev-release" });
+                      } catch (err) {
+                          if (err.status !== 422) throw err;
+                          else console.warn(err);
+                      }
+
+            - name: Create development release
               uses: softprops/action-gh-release@v1
               with:
                   files: |
