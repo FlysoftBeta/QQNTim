@@ -3,7 +3,9 @@ import * as os from "os";
 import * as fs from "fs-extra";
 import * as path from "path";
 import type { Plugin, Manifest } from "../plugin";
+import type { Configuration } from "../config";
 
+let config: Configuration = {};
 export const plugins: Record<string, Plugin> = {};
 const s = path.sep;
 
@@ -13,21 +15,37 @@ function getConfigDir() {
         : `${process.env["HOME"]}${s}.local${s}share${s}QQNTim`;
 }
 
+function getConfigFile() {
+    return `${getConfigDir()}${s}config.json`;
+}
+
 function getPluginDir() {
     return `${getConfigDir()}${s}plugins`;
 }
 
 export function prepareConfigDir() {
     const configDir = getConfigDir(),
+        configFile = getConfigFile(),
         pluginDir = getPluginDir();
     fs.ensureDirSync(configDir);
     fs.ensureDirSync(pluginDir);
+    fs.ensureFileSync(configFile);
 }
 
-export function parsePlugin(dir: string) {
-    const manifestFile = `${dir}${s}qqntim.json`;
-    if (!fs.existsSync(manifestFile)) return null;
-    const manifest = fs.readJSONSync(manifestFile) as Manifest;
+export function loadConfig() {
+    const configFile = getConfigFile();
+    config = fs.readJSONSync(configFile) || {};
+}
+
+function shouldLoadPlugin(manifest: Manifest) {
+    if (config.plugins?.whitelist && !config.plugins.whitelist.includes(manifest.id)) {
+        console.error(`[!Plugins] 跳过加载插件：${manifest.id}（不在白名单中）`);
+        return false;
+    }
+    if (config.plugins?.blacklist && config.plugins.blacklist.includes(manifest.id)) {
+        console.error(`[!Plugins] 跳过加载插件：${manifest.id}（在黑名单中）`);
+        return false;
+    }
 
     if (manifest.requirements?.os) {
         let meetRequirements = false;
@@ -46,9 +64,19 @@ export function parsePlugin(dir: string) {
             console.error(
                 `[!Plugins] 跳过加载插件：${manifest.id}（操作系统需求不满足）`
             );
-            return null;
+            return false;
         }
     }
+
+    return true;
+}
+
+export function parsePlugin(dir: string) {
+    const manifestFile = `${dir}${s}qqntim.json`;
+    if (!fs.existsSync(manifestFile)) return null;
+    const manifest = fs.readJSONSync(manifestFile) as Manifest;
+
+    if (!shouldLoadPlugin(manifest)) return null;
 
     return {
         id: manifest.id,

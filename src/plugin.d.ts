@@ -4,7 +4,7 @@ export interface ManifestInjectionMain {
 }
 export interface ManifestInjectionRenderer {
     type: "renderer";
-    page?: "login" | "main";
+    page?: ("login" | "main" | "settings" | "others")[] | undefined;
     pattern?: string;
     stylesheet?: string;
     script?: string;
@@ -19,7 +19,7 @@ export interface ManifestRequirementOS {
 }
 export type ManifestInjection = ManifestInjectionMain | ManifestInjectionRenderer;
 export interface Manifest {
-    id: number;
+    id: string;
     name: string;
     injections: ManifestInjection[];
     requirements?: {
@@ -40,7 +40,7 @@ export interface PluginInjectionRenderer {
 }
 export type PluginInjection = PluginInjectionMain | PluginInjectionRenderer;
 export interface Plugin {
-    id: number;
+    id: string;
     name: string;
     dir: string;
     injections: PluginInjection[];
