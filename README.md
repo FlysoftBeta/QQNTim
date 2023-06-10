@@ -1,12 +1,14 @@
 # QQNT-Improved - PC 端 QQNT 插件管理器
 
+![截图](https://github.com/FlysoftBeta/QQNTim/assets/49718840/0e5cf589-031b-4894-9020-ae635679b842)
+
 QQNT-Improved (简称 QQNTim) 是一个给 QQNT 的插件管理器，目前处于 Alpha 版本阶段，支持 Windows，Linux 等平台。
 
 本程序**不提供任何担保**（包括但不限于使用导致的系统故障、封号等）。
 
 ## 简介
 
-QQNTim 是一个用于管理插件的程序，其功能全部需要通过[安装插件](#插件)实现。
+QQNTim 是一个用于管理插件的程序，其功能需要通过[安装插件](#插件)实现。
 
 ## 安装和卸载
 
@@ -14,9 +16,8 @@ QQNTim 是一个用于管理插件的程序，其功能全部需要通过[安装
 
 安装前请确保电脑上已经安装了 QQNT (Windows 版需要有内测资格)。
 请右键使用 PowerShell 运行 `install.ps1` 安装插件管理器，`uninstall.ps1` 卸载插件管理器。
-建议在安装后安装插件。
 
-**注意:** 如果遇到脚本无法打开的情况，请在运行 (Win+R) 中输入以允许 PowerShell 运行脚本：
+**注意:** 如果遇到脚本无法打开的情况，请在运行 (Win+R) 中输入以下内容并点击“确定”以允许 PowerShell 运行脚本：
 
 ```powershell
 powershell -Command Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
@@ -25,7 +26,7 @@ powershell -Command Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
 ### Linux
 
 安装前请确保电脑上已经安装了 QQNT。
-我们已经提供了现有的快速安装脚本，你只需要在安装脚本目录下打开终端运行：
+我们提供了现有的快速安装脚本，你只需要在安装脚本目录下打开终端运行：
 
 ```bash
 # 允许脚本运行
@@ -42,7 +43,7 @@ sudo ./uninstall.sh
 
 ### 快捷键
 
-按 F5 刷新当前页面，F12 打开开发者工具。
+在任意 QQ 的窗口内按 F5 刷新当前页面，F12 打开开发者工具。
 
 ### 插件
 
@@ -60,7 +61,7 @@ sudo ./uninstall.sh
 
 ## 插件管理器本体开发
 
-本项目使用 Yarn berry 作为包管理器，运行以下命令配置项目：
+本项目使用 Yarn 3 作为包管理器，运行以下命令配置项目：
 
 ```bash
 corepack enable
@@ -75,9 +76,9 @@ yarn build
 
 ## 插件开发
 
-### 开始
+提示: 可参照 [Plugins Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy) 中的插件进行开发。
 
-可参考 [Plugins Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy) 中的插件进行开发。
+### 开始
 
 你需要在**插件文件夹**下创建一个文件夹以存放你的插件文件。
 
@@ -146,7 +147,9 @@ yarn build
 
 ### 脚本
 
-主进程脚本文件和渲染进程脚本文件需要导出一个函数，该函数即为插件的入口，示例如下：
+脚本可以控制、更改 QQNT 的行为，而 CSS 只能修改样式。
+
+脚本文件需要导出一个函数，该函数即为插件的入口，示例如下：
 
 ```javascript
 module.exports = (qqntim) => {
@@ -154,9 +157,13 @@ module.exports = (qqntim) => {
 };
 ```
 
+其中，你可以通过 `qqntim` 与 QQNTim 进行交互。
+
 #### 主进程
 
 主进程脚本可用于实现拦截窗口创建，修改消息等目的。
+
+你可以查看 [Electron 官方教程](https://www.electronjs.org/docs/latest/tutorial/process-model#the-main-process) 了解主进程的概念。
 
 ##### 拦截窗口创建
 
@@ -184,10 +191,8 @@ module.exports = (qqntim) => {
 module.exports = (qqntim) => {
     qqntim.interrupt.ipc((args) => {
         console.log("截获到一条消息！", args);
-        // 接收
+        // 返回 true 继续传达消息，返回 false 拦截消息
         return true;
-        // 拒绝接收
-        return false;
     });
 };
 ```
@@ -196,7 +201,9 @@ module.exports = (qqntim) => {
 
 #### 渲染进程
 
-渲染脚本可用于修改 UI 界面，修改交互逻辑等。
+渲染脚本可用于修改 UI 界面，修改交互逻辑等（相当于在一个网页上运行脚本）。
+
+你可以查看 [Electron 官方教程](https://www.electronjs.org/docs/latest/tutorial/process-model#the-renderer-process) 了解渲染进程的概念。
 
 ##### 拦截 IPC
 
@@ -205,11 +212,18 @@ module.exports = (qqntim) => {
 ```javascript
 module.exports = (qqntim) => {
     qqntim.interrupt.ipc((args) => {
-        console.log("截获到一条消息！", args);
-        // 接收
+        // 当受到新消息时
+        if (
+            args[1] &&
+            args[1][0] &&
+            args[1][0].cmdName == "nodeIKernelMsgListener/onRecvMsg"
+        ) {
+            console.log("截获到一条新消息：", args);
+            // 有大约 50% 的概率，会抛弃此消息 :D
+            return Math.round(Math.random()) == 0;
+        }
+        // 返回 true 继续传达消息，返回 false 拦截消息
         return true;
-        // 拒绝接收
-        return false;
     });
 };
 ```
@@ -223,13 +237,14 @@ module.exports = (qqntim) => {
 ```javascript
 module.exports = (qqntim) => {
     qqntim.windowLoadPromise.then(() => {
+        // 此时基本所有 QQNT 的脚本和样式都已经加载完毕了，现在你可以对界面元素进行修改了
         console.log("窗口加载完毕");
-        // 现在你可以对界面元素进行修改了
-        // 例如，现在我想在窗口控制区域放一个按钮，按下就显示：来自渲染进程的问候 :)
+
+        // 在窗口控制区域放一个按钮，按下就弹出：来自渲染进程的问候
         qqntim.utils.waitForElement(".window-control-area").then((container) => {
             // 在 container 最前方增加一个按钮
-            const button = document.createElement("div");
-            button.innerHTML = `<i class="q-icon" style="width:16px;height:16px;align-items:center;color:var(--icon_primary);display:inline-flex;justify-content:center;"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6.0001L8.00004 10L4 6" stroke="currentColor" stroke-linejoin="round" style="transform:rotateZ(180deg);transform-origin:center;"></path></svg></i>`;
+            const button = document.createElement("button");
+            button.innerText = "点我";
             button.addEventListener("click", () => {
                 alert("来自渲染进程的问候 :)");
             });
