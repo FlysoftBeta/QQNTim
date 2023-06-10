@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
 if [ ! "$(whoami)" == "root" ]; then
     echo "The installation script must be run by root user."
     exit -2
