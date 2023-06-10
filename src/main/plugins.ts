@@ -29,7 +29,7 @@ export function prepareConfigDir() {
         pluginDir = getPluginDir();
     fs.ensureDirSync(configDir);
     fs.ensureDirSync(pluginDir);
-    fs.ensureFileSync(configFile);
+    if (!fs.existsSync(configFile)) fs.writeJSONSync(configFile, {});
 }
 
 export function loadConfig() {
