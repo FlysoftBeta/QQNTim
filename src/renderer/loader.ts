@@ -39,19 +39,23 @@ function detectCurrentPage() {
         return "main";
     } else if (url.includes("setting")) {
         return "settings";
+    } else if (url.includes("about")) {
+        return "about";
     } else {
         return "others";
     }
 }
 
 export function setPlugins(newPlugins: Record<string, Plugin>) {
+    const page = detectCurrentPage();
+    if (page == "about") return;
+
     for (const id in newPlugins) {
         if (plugins[id]) continue;
         const plugin = newPlugins[id];
         plugins[id] = plugin;
         console.log(`[!Loader] 正在加载插件：${id}`);
 
-        const page = detectCurrentPage();
         const scripts: string[] = [];
         plugin.injections.forEach((injection) => {
             if (
