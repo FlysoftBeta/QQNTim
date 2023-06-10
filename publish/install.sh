@@ -13,11 +13,16 @@ if [ ! -d "$qq_installation_dir" ]; then
 fi
 qq_applauncher_dir="$qq_installation_dir/resources/app/app_launcher"
 
-read -p "Do you want to install QQNTim (y/n)?" choice
-case $choice in
-  y) ;;
-  *) exit -1 ;;
-esac
+entry_file="$qq_applauncher_dir/index.js"
+entry_file_backup="$entry_file.bak"
+
+if [ ! -f "$entry_file_backup" ]; then
+    read -p "Do you want to install QQNTim (y/n)?" choice
+    case $choice in
+    y) ;;
+    *) exit -1 ;;
+    esac
+fi
 
 echo "Killing QQ processes..."
 killall -vw qq
@@ -25,8 +30,6 @@ killall -vw qq
 echo "Copying files..."
 cp -vf ./qqntim.js ./qqntim-renderer.js "$qq_applauncher_dir"
 
-entry_file="$qq_applauncher_dir/index.js"
-entry_file_backup="$entry_file.bak"
 if [ ! -f "$entry_file_backup" ]; then
     echo "Patching entry..."
     cp -vf "$entry_file" "$entry_file_backup"

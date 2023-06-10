@@ -22,8 +22,13 @@ if ((Test-Path $QQInstallDir) -eq $false) {
 }
 $QQAppLauncherDir = "$QQInstallDir\resources\app\app_launcher"
 
-if ((Read-Host "Do you want to install QQNTim (y/n)?") -notcontains "y") {
-    exit
+$EntryFile = "$QQAppLauncherDir\index.js"
+$EntryFileBackup = "$EntryFile.bak"
+
+if ((Test-Path $EntryFileBackup) -eq $false) {
+    if ((Read-Host "Do you want to install QQNTim (y/n)?") -notcontains "y") {
+        exit
+    }
 }
 
 Write-Output "Killing QQ processes..."
@@ -32,8 +37,6 @@ Stop-Process -Name QQ -ErrorAction SilentlyContinue
 Write-Output "Copying files..."
 Copy-Item ".\qqntim*.js" $QQAppLauncherDir -Force
 
-$EntryFile = "$QQAppLauncherDir\index.js"
-$EntryFileBackup = "$EntryFile.bak"
 if ((Test-Path $EntryFileBackup) -eq $false) {
     Write-Output "Patching entry..."
     Copy-Item $EntryFile $EntryFileBackup -Force
