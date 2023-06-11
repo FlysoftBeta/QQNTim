@@ -1,6 +1,10 @@
 name: Build
 
-on: push
+on:
+    workflow_dispatch:
+    push:
+    schedule:
+        - cron: "0 1 * * *"
 
 jobs:
     build:
@@ -50,26 +54,29 @@ jobs:
                   zip -r9 ../qqntim-build.zip .
                   popd
 
-            - name: Remove old development release
-              uses: actions/github-script@v6
-              with:
-                  script: |
-                      const { owner, repo } = context.repo;
-                      try {
-                          await github.rest.git.deleteRef({ owner, repo, ref: "tags/dev-release" });
-                      } catch (err) {
-                          if (err.status !== 422) throw err;
-                          else console.warn(err);
-                      }
+            - name: Get Date
+              run: echo "date=$(date +%F)" >> $GITHUB_ENV
 
-            - name: Create development release
+            - name: Create release
+              if: github.ref_type == 'tag'
               uses: softprops/action-gh-release@v1
               with:
                   files: |
                       qqntim-build.tar.gz
                       qqntim-build.zip
-                  generate_release_notes: true
-                  append_body: true
+                  tag_name: ${{ github.ref_name }}
+                  prerelease: false
+                  draft: false
+                  name: ${{ github.ref_name }}
+
+            - name: Create nightly release
+              if: github.event_name == 'schedule'
+              uses: softprops/action-gh-release@v1
+              with:
+                  files: |
+                      qqntim-build.tar.gz
+                      qqntim-build.zip
+                  tag_name: nightly-${{ env.date }}
                   prerelease: true
-                  tag_name: dev-release
-                  name: 最新开发版本
+                  draft: false
+                  name: Nightly ${{ env.date }}
