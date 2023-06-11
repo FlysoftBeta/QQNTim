@@ -37,6 +37,8 @@ function detectCurrentPage() {
         return "login";
     } else if (url.includes("main")) {
         return "main";
+    } else if (url.includes("chat")) {
+        return "chat";
     } else if (url.includes("setting")) {
         return "settings";
     } else if (url.includes("about")) {

@@ -4,7 +4,7 @@ export interface ManifestInjectionMain {
 }
 export interface ManifestInjectionRenderer {
     type: "renderer";
-    page?: ("login" | "main" | "settings" | "others")[] | undefined;
+    page?: ("login" | "main" | "chat" | "settings" | "others")[] | undefined;
     pattern?: string;
     stylesheet?: string;
     script?: string;
@@ -33,7 +33,7 @@ export interface PluginInjectionMain {
 }
 export interface PluginInjectionRenderer {
     type: "renderer";
-    page: ("login" | "main" | "settings" | "others")[] | undefined;
+    page: ("login" | "main" | "chat" | "settings" | "others")[] | undefined;
     pattern: RegExp | undefined;
     stylesheet: string | undefined;
     script: string | undefined;
