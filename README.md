@@ -81,7 +81,7 @@ sudo ./uninstall.sh
 
 #### Windows
 
-配置文件位于 `用户文件夹\.qqntim\plugins\config.json`
+配置文件位于 `用户文件夹\.qqntim\config.json`
 
 #### Linux
 
