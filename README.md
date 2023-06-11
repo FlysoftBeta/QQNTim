@@ -59,6 +59,34 @@ sudo ./uninstall.sh
 
 插件文件夹位于 `用户文件夹/.local/share/QQNTim/plugins`
 
+### 配置文件
+
+一个示例配置文件如下所示：
+
+```json
+{
+    // (可选) 插件加载相关设置
+    "plugins": {
+        // 插件加载黑、白名单
+        // (应指定插件的 ID，可以在插件的 qqntim.json 内的 id 栏查看)
+        // ----------------------------------------------------
+        // (可选) 插件加载白名单，指定后只有白名单内的插件才会加载
+        "whitelist": [],
+        // (可选) 插件加载黑名单 ，指定后只有黑名单内的插件会跳过加载
+        "blacklist": ["mica", "mica-ui"]
+        // ----------------------------------------------------
+    }
+}
+```
+
+#### Windows
+
+配置文件位于 `用户文件夹\.qqntim\plugins\config.json`
+
+#### Linux
+
+配置文件位于 `用户文件夹/.local/share/QQNTim/config.json`
+
 ## 插件管理器本体开发
 
 本项目使用 Yarn 3 作为包管理器，运行以下命令配置项目：
@@ -134,8 +162,8 @@ yarn build
             // (可选) 只有网页 URL 匹配此正则表达式时此注入才生效
             "pattern": ".*",
             // (可选) 只有在指定窗口此注入才生效，可以是：
-            // login (登录)，main (聊天)，settings (设置)，others (其他)
-            "page": ["main", "login"],
+            // login (登录窗口)，main (主窗口)，chat (独立聊天窗口)，settings (设置窗口)，others (其他)
+            "page": ["main", "chat", "login"],
             // (可选) 待注入的脚本文件
             "script": "main.js",
             // (可选) 待注入的样式文件
