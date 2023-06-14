@@ -40,6 +40,9 @@ export interface PluginInjectionRenderer {
 }
 export type PluginInjection = PluginInjectionMain | PluginInjectionRenderer;
 export interface Plugin {
+    loaded: boolean;
+    meetRequirements: boolean;
+    enabled: boolean;
     id: string;
     name: string;
     dir: string;

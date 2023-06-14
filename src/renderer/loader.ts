@@ -55,6 +55,7 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
     for (const id in newPlugins) {
         if (plugins[id]) continue;
         const plugin = newPlugins[id];
+        if (!plugin.loaded) continue;
         plugins[id] = plugin;
         console.log(`[!Loader] 正在加载插件：${id}`);
 

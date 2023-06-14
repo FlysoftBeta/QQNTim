@@ -37,16 +37,18 @@ export function loadConfig() {
     config = fs.readJSONSync(configFile) || {};
 }
 
-function shouldLoadPlugin(manifest: Manifest) {
+function isPluginEnabled(manifest: Manifest) {
     if (config.plugins?.whitelist && !config.plugins.whitelist.includes(manifest.id)) {
-        console.error(`[!Plugins] 跳过加载插件：${manifest.id}（不在白名单中）`);
         return false;
     }
     if (config.plugins?.blacklist && config.plugins.blacklist.includes(manifest.id)) {
-        console.error(`[!Plugins] 跳过加载插件：${manifest.id}（在黑名单中）`);
         return false;
     }
 
+    return true;
+}
+
+function isPluginRequirementsMet(manifest: Manifest) {
     if (manifest.requirements?.os) {
         let meetRequirements = false;
         const osRelease = os.release();
@@ -61,9 +63,6 @@ function shouldLoadPlugin(manifest: Manifest) {
             break;
         }
         if (!meetRequirements) {
-            console.error(
-                `[!Plugins] 跳过加载插件：${manifest.id}（操作系统需求不满足）`
-            );
             return false;
         }
     }
@@ -76,9 +75,18 @@ export function parsePlugin(dir: string) {
     if (!fs.existsSync(manifestFile)) return null;
     const manifest = fs.readJSONSync(manifestFile) as Manifest;
 
-    if (!shouldLoadPlugin(manifest)) return null;
+    const meetRequirements = isPluginRequirementsMet(manifest),
+        enabled = isPluginEnabled(manifest),
+        loaded = meetRequirements && enabled;
+    if (!meetRequirements)
+        console.error(`[!Plugins] 跳过加载插件：${manifest.id}（当前环境不满足要求）`);
+    else if (!enabled)
+        console.error(`[!Plugins] 跳过加载插件：${manifest.id}（插件已被禁用）`);
 
     return {
+        enabled: enabled,
+        meetRequirements: meetRequirements,
+        loaded: loaded,
         id: manifest.id,
         name: manifest.name,
         dir: dir,
