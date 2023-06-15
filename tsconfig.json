@@ -5,6 +5,7 @@
         "target": "ESNext",
         "strictNullChecks": true,
         "strictFunctionTypes": true,
+        "exactOptionalPropertyTypes": true,
         "outDir": "dist",
         "noEmit": true
     },

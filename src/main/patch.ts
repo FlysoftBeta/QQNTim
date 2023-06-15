@@ -43,7 +43,7 @@ function patchIpcMain(ipcMain: typeof Electron.ipcMain) {
     const object = {
         ...ipcMain,
         on(channel: string, listener: (event: any, ...args: any[]) => void) {
-            ipcMain.on(channel, (event: any, ...args: IPCArgs) => {
+            ipcMain.on(channel, (event: any, ...args: IPCArgs<any>) => {
                 for (const func of interruptIpcs) {
                     const ret = func(args);
                     if (ret == false) return;

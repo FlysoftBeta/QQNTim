@@ -7,7 +7,7 @@ function patchIpcRenderer(ipcRenderer: typeof Electron.ipcRenderer) {
     const object = {
         ...ipcRenderer,
         on(channel: string, listener: (event: any, ...args: any[]) => void) {
-            ipcRenderer.on(channel, (event: any, ...args: IPCArgs) => {
+            ipcRenderer.on(channel, (event: any, ...args: IPCArgs<any>) => {
                 for (const func of interruptIpcs) {
                     const ret = func(args);
                     if (ret == false) return;

@@ -4,32 +4,17 @@ import * as fs from "fs-extra";
 import type { Plugin } from "../plugin";
 import { addInterruptIpc } from "./patch";
 import type { InterruptIPC } from "../ipc";
+import { getAPI } from "./api";
 
 const s = path.sep;
 
-const stylesheets: string[] = [],
-    waitForElementSelectors: [string, (element: HTMLElement) => void][] = [];
+const stylesheets: string[] = [];
 export let plugins: Record<string, Plugin> = {};
 
 const windowLoadPromise = new Promise<void>((resolve) =>
     window.addEventListener("load", () => resolve())
 );
-
-const refreshWaitForElementStatus = () => {
-    waitForElementSelectors.forEach((item, idx) => {
-        const ele = document.querySelector<HTMLElement>(item[0]);
-        if (ele) {
-            item[1](ele);
-            waitForElementSelectors.splice(idx);
-        }
-    });
-};
-windowLoadPromise.then(() => {
-    new MutationObserver(() => refreshWaitForElementStatus()).observe(document.body, {
-        childList: true,
-        subtree: true,
-    });
-});
+const api = getAPI(windowLoadPromise);
 
 function detectCurrentPage() {
     const url = window.location.href;
@@ -75,29 +60,7 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
         });
         scripts.forEach((script) => {
             try {
-                require(script)({
-                    interrupt: {
-                        ipc: (func: InterruptIPC) => addInterruptIpc(func),
-                    },
-                    modules: {
-                        electron: electron,
-                        fs: fs,
-                    },
-                    utils: {
-                        waitForElement: (selector: string) => {
-                            return new Promise<HTMLElement>((resolve) => {
-                                waitForElementSelectors.push([
-                                    selector,
-                                    (element) => {
-                                        resolve(element);
-                                    },
-                                ]);
-                                refreshWaitForElementStatus();
-                            });
-                        },
-                    },
-                    windowLoadPromise: windowLoadPromise,
-                });
+                require(script)(api);
             } catch (reason) {
                 console.error(
                     `[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者解决`
