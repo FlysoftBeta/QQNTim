@@ -1,12 +1,11 @@
 import * as path from "path";
 import { Module } from "module";
 import { plugins } from "./loader";
-import type { InterruptWindowCreation, InterruptIPC, IPCArgs } from "../ipc";
+import { InterruptWindowCreation, IPCArgs, handleIpc } from "../ipc";
 
 const s = path.sep;
 
 const interruptWindowCreation: InterruptWindowCreation[] = [];
-const interruptIpcs: InterruptIPC[] = [];
 
 function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
     const func = function (args: Electron.BrowserWindowConstructorOptions) {
@@ -44,16 +43,12 @@ function patchIpcMain(ipcMain: typeof Electron.ipcMain) {
         ...ipcMain,
         on(channel: string, listener: (event: any, ...args: any[]) => void) {
             ipcMain.on(channel, (event: any, ...args: IPCArgs<any>) => {
-                for (const func of interruptIpcs) {
-                    const ret = func(args);
-                    if (ret == false) return;
-                }
                 if (
                     args[0].eventName == "ns-LoggerApi-1" ||
                     args[0].eventName == "ns-LoggerApi-2"
                 )
                     return;
-
+                handleIpc(args);
                 listener(event, ...args);
             });
         },
@@ -105,9 +100,6 @@ export function patchElectron() {
     };
 }
 
-export function addInterruptIpc(func: InterruptIPC) {
-    interruptIpcs.push(func);
-}
 export function addInterruptWindowCreation(func: InterruptWindowCreation) {
     interruptWindowCreation.push(func);
 }

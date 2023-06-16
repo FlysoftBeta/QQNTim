@@ -2,8 +2,8 @@ import * as semver from "semver";
 import * as os from "os";
 import * as fs from "fs-extra";
 import * as path from "path";
-import type { Plugin, Manifest } from "../plugin";
-import type { Configuration } from "../config";
+import { Plugin, Manifest } from "../plugin";
+import { Configuration } from "../config";
 
 let config: Configuration = {};
 export const plugins: Record<string, Plugin> = {};

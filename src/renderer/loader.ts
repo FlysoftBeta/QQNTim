@@ -1,9 +1,6 @@
-import * as electron from "electron";
 import * as path from "path";
 import * as fs from "fs-extra";
-import type { Plugin } from "../plugin";
-import { addInterruptIpc } from "./patch";
-import type { InterruptIPC } from "../ipc";
+import { Plugin } from "../plugin";
 import { getAPI } from "./api";
 
 const s = path.sep;

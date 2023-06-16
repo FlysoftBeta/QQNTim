@@ -1,9 +1,14 @@
 import * as path from "path";
 import * as electron from "electron";
 import * as fs from "fs-extra";
-import type { Plugin } from "../plugin";
-import { addInterruptIpc, addInterruptWindowCreation } from "./patch";
-import type { InterruptIPC, InterruptWindowCreation } from "../ipc";
+import { Plugin } from "../plugin";
+import { addInterruptWindowCreation } from "./patch";
+import {
+    addInterruptIpc,
+    InterruptIPCOptions,
+    InterruptIPC,
+    InterruptWindowCreation,
+} from "../ipc";
 
 const s = path.sep;
 
@@ -26,7 +31,8 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
             try {
                 require(script)({
                     interrupt: {
-                        ipc: (func: InterruptIPC) => addInterruptIpc(func),
+                        ipc: (func: InterruptIPC, options?: InterruptIPCOptions) =>
+                            addInterruptIpc(func, options),
                         windowCreation: (func: InterruptWindowCreation) =>
                             addInterruptWindowCreation(func),
                     },

@@ -1,17 +1,11 @@
 import { Module } from "module";
-import type { IPCArgs, InterruptIPC } from "../ipc";
-
-const interruptIpcs: InterruptIPC[] = [];
+import { IPCArgs, handleIpc } from "../ipc";
 
 function patchIpcRenderer(ipcRenderer: typeof Electron.ipcRenderer) {
     const object = {
         ...ipcRenderer,
         on(channel: string, listener: (event: any, ...args: any[]) => void) {
             ipcRenderer.on(channel, (event: any, ...args: IPCArgs<any>) => {
-                for (const func of interruptIpcs) {
-                    const ret = func(args);
-                    if (ret == false) return;
-                }
                 if (args[1])
                     if (
                         args[1][0]?.cmdName ==
@@ -31,6 +25,7 @@ function patchIpcRenderer(ipcRenderer: typeof Electron.ipcRenderer) {
                             }
                         }
                     }
+                handleIpc(args);
                 listener(event, ...args);
             });
         },
@@ -61,8 +56,4 @@ export function patchElectron() {
         }
         return loadedModule;
     };
-}
-
-export function addInterruptIpc(func: InterruptIPC) {
-    interruptIpcs.push(func);
 }

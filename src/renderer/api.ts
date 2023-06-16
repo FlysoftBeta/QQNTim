@@ -1,10 +1,15 @@
 import * as fs from "fs-extra";
-import type { IPCArgs, IPCResponse, InterruptIPC } from "../ipc";
-import { addInterruptIpc } from "./patch";
 import { EventEmitter } from "events";
-import type { MessageElement } from "../nt";
 import { ipcRenderer } from "electron";
 import { randomUUID } from "crypto";
+import { MessageElement } from "../nt";
+import {
+    IPCArgs,
+    IPCResponse,
+    InterruptIPC,
+    InterruptIPCOptions,
+    addInterruptIpc,
+} from "../ipc";
 
 class NTError extends Error {
     public code: number;
@@ -20,17 +25,17 @@ class NT extends EventEmitter {
     private pendingCallbacks: Record<string, Function> = {};
     constructor() {
         super();
-        addInterruptIpc((args) => {
-            if (
-                args[0] &&
-                args[0].type == "response" &&
-                args[0].eventName == "ns-ntApi-2" &&
-                this.pendingCallbacks[args[0].callbackId]
-            ) {
+        addInterruptIpc(
+            (args) => {
                 this.pendingCallbacks[args[0].callbackId](args);
                 return false;
+            },
+            {
+                type: "request",
+                eventName: "ns-ntApi-2",
+                cmdName: "nodeIKernelMsgListener/onRecvMsg",
             }
-        });
+        );
     }
     private ntCall(cmd: string, args: any) {
         return new Promise<void>((resolve, reject) => {
@@ -95,7 +100,8 @@ export function getAPI(windowLoadPromise: Promise<void>) {
 
     return {
         interrupt: {
-            ipc: (func: InterruptIPC) => addInterruptIpc(func),
+            ipc: (func: InterruptIPC, options?: InterruptIPCOptions) =>
+                addInterruptIpc(func, options),
         },
         nt: nt,
         modules: {
