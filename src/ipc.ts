@@ -16,9 +16,10 @@ const interruptIpcs: [InterruptIPC, InterruptIPCOptions | undefined][] = [];
 export function handleIpc(args: IPCArgs<any>) {
     for (const [func, options] of interruptIpcs) {
         if (
-            (options?.cmdName && args[1] && args[1][0]?.cmdName != options?.cmdName) ||
-            (options?.eventName && args[0] && args[0].eventName != options?.eventName) ||
-            (options?.type && args[0] && args[0].type != options?.type)
+            (options?.cmdName && (!args[1] || args[1][0]?.cmdName != options?.cmdName)) ||
+            (options?.eventName &&
+                (!args[0] || args[0].eventName != options?.eventName)) ||
+            (options?.type && (!args[0] || args[0].type != options?.type))
         )
             continue;
 
