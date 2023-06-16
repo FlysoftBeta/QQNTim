@@ -1,8 +1,9 @@
 import * as fs from "fs-extra";
 import { EventEmitter } from "events";
+import TypedEmitter from "typed-emitter";
 import { ipcRenderer } from "electron";
 import { randomUUID } from "crypto";
-import { MessageElement } from "../nt";
+import { Message, MessageChatType, MessageElement } from "../nt";
 import {
     IPCArgs,
     IPCResponse,
@@ -21,15 +22,25 @@ class NTError extends Error {
     }
 }
 
-class NT extends EventEmitter {
+type NTEvents = {
+    "new-messages": (messages: Message[]) => void;
+};
+
+class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
     private pendingCallbacks: Record<string, Function> = {};
     constructor() {
         super();
+        this.listenNtCallResponse();
+        this.listenNewMessages();
+    }
+
+    private listenNtCallResponse() {
         addInterruptIpc(
             (args) => {
-                if (this.pendingCallbacks[args[0].callbackId])
+                if (this.pendingCallbacks[args[0].callbackId]) {
                     this.pendingCallbacks[args[0].callbackId](args);
-                return false;
+                    return false;
+                }
             },
             {
                 type: "request",
@@ -40,7 +51,6 @@ class NT extends EventEmitter {
     private ntCall(cmd: string, args: any) {
         return new Promise<void>((resolve, reject) => {
             const uuid = randomUUID();
-            console.log(uuid);
             this.pendingCallbacks[uuid] = (args: IPCArgs<IPCResponse>) => {
                 if (args[1] && args[1].result != 0)
                     reject(new NTError(args[1].result, args[1].errMsg));
@@ -57,12 +67,61 @@ class NT extends EventEmitter {
             );
         });
     }
-    sendMessage(peer: string, elements: MessageElement[]) {
+
+    private listenNewMessages() {
+        addInterruptIpc(
+            (args) => {
+                const messages = (args[1][0].payload.msgList as any[]).map(
+                    (msg): Message => {
+                        const elements = (msg.elements as any[]).map(
+                            (ele): MessageElement => {
+                                if (ele.elementType == 1)
+                                    return {
+                                        type: "text",
+                                        content: ele.textElement.content,
+                                    };
+                                else
+                                    return {
+                                        type: "raw",
+                                        raw: ele,
+                                    };
+                            }
+                        );
+                        return {
+                            peer: {
+                                uid: msg.peerUid,
+                                name: msg.peerName,
+                            },
+                            sender: {
+                                uid: msg.senderUid,
+                                memberName: msg.sendMemberName || msg.sendNickName,
+                                nickName: msg.sendNickName,
+                            },
+                            elements: elements,
+                            chatType:
+                                msg.chatType == 1
+                                    ? "friend"
+                                    : msg.chatType == 2
+                                    ? "group"
+                                    : "others",
+                        };
+                    }
+                );
+                this.emit("new-messages", messages);
+            },
+            {
+                type: "request",
+                eventName: "ns-ntApi-2",
+                cmdName: "nodeIKernelMsgListener/onRecvMsg",
+            }
+        );
+    }
+    sendMessage(chatType: MessageChatType, peerUid: string, elements: MessageElement[]) {
         return this.ntCall("nodeIKernelMsgService/sendMsg", {
             msgId: "0",
             peer: {
-                chatType: 1,
-                peerUid: peer,
+                chatType: chatType == "friend" ? 1 : chatType == "group" ? 2 : 1,
+                peerUid: peerUid,
                 guildId: "",
             },
             msgElements: elements.map((element) => {
