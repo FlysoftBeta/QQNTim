@@ -16,7 +16,7 @@
         "@types/node": "^20.3.1",
         "@types/semver": "^7.5.0",
         "@yarnpkg/sdks": "^3.0.0-rc.45",
-        "esbuild": "^0.18.2",
+        "esbuild": "^0.18.3",
         "ts-node": "^10.9.1",
         "typed-emitter": "^2.1.0",
         "typescript": "^5.1.3"
