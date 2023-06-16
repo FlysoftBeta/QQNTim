@@ -137,6 +137,8 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                             atNtUid: "",
                         },
                     };
+                else if (element.type == "raw") return element.raw;
+                else return null;
             }),
         });
     }
