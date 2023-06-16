@@ -1,5 +1,7 @@
 # QQNT-Improved - PC 端 QQNT 插件管理器
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/36d8b1d46c8352fdf9b5/maintainability)](https://codeclimate.com/github/FlysoftBeta/QQNTim/maintainability) [![License](https://img.shields.io/github/license/FlysoftBeta/QQNTim)](https://github.com/FlysoftBeta/QQNTim/blob/dev/COPYING.LESSER) [![Build](https://img.shields.io/github/actions/workflow/status/FlysoftBeta/QQNTim/build.yml)](https://github.com/FlysoftBeta/QQNTim/actions/workflows/build.yml)
+
 ![截图](https://github.com/FlysoftBeta/QQNTim/assets/49718840/0e5cf589-031b-4894-9020-ae635679b842)
 
 QQNT-Improved (简称 QQNTim) 是一个给 QQNT 的插件管理器，目前处于 Alpha 版本阶段，支持 Windows，Linux 等平台。
