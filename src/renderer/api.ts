@@ -27,13 +27,13 @@ class NT extends EventEmitter {
         super();
         addInterruptIpc(
             (args) => {
-                this.pendingCallbacks[args[0].callbackId](args);
+                if (this.pendingCallbacks[args[0].callbackId])
+                    this.pendingCallbacks[args[0].callbackId](args);
                 return false;
             },
             {
                 type: "request",
                 eventName: "ns-ntApi-2",
-                cmdName: "nodeIKernelMsgListener/onRecvMsg",
             }
         );
     }
