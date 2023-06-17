@@ -1,4 +1,10 @@
 module.exports = (qqntim) => {
+    qqntim.nt.getFriendsList().then((list) => {
+        console.log("[Example-AutoReply] 好友列表", list);
+    });
+    qqntim.nt.getGroupsList().then((list) => {
+        console.log("[Example-AutoReply] 群组列表", list);
+    });
     qqntim.nt.on("new-messages", (messages) => {
         console.log("[Example-AutoReply] 收到新消息", messages);
         messages.forEach((message) => {

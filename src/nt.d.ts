@@ -34,6 +34,7 @@ export interface Message {
     sender: Sender;
     elements: MessageElement[];
     allDownloadedPromise: Promise<void[]>;
+    raw: object;
 }
 export interface Sender {
     uid: string;
@@ -44,4 +45,23 @@ export interface Peer {
     chatType: "friend" | "group" | "others";
     uid: string;
     name?: string;
+}
+export interface Friend {
+    uid: string;
+    uin: string;
+    qid: string;
+    avatarUrl: string;
+    nickName: string;
+    bio: string;
+    sex: "male" | "female" | "unset" | "others";
+    raw: object;
+}
+export interface Group {
+    uid: string;
+    avatarUrl: string;
+    name: string;
+    role: "master" | "moderator" | "member" | "others";
+    maxMembers: number;
+    members: number;
+    raw: object;
 }
