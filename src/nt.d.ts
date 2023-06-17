@@ -1,12 +1,28 @@
-export interface MessageElementText {
+export interface MessageElementBase {
+    raw: object;
+}
+export interface MessageElementText extends MessageElementBase {
     type: "text";
     content: string;
 }
-export interface MessageElementRaw {
-    type: "raw";
-    raw: object;
+export interface MessageElementImage extends MessageElementBase {
+    type: "image";
+    file: string;
 }
-export type MessageElement = MessageElementText | MessageElementRaw;
+export interface MessageElementFace extends MessageElementBase {
+    type: "face";
+    faceIndex: number;
+    faceType: "normal" | "super" | "unknown";
+    faceSuperIndex?: number;
+}
+export interface MessageElementRaw extends MessageElementBase {
+    type: "raw";
+}
+export type MessageElement =
+    | MessageElementText
+    | MessageElementImage
+    | MessageElementFace
+    | MessageElementRaw;
 export type MessageChatType = "friend" | "group" | "others";
 export interface Message {
     peer: {
