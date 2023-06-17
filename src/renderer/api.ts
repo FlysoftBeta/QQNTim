@@ -4,6 +4,8 @@ import TypedEmitter from "typed-emitter";
 import { ipcRenderer } from "electron";
 import { randomUUID } from "crypto";
 import {
+    Friend,
+    Group,
     Message,
     MessageElement,
     MessageElementFace,
@@ -32,15 +34,20 @@ class NTError extends Error {
 
 type NTEvents = {
     "new-messages": (messages: Message[]) => void;
+    "friends-list-updated": (list: Friend[]) => void;
+    "groups-list-updated": (list: Group[]) => void;
 };
 
 class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
     private pendingCallbacks: Record<string, Function> = {};
     private pendingMediaDownloads: Record<string, Function> = {};
     private pendingSentMessages: Record<string, Function> = {};
+    private friendsList: Friend[] = [];
+    private groupsList: Group[] = [];
     constructor() {
         super();
         this.listenCallResponse();
+        this.listenContactListChange();
         this.listenMediaDownload();
         this.listenSentMessages();
         this.listenNewMessages();
@@ -328,6 +335,91 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
             this.pendingSentMessages[peer.uid] = (args: IPCArgs<any>) => {
                 resolve(args[1][0].payload.msgRecord.msgId);
             };
+        });
+    }
+
+    private listenContactListChange() {
+        addInterruptIpc(
+            (args) => {
+                this.friendsList = [];
+                ((args[1][0].payload?.data || []) as any[]).forEach((category) => {
+                    this.friendsList.push(
+                        ...((category?.buddyList || []) as any[]).map(
+                            (friend): Friend => {
+                                return {
+                                    uid: friend.uid,
+                                    qid: friend.qid,
+                                    uin: friend.uin,
+                                    avatarUrl: friend.avatarUrl,
+                                    nickName: friend.nick,
+                                    bio: friend.longNick,
+                                    sex:
+                                        friend.sex == 1
+                                            ? "male"
+                                            : friend.sex == 2
+                                            ? "female"
+                                            : friend.sex == 255 || friend.sex == 0
+                                            ? "unset"
+                                            : "others",
+                                };
+                            }
+                        )
+                    );
+                });
+                this.emit("friends-list-updated", this.friendsList);
+            },
+            {
+                type: "request",
+                eventName: "ns-ntApi-2",
+                cmdName: "nodeIKernelBuddyListener/onBuddyListChange",
+            }
+        );
+        addInterruptIpc(
+            (args) => {
+                this.groupsList = ((args[1][0].payload?.groupList || []) as any[]).map(
+                    (group): Group => {
+                        return {
+                            uid: group.groupCode,
+                            avatarUrl: group.avatarUrl,
+                            name: group.groupName,
+                            role:
+                                group.memberRole == 4
+                                    ? "master"
+                                    : group.memberRole == 3
+                                    ? "moderator"
+                                    : group.memberRole == 2
+                                    ? "member"
+                                    : "others",
+                            maxMembers: group.maxMember,
+                            members: group.memberCount,
+                        };
+                    }
+                );
+                this.emit("groups-list-updated", this.groupsList);
+            },
+            {
+                type: "request",
+                eventName: "ns-ntApi-2",
+                cmdName: "nodeIKernelGroupListener/onGroupListUpdate",
+            }
+        );
+    }
+    async getFriendsList(forced: boolean) {
+        this.call("ns-ntApi-2", "nodeIKernelBuddyService/getBuddyList", [
+            { force_update: forced },
+            undefined,
+        ]);
+        return await new Promise<Friend[]>((resolve) => {
+            this.once("friends-list-updated", (list) => resolve(list));
+        });
+    }
+    async getGroupsList(forced: boolean) {
+        this.call("ns-ntApi-2", "nodeIKernelGroupService/getGroupList", [
+            { forceFetch: forced },
+            undefined,
+        ]);
+        return await new Promise<Group[]>((resolve) => {
+            this.once("groups-list-updated", (list) => resolve(list));
         });
     }
 }

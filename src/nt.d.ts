@@ -45,3 +45,20 @@ export interface Peer {
     uid: string;
     name?: string;
 }
+export interface Friend {
+    uid: string;
+    uin: string;
+    qid: string;
+    avatarUrl: string;
+    nickName: string;
+    bio: string;
+    sex: "male" | "female" | "unset" | "others";
+}
+export interface Group {
+    uid: string;
+    avatarUrl: string;
+    name: string;
+    role: "master" | "moderator" | "member" | "others";
+    maxMembers: number;
+    members: number;
+}
