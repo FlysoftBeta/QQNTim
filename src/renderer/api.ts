@@ -36,16 +36,19 @@ type NTEvents = {
 
 class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
     private pendingCallbacks: Record<string, Function> = {};
+    private pendingMediaDownloads: Record<string, Function> = {};
     constructor() {
         super();
         this.listenCallResponse();
+        this.listenMediaDownload();
         this.listenNewMessages();
     }
 
     private listenCallResponse() {
         addInterruptIpc((args) => {
-            if (this.pendingCallbacks[args[0].callbackId]) {
-                this.pendingCallbacks[args[0].callbackId](args);
+            const id = args[0].callbackId;
+            if (this.pendingCallbacks[id]) {
+                this.pendingCallbacks[id](args);
                 return false;
             }
         });
@@ -81,6 +84,11 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
         return {
             type: "image",
             file: ele.picElement.sourcePath,
+            downloadedPromise: new Promise<void>((resolve, reject) => {
+                this.pendingMediaDownloads[ele.elementId] = () => {
+                    resolve();
+                };
+            }),
             raw: ele,
         };
     }
@@ -110,18 +118,22 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
             (args) => {
                 const messages = (args[1][0].payload.msgList as any[]).map(
                     (msg): Message => {
+                        const downloadedPromises: Promise<void>[] = [];
                         const elements = (msg.elements as any[]).map(
                             (ele): MessageElement => {
                                 if (ele.elementType == 1)
                                     return this.constructTextElement(ele);
-                                else if (ele.elementType == 2)
-                                    return this.constructImageElement(ele);
-                                else if (ele.elementType == 6)
+                                else if (ele.elementType == 2) {
+                                    const element = this.constructImageElement(ele);
+                                    downloadedPromises.push(element.downloadedPromise);
+                                    return element;
+                                } else if (ele.elementType == 6)
                                     return this.constructFaceElement(ele);
                                 else return this.constructRawElement(ele);
                             }
                         );
                         return {
+                            allDownloadedPromise: Promise.all(downloadedPromises),
                             peer: {
                                 uid: msg.peerUid,
                                 name: msg.peerName,
@@ -150,6 +162,20 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
             }
         );
     }
+    private listenMediaDownload() {
+        addInterruptIpc(
+            (args) => {
+                const id = args[1][0].payload?.notifyInfo?.msgElementId;
+                if (this.pendingMediaDownloads[id]) this.pendingMediaDownloads[id](args);
+            },
+            {
+                type: "request",
+                eventName: "ns-ntApi-2",
+                cmdName: "nodeIKernelMsgListener/onRichMediaDownloadComplete",
+            }
+        );
+    }
+
     private async prepareImageElement(file: string) {
         const type = await this.call("ns-fsApi-2", "getFileType", [file]);
         const md5 = await this.call("ns-fsApi-2", "getFileMd5", [file]);
@@ -307,3 +333,7 @@ export function getAPI(windowLoadPromise: Promise<void>) {
         windowLoadPromise: windowLoadPromise,
     };
 }
+
+addInterruptIpc((args) => {
+    console.log(JSON.stringify(args));
+});

@@ -8,6 +8,7 @@ export interface MessageElementText extends MessageElementBase {
 export interface MessageElementImage extends MessageElementBase {
     type: "image";
     file: string;
+    downloadedPromise: Promise<void>;
 }
 export interface MessageElementFace extends MessageElementBase {
     type: "face";
@@ -23,6 +24,11 @@ export type MessageElement =
     | MessageElementImage
     | MessageElementFace
     | MessageElementRaw;
+export type MessageElementSend =
+    | Omit<MessageElementText, "raw">
+    | Omit<MessageElementImage, "raw">
+    | Omit<Omit<MessageElementFace, "raw">, "downloadPromise">
+    | MessageElementRaw;
 export type MessageChatType = "friend" | "group" | "others";
 export interface Message {
     peer: {
@@ -36,4 +42,5 @@ export interface Message {
     };
     chatType: MessageChatType;
     elements: MessageElement[];
+    allDownloadedPromise: Promise<void[]>;
 }
