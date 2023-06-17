@@ -23,6 +23,11 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
         };
         interruptWindowCreation.forEach((func) => (patchedArgs = func(patchedArgs)));
         const win = new BrowserWindow(patchedArgs);
+        const send = win.webContents.send;
+        win.webContents.send = (channel: string, ...args: IPCArgs<any>) => {
+            handleIpc(args, false);
+            send.bind(win.webContents, channel, ...args)();
+        };
         win.webContents.on("ipc-message-sync", (event, channel) => {
             if (channel == "___!boot") {
                 event.returnValue = {
@@ -48,7 +53,7 @@ function patchIpcMain(ipcMain: typeof Electron.ipcMain) {
                     args[0].eventName == "ns-LoggerApi-2"
                 )
                     return;
-                handleIpc(args);
+                handleIpc(args, true);
                 listener(event, ...args);
             });
         },

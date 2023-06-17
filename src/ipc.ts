@@ -5,6 +5,7 @@ export interface InterruptIPCOptions {
     type?: "request" | "response";
     eventName?: string;
     cmdName?: string;
+    direction?: "in" | "out" | undefined;
 }
 export type InterruptIPC = (args: IPCArgs<any>) => boolean | void;
 export type InterruptWindowCreation = (
@@ -13,13 +14,15 @@ export type InterruptWindowCreation = (
 
 const interruptIpcs: [InterruptIPC, InterruptIPCOptions | undefined][] = [];
 
-export function handleIpc(args: IPCArgs<any>) {
+export function handleIpc(args: IPCArgs<any>, ipcIn: boolean) {
     for (const [func, options] of interruptIpcs) {
         if (
             (options?.cmdName && (!args[1] || args[1][0]?.cmdName != options?.cmdName)) ||
             (options?.eventName &&
                 (!args[0] || args[0].eventName != options?.eventName)) ||
-            (options?.type && (!args[0] || args[0].type != options?.type))
+            (options?.type && (!args[0] || args[0].type != options?.type)) ||
+            (options?.direction == "in" && !ipcIn) ||
+            (options?.direction == "out" && ipcIn)
         )
             continue;
 
