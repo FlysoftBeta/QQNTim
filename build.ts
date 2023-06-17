@@ -11,7 +11,7 @@ const commonOptions: Partial<BuildOptions> = {
     platform: "node",
     write: true,
     allowOverwrite: true,
-    sourcemap: isProduction ? false : "linked",
+    sourcemap: isProduction ? false : "inline",
     minify: isProduction,
     treeShaking: isProduction,
 };
