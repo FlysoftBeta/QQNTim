@@ -2,9 +2,9 @@
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/36d8b1d46c8352fdf9b5/maintainability)](https://codeclimate.com/github/FlysoftBeta/QQNTim/maintainability) [![License](https://img.shields.io/github/license/FlysoftBeta/QQNTim)](https://github.com/FlysoftBeta/QQNTim/blob/dev/COPYING.LESSER) [![Build](https://img.shields.io/github/actions/workflow/status/FlysoftBeta/QQNTim/build.yml)](https://github.com/FlysoftBeta/QQNTim/actions/workflows/build.yml)
 
-![截图](https://github.com/FlysoftBeta/QQNTim/assets/49718840/0e5cf589-031b-4894-9020-ae635679b842)
+![截图](./.github/screenshot.png)
 
-QQNT-Improved (简称 QQNTim) 是一个给 QQNT 的插件管理器，目前处于 Alpha 版本阶段，支持 Windows，Linux 等平台。
+QQNT-Improved (简称 QQNTim) 是一个给 QQNT 的插件管理器，目前处于 Alpha 版本阶段，支持 Windows，Linux 等平台 (macOS 未测试，不保证可用性)。
 
 本程序**不提供任何担保**（包括但不限于使用导致的系统故障、封号等）。
 
@@ -106,7 +106,7 @@ yarn build
 
 ## 插件开发
 
-提示: 可参照 [Plugins Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy) 中的插件进行开发。
+提示: 可参照 [Plugins Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy) 或此源代码树下的 `examples` 文件夹中的插件进行开发。
 
 ### 开始
 
@@ -182,12 +182,12 @@ yarn build
 脚本文件需要导出一个函数，该函数即为插件的入口，示例如下：
 
 ```javascript
+// 例子：QQNT 启动时显示一条 Hello world! 控制台信息
+// qqntim 内包含了很多实用的 API，可以帮助你对 QQNT 做出修改
 module.exports = (qqntim) => {
-    console.log("Say hello!", qqntim);
+    console.log("Hello world!", qqntim);
 };
 ```
-
-其中，你可以通过 `qqntim` 与 QQNTim 进行交互。
 
 #### 主进程
 
@@ -200,7 +200,10 @@ module.exports = (qqntim) => {
 要拦截窗口创建，为其添加额外的[参数](https://www.electronjs.org/docs/latest/api/browser-window#new-browserwindowoptions)，请使用：
 
 ```javascript
+// 例子：为 QQNT 的所有窗口都加上系统边框
 module.exports = (qqntim) => {
+    // args 是窗口参数
+    // 你需要在拦截函数内，返回一个新的修改后的窗口参数
     qqntim.interrupt.windowCreation((args) => {
         return {
             ...args,
@@ -211,68 +214,130 @@ module.exports = (qqntim) => {
 };
 ```
 
-其中，`args` 是窗口参数，你需要在拦截函数内，返回一个新的修改后的窗口参数。
-
 ##### 拦截 IPC
+
+**不建议使用：由于拦截 IPC 会影响性能并降低可维护性，如果你不需要对 QQNT 进行深度修改，尽量不要使用 IPC 拦截。**
 
 要拦截渲染进程到主进程的 IPC ([进程间通讯](https://www.electronjs.org/docs/latest/tutorial/ipc))，请使用：
 
 ```javascript
 module.exports = (qqntim) => {
-    qqntim.interrupt.ipc((args) => {
-        console.log("截获到一条消息！", args);
-        // 返回 true 继续传达消息，返回 false 拦截消息
-        return true;
+    // args 是 IPC 的参数，可以被直接修改
+    qqntim.interrupt.ipc(
+        (args) => {
+            console.log("截获到一条消息！", args);
+            // 返回 true 继续传达消息，返回 false 拦截消息
+            return true;
+        },
+        // (可选) 拦截选项，可以按需求过滤掉一些无关的 IPC 消息
+        {
+            // (可选) 拦截的 IPC 类型，可以是：
+            // request (主动请求)，response (回复)
+            type: "request",
+            // (可选) 事件名称，不同的事件可以调用不同模块的功能，可以是：
+            // ns-ntApi-2 (聊天相关接口) ns-fsApi-2 (文件系统相关接口) 等
+            eventName: "ns-ntApi-2",
+            // (可选) 模块下的命令，不同的命令实现不同的功能
+            cmdName: "nodeIKernelMsgListener/onRecvMsg",
+            // (可选) IPC 方向
+            // 在渲染进程使用 in 可以拦截主进程发送到渲染进程的内容；
+            // 在渲染进程使用 out 可以拦截渲染进程发送到主进程的内容；
+            // 在主进程使用 in 也可以拦截渲染进程发送到主进程的内容；
+            // 在主进程使用 out 也可以拦截主进程发送到渲染进程的内容
+            // 不设置就拦截所有消息
+            direction: "out",
+        }
+    );
+};
+```
+
+#### 渲染进程
+
+渲染进程脚本可用于修改 UI 界面，修改交互逻辑等（和打开一个网站上运行的脚本相似）。
+
+你可以查看 [Electron 官方教程](https://www.electronjs.org/docs/latest/tutorial/process-model#the-renderer-process) 了解渲染进程的概念。
+
+##### NT API
+
+NT API 是用于管理消息的接口，可用于发送消息、接收消息，一般用于机器人、消息群发等功能，以下是一个复读机的例子：
+
+```javascript
+// 例子：私聊接收到消息时自动回复消息，并在两秒后自动撤回
+module.exports = (qqntim) => {
+    // 监听新消息
+    qqntim.nt.on("new-messages", (messages) => {
+        console.log("收到新消息", messages);
+        messages.forEach((message) => {
+            // 只对私聊生效
+            if (message.peer.chatType != "friend") return;
+            // 针对图片：等待所有图片下载完毕
+            message.allDownloadedPromise.then(() => {
+                qqntim.nt
+                    .sendMessage(
+                        message.peer,
+                        // 给消息加上 header 和 footer
+                        [
+                            {
+                                type: "text",
+                                content: "收到一条来自好友的消息：",
+                            },
+                            ...message.elements,
+                            {
+                                type: "text",
+                                content: "（此消息两秒后自动撤回）",
+                            },
+                        ]
+                    )
+                    .then((id) => {
+                        // 发送成功后两秒后自动撤回
+                        setTimeout(() => {
+                            qqntim.nt.revokeMessage(message.peer, id);
+                        }, 2000);
+                    });
+            });
+        });
     });
 };
 ```
 
-你可以通过直接修改 `args` 修改消息内容。
-
-#### 渲染进程
-
-渲染脚本可用于修改 UI 界面，修改交互逻辑等（相当于在一个网页上运行脚本）。
-
-你可以查看 [Electron 官方教程](https://www.electronjs.org/docs/latest/tutorial/process-model#the-renderer-process) 了解渲染进程的概念。
-
 ##### 拦截 IPC
+
+**不建议使用：由于拦截 IPC 会影响性能并降低可维护性，如果你不需要对 QQNT 进行深度修改，尽量不要使用 IPC 拦截。**
 
 要拦截主进程到渲染进程的 IPC ([进程间通讯](https://www.electronjs.org/docs/latest/tutorial/ipc))，请使用：
 
 ```javascript
+// 例子：拦截聊天消息，有 50% 的概率消息不会送达
 module.exports = (qqntim) => {
-    qqntim.interrupt.ipc((args) => {
-        // 当受到新消息时
-        if (
-            args[1] &&
-            args[1][0] &&
-            args[1][0].cmdName == "nodeIKernelMsgListener/onRecvMsg"
-        ) {
+    qqntim.interrupt.ipc(
+        (args) => {
             console.log("截获到一条新消息：", args);
-            // 有大约 50% 的概率，会抛弃此消息 :D
+            // 返回 true 继续传达消息，返回 false 拦截消息
             return Math.round(Math.random()) == 0;
+        },
+        {
+            type: "request",
+            eventName: "ns-ntApi-2",
+            cmdName: "nodeIKernelMsgListener/onRecvMsg",
         }
-        // 返回 true 继续传达消息，返回 false 拦截消息
-        return true;
-    });
+    );
 };
 ```
-
-你可以通过直接修改 `args` 修改消息内容。
 
 ##### 等待页面加载、等待元素出现
 
 有时，我们在加载插件时，页面还未完全加载，为了确保能选中自己需要的 DOM 元素，请使用：
 
 ```javascript
+// 例子：在窗口控制区域放一个按钮，按下就弹出 “来自渲染进程的问候“
 module.exports = (qqntim) => {
     qqntim.windowLoadPromise.then(() => {
         // 此时基本所有 QQNT 的脚本和样式都已经加载完毕了，现在你可以对界面元素进行修改了
         console.log("窗口加载完毕");
 
-        // 在窗口控制区域放一个按钮，按下就弹出：来自渲染进程的问候
+        // 等待窗口控制栏出现
         qqntim.utils.waitForElement(".window-control-area").then((container) => {
-            // 在 container 最前方增加一个按钮
+            // 在窗口控制栏最前方增加一个按钮
             const button = document.createElement("button");
             button.innerText = "点我";
             button.addEventListener("click", () => {
