@@ -3,8 +3,6 @@ name: Build
 on:
     workflow_dispatch:
     push:
-    schedule:
-        - cron: "0 1 * * *"
 
 jobs:
     build:
@@ -54,9 +52,6 @@ jobs:
                   zip -r9 ../qqntim-build.zip .
                   popd
 
-            - name: Get Date
-              run: echo "date=$(date +%F)" >> $GITHUB_ENV
-
             - name: Create release
               if: github.ref_type == 'tag'
               uses: softprops/action-gh-release@v1
@@ -64,19 +59,8 @@ jobs:
                   files: |
                       qqntim-build.tar.gz
                       qqntim-build.zip
+                  generate_release_notes: true
                   tag_name: ${{ github.ref_name }}
-                  prerelease: false
+                  prerelease: ${{ endsWith(github.ref_name, 'alpha') }}
                   draft: false
                   name: ${{ github.ref_name }}
-
-            - name: Create nightly release
-              if: github.event_name == 'schedule'
-              uses: softprops/action-gh-release@v1
-              with:
-                  files: |
-                      qqntim-build.tar.gz
-                      qqntim-build.zip
-                  tag_name: nightly-${{ env.date }}
-                  prerelease: true
-                  draft: false
-                  name: Nightly ${{ env.date }}
