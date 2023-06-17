@@ -50,7 +50,3 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
         });
     }
 }
-
-addInterruptIpc((args) => {
-    console.log(JSON.stringify(args));
-});
