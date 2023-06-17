@@ -41,7 +41,7 @@ export function addInterruptIpc(func: InterruptIPC, options?: InterruptIPCOption
 if (verboseLogging) {
     addInterruptIpc(
         (args) =>
-            console.log(
+            console.debug(
                 `[IPC] (In)`,
                 global.window
                     ? JSON.stringify(args)
@@ -56,7 +56,7 @@ if (verboseLogging) {
     );
     addInterruptIpc(
         (args) =>
-            console.log(
+            console.debug(
                 `[IPC] (Out)`,
                 global.window
                     ? JSON.stringify(args)
