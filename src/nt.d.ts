@@ -34,6 +34,7 @@ export interface Message {
     sender: Sender;
     elements: MessageElement[];
     allDownloadedPromise: Promise<void[]>;
+    raw: object;
 }
 export interface Sender {
     uid: string;
@@ -53,6 +54,7 @@ export interface Friend {
     nickName: string;
     bio: string;
     sex: "male" | "female" | "unset" | "others";
+    raw: object;
 }
 export interface Group {
     uid: string;
@@ -61,4 +63,5 @@ export interface Group {
     role: "master" | "moderator" | "member" | "others";
     maxMembers: number;
     members: number;
+    raw: object;
 }

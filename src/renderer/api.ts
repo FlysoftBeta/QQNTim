@@ -162,6 +162,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                                 nickName: msg.sendNickName,
                             },
                             elements: elements,
+                            raw: msg,
                         };
                     }
                 );
@@ -361,6 +362,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                                             : friend.sex == 255 || friend.sex == 0
                                             ? "unset"
                                             : "others",
+                                    raw: friend,
                                 };
                             }
                         )
@@ -392,6 +394,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                                     : "others",
                             maxMembers: group.maxMember,
                             members: group.memberCount,
+                            raw: group,
                         };
                     }
                 );
