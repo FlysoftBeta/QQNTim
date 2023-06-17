@@ -333,7 +333,3 @@ export function getAPI(windowLoadPromise: Promise<void>) {
         windowLoadPromise: windowLoadPromise,
     };
 }
-
-addInterruptIpc((args) => {
-    console.log(JSON.stringify(args));
-});
