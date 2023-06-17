@@ -5,12 +5,12 @@ import { ipcRenderer } from "electron";
 import { randomUUID } from "crypto";
 import {
     Message,
-    MessageChatType,
     MessageElement,
     MessageElementFace,
     MessageElementImage,
     MessageElementRaw,
     MessageElementText,
+    Peer,
 } from "../nt";
 import {
     IPCArgs,
@@ -37,10 +37,12 @@ type NTEvents = {
 class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
     private pendingCallbacks: Record<string, Function> = {};
     private pendingMediaDownloads: Record<string, Function> = {};
+    private pendingSentMessages: Record<string, Function> = {};
     constructor() {
         super();
         this.listenCallResponse();
         this.listenMediaDownload();
+        this.listenSentMessages();
         this.listenNewMessages();
     }
 
@@ -49,6 +51,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
             const id = args[0].callbackId;
             if (this.pendingCallbacks[id]) {
                 this.pendingCallbacks[id](args);
+                delete this.pendingCallbacks[id];
                 return false;
             }
         });
@@ -99,9 +102,11 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
             faceType:
                 ele.faceElement.faceType == 1
                     ? "normal"
+                    : ele.faceElement.faceType == 2
+                    ? "normal-extended"
                     : ele.faceElement.faceType == 3
                     ? "super"
-                    : "unknown",
+                    : ele.faceElement.faceType,
             faceSuperIndex:
                 ele.faceElement.stickerId && parseInt(ele.faceElement.stickerId),
             raw: ele,
@@ -137,6 +142,12 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                             peer: {
                                 uid: msg.peerUid,
                                 name: msg.peerName,
+                                chatType:
+                                    msg.chatType == 1
+                                        ? "friend"
+                                        : msg.chatType == 2
+                                        ? "group"
+                                        : "others",
                             },
                             sender: {
                                 uid: msg.senderUid,
@@ -144,12 +155,6 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                                 nickName: msg.sendNickName,
                             },
                             elements: elements,
-                            chatType:
-                                msg.chatType == 1
-                                    ? "friend"
-                                    : msg.chatType == 2
-                                    ? "group"
-                                    : "others",
                         };
                     }
                 );
@@ -166,7 +171,10 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
         addInterruptIpc(
             (args) => {
                 const id = args[1][0].payload?.notifyInfo?.msgElementId;
-                if (this.pendingMediaDownloads[id]) this.pendingMediaDownloads[id](args);
+                if (this.pendingMediaDownloads[id]) {
+                    this.pendingMediaDownloads[id](args);
+                    delete this.pendingMediaDownloads[id];
+                }
             },
             {
                 type: "request",
@@ -243,10 +251,12 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                 faceType:
                     element.faceType == "normal"
                         ? 1
+                        : element.faceType == "normal-extended"
+                        ? 2
                         : element.faceType == "super"
                         ? 3
-                        : 1,
-                ...(element.faceType == "super" && {
+                        : element.faceType,
+                ...((element.faceType == "super" || element.faceType == 3) && {
                     packId: "1",
                     stickerId: (element.faceSuperIndex || "0").toString(),
                     stickerType: 1,
@@ -261,19 +271,43 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
     private async destructRawElement(element: MessageElementRaw) {
         return element.raw;
     }
-    async sendMessage(
-        chatType: MessageChatType,
-        peerUid: string,
-        elements: MessageElement[]
-    ) {
-        await this.call("ns-ntApi-2", "nodeIKernelMsgService/sendMsg", [
+    private destructPeer(peer: Peer) {
+        return {
+            chatType: peer.chatType == "friend" ? 1 : peer.chatType == "group" ? 2 : 1,
+            peerUid: peer.uid,
+            guildId: "",
+        };
+    }
+    async revokeMessage(peer: Peer, message: string) {
+        await this.call("ns-ntApi-2", "nodeIKernelMsgService/recallMsg", [
+            {
+                peer: this.destructPeer(peer),
+                msgIds: [message],
+            },
+        ]);
+    }
+    private listenSentMessages() {
+        addInterruptIpc(
+            (args) => {
+                const id = args[1][0].payload.msgRecord.peerUid;
+                if (this.pendingSentMessages[id]) {
+                    this.pendingSentMessages[id](args);
+                    delete this.pendingSentMessages[id];
+                    return false;
+                }
+            },
+            {
+                type: "request",
+                eventName: "ns-ntApi-2",
+                cmdName: "nodeIKernelMsgListener/onAddSendMsg",
+            }
+        );
+    }
+    async sendMessage(peer: Peer, elements: MessageElement[]) {
+        this.call("ns-ntApi-2", "nodeIKernelMsgService/sendMsg", [
             {
                 msgId: "0",
-                peer: {
-                    chatType: chatType == "friend" ? 1 : chatType == "group" ? 2 : 1,
-                    peerUid: peerUid,
-                    guildId: "",
-                },
+                peer: this.destructPeer(peer),
                 msgElements: await Promise.all(
                     elements.map(async (element) => {
                         if (element.type == "text")
@@ -290,6 +324,11 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
             },
             null,
         ]);
+        return await new Promise<string>((resolve) => {
+            this.pendingSentMessages[peer.uid] = (args: IPCArgs<any>) => {
+                resolve(args[1][0].payload.msgRecord.msgId);
+            };
+        });
     }
 }
 

@@ -48,13 +48,7 @@ function patchIpcMain(ipcMain: typeof Electron.ipcMain) {
         ...ipcMain,
         on(channel: string, listener: (event: any, ...args: any[]) => void) {
             ipcMain.on(channel, (event: any, ...args: IPCArgs<any>) => {
-                if (
-                    args[0].eventName == "ns-LoggerApi-1" ||
-                    args[0].eventName == "ns-LoggerApi-2"
-                )
-                    return;
-                handleIpc(args, true);
-                listener(event, ...args);
+                if (handleIpc(args, true)) listener(event, ...args);
             });
         },
     };

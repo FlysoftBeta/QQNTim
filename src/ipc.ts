@@ -18,6 +18,8 @@ export type InterruptWindowCreation = (
 const interruptIpcs: [InterruptIPC, InterruptIPCOptions | undefined][] = [];
 
 export function handleIpc(args: IPCArgs<any>, ipcIn: boolean) {
+    if (args[0].eventName == "ns-LoggerApi-1" || args[0].eventName == "ns-LoggerApi-2")
+        return false;
     for (const [func, options] of interruptIpcs) {
         if (
             (options?.cmdName && (!args[1] || args[1][0]?.cmdName != options?.cmdName)) ||
@@ -30,8 +32,9 @@ export function handleIpc(args: IPCArgs<any>, ipcIn: boolean) {
             continue;
 
         const ret = func(args);
-        if (ret == false) return;
+        if (ret == false) return false;
     }
+    return true;
 }
 
 export function addInterruptIpc(func: InterruptIPC, options?: InterruptIPCOptions) {

@@ -25,8 +25,7 @@ function patchIpcRenderer(ipcRenderer: typeof Electron.ipcRenderer) {
                             }
                         }
                     }
-                handleIpc(args, true);
-                listener(event, ...args);
+                if (handleIpc(args, true)) listener(event, ...args);
             });
         },
         send(channel: string, ...args: IPCArgs<any>) {
