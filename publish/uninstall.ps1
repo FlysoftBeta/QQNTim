@@ -11,13 +11,16 @@ if (-Not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     }
 }
 
-if ([Environment]::Is64BitOperatingSystem) {
-    $QQInstallDir = "${env:ProgramFiles(x86)}\Tencent\QQNT"
+foreach ($RegistryPath in @("HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*")) {
+    foreach ($Item in (Get-ItemProperty $RegistryPath)) {
+        if ($Item.PSChildName -eq "QQ") {
+            $QQInstallDir = (Split-Path -Parent $Item.UninstallString)
+            break
+        }
+    }
 }
-else {
-    $QQInstallDir = "${env:ProgramFiles}\Tencent\QQNT"
-}
-if ((Test-Path $QQInstallDir) -eq $false) {
+
+if (($null -eq $QQInstallDir) -or ((Test-Path $QQInstallDir) -eq $false)) {
     throw "QQNT installation not found."
 }
 $QQAppLauncherDir = "$QQInstallDir\resources\app\app_launcher"
