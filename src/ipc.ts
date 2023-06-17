@@ -1,3 +1,6 @@
+import { inspect } from "util";
+import { verboseLogging } from "./env";
+
 export type IPCResponse = { errMsg: string; result: number };
 export type IPCRequest = any[];
 export type IPCArgs<T> = [{ type: string; eventName: string; callbackId: string }, T];
@@ -33,4 +36,37 @@ export function handleIpc(args: IPCArgs<any>, ipcIn: boolean) {
 
 export function addInterruptIpc(func: InterruptIPC, options?: InterruptIPCOptions) {
     interruptIpcs.push([func, options]);
+}
+
+if (verboseLogging) {
+    addInterruptIpc(
+        (args) =>
+            console.log(
+                `[IPC] (In)`,
+                global.window
+                    ? JSON.stringify(args)
+                    : inspect(args, {
+                          compact: true,
+                          depth: null,
+                          showHidden: true,
+                          colors: true,
+                      })
+            ),
+        { direction: "in" }
+    );
+    addInterruptIpc(
+        (args) =>
+            console.log(
+                `[IPC] (Out)`,
+                global.window
+                    ? JSON.stringify(args)
+                    : inspect(args, {
+                          compact: true,
+                          depth: null,
+                          showHidden: true,
+                          colors: true,
+                      })
+            ),
+        { direction: "out" }
+    );
 }
