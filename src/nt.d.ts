@@ -13,7 +13,7 @@ export interface MessageElementImage extends MessageElementBase {
 export interface MessageElementFace extends MessageElementBase {
     type: "face";
     faceIndex: number;
-    faceType: "normal" | "super" | "unknown";
+    faceType: "normal" | "normal-extended" | "super" | number;
     faceSuperIndex?: number;
 }
 export interface MessageElementRaw extends MessageElementBase {
@@ -29,18 +29,19 @@ export type MessageElementSend =
     | Omit<MessageElementImage, "raw">
     | Omit<Omit<MessageElementFace, "raw">, "downloadPromise">
     | MessageElementRaw;
-export type MessageChatType = "friend" | "group" | "others";
 export interface Message {
-    peer: {
-        uid: string;
-        name: string;
-    };
-    sender: {
-        uid: string;
-        memberName: string;
-        nickName: string;
-    };
-    chatType: MessageChatType;
+    peer: Peer;
+    sender: Sender;
     elements: MessageElement[];
     allDownloadedPromise: Promise<void[]>;
+}
+export interface Sender {
+    uid: string;
+    memberName?: string;
+    nickName?: string;
+}
+export interface Peer {
+    chatType: "friend" | "group" | "others";
+    uid: string;
+    name?: string;
 }
