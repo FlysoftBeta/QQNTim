@@ -251,23 +251,27 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
     }
 
     async getPreviousMessages(peer: Peer, count: number = 20, startMsgId = "0") {
-        const msgs = await ntCall(
-            "ns-ntApi-2",
-            "nodeIKernelMsgService/getMsgsIncludeSelf",
-            [
-                {
-                    peer: destructPeer(peer),
-                    msgId: startMsgId,
-                    cnt: count,
-                    queryOrder: true,
-                },
-                undefined,
-            ]
-        );
-        const messages = (msgs[1][0].msgList as any[]).map((msg) =>
-            constructMessage(msg, this.pendingMediaDownloads)
-        );
-        return messages;
+        try {
+            const msgs = await ntCall(
+                "ns-ntApi-2",
+                "nodeIKernelMsgService/getMsgsIncludeSelf",
+                [
+                    {
+                        peer: destructPeer(peer),
+                        msgId: startMsgId,
+                        cnt: count,
+                        queryOrder: true,
+                    },
+                    undefined,
+                ]
+            );
+            const messages = (msgs.msgList as any[]).map((msg) =>
+                constructMessage(msg, this.pendingMediaDownloads)
+            );
+            return messages;
+        } catch {
+            return [];
+        }
     }
 }
 
