@@ -3,7 +3,9 @@ import { setPlugins } from "./loader";
 import { patchElectron } from "./patch";
 
 console.log("[!Main] QQNTim 加载成功");
-const { plugins, resourceDir } = ipcRenderer.sendSync("___!boot");
+const { plugins, resourceDir } = ipcRenderer.sendSync("___!boot", {
+    eventName: "QQNTIM_BOOT",
+});
 
 patchElectron();
 const timer = setInterval(() => {

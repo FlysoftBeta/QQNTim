@@ -29,8 +29,7 @@ function patchIpcRenderer(ipcRenderer: typeof Electron.ipcRenderer) {
             });
         },
         send(channel: string, ...args: IPCArgs<any>) {
-            handleIpc(args, false);
-            ipcRenderer.send(channel, ...args);
+            if (handleIpc(args, false)) ipcRenderer.send(channel, ...args);
         },
     };
     Object.setPrototypeOf(object, ipcRenderer);
