@@ -29,7 +29,7 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
             send.bind(win.webContents, channel, ...args)();
         };
         win.webContents.on("ipc-message", (_event, _channel, ...args: IPCArgs<any>) => {
-            if (!handleIpc(args, true)) args.splice(0, args.length);
+            if (!handleIpc(args, true, win.webContents)) args.splice(0, args.length);
         });
         win.webContents.on(
             "ipc-message-sync",

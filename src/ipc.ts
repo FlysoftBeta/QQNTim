@@ -10,14 +10,21 @@ export interface InterruptIPCOptions {
     cmdName?: string;
     direction?: "in" | "out" | undefined;
 }
-export type InterruptIPC = (args: IPCArgs<any>) => boolean | void;
+export type InterruptIPC = (
+    args: IPCArgs<any>,
+    sender?: Electron.WebContents
+) => boolean | void;
 export type InterruptWindowCreation = (
     args: Electron.BrowserWindowConstructorOptions
 ) => Electron.BrowserWindowConstructorOptions;
 
 const interruptIpcs: [InterruptIPC, InterruptIPCOptions | undefined][] = [];
 
-export function handleIpc(args: IPCArgs<any>, ipcIn: boolean) {
+export function handleIpc(
+    args: IPCArgs<any>,
+    ipcIn: boolean,
+    sender?: Electron.WebContents
+) {
     if (!ipcIn && (!args[0] || !args[0]?.eventName)) {
         args.push(
             { eventName: "QQNTIM_WRAPPER", type: "request" },
@@ -41,7 +48,7 @@ export function handleIpc(args: IPCArgs<any>, ipcIn: boolean) {
         )
             continue;
 
-        const ret = func(args);
+        const ret = func(args, sender);
         if (ret == false) return false;
     }
     return true;
