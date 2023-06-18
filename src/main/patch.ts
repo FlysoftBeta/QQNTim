@@ -8,11 +8,11 @@ const s = path.sep;
 const interruptWindowCreation: InterruptWindowCreation[] = [];
 
 function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
-    const func = function (args: Electron.BrowserWindowConstructorOptions) {
+    const func = function (options: Electron.BrowserWindowConstructorOptions) {
         let patchedArgs: Electron.BrowserWindowConstructorOptions = {
-            ...args,
+            ...options,
             webPreferences: {
-                ...args.webPreferences,
+                ...options.webPreferences,
                 preload: `${__dirname}${s}qqntim-renderer.js`,
                 devTools: true,
                 webSecurity: false,
@@ -28,33 +28,26 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
             handleIpc(args, false);
             send.bind(win.webContents, channel, ...args)();
         };
-        win.webContents.on("ipc-message-sync", (event, channel) => {
-            if (channel == "___!boot") {
-                event.returnValue = {
-                    plugins: plugins,
-                    resourceDir: path.dirname(args.webPreferences?.preload!),
-                };
-            }
+        win.webContents.on("ipc-message", (event, _channel, ...args: IPCArgs<any>) => {
+            if (!handleIpc(args, true)) args.splice(0, args.length);
         });
+        win.webContents.on(
+            "ipc-message-sync",
+            (event, channel, ...args: IPCArgs<any>) => {
+                handleIpc(args, true);
+                if (channel == "___!boot") {
+                    event.returnValue = {
+                        plugins: plugins,
+                        resourceDir: path.dirname(options.webPreferences?.preload!),
+                    };
+                }
+            }
+        );
         return win;
     };
     Object.setPrototypeOf(func, BrowserWindow);
 
     return func as any as typeof Electron.BrowserWindow;
-}
-
-function patchIpcMain(ipcMain: typeof Electron.ipcMain) {
-    const object = {
-        ...ipcMain,
-        on(channel: string, listener: (event: any, ...args: any[]) => void) {
-            ipcMain.on(channel, (event: any, ...args: IPCArgs<any>) => {
-                if (handleIpc(args, true)) listener(event, ...args);
-            });
-        },
-    };
-    Object.setPrototypeOf(object, ipcMain);
-
-    return object as any as typeof Electron.ipcMain;
 }
 
 function patchMenu(Menu: typeof Electron.Menu) {
@@ -90,7 +83,6 @@ export function patchElectron() {
             patchedElectron = {
                 ...loadedModule,
                 BrowserWindow: patchBrowserWindow(loadedModule.BrowserWindow),
-                ipcMain: patchIpcMain(loadedModule.ipcMain),
                 Menu: patchMenu(loadedModule.Menu),
             };
             return patchedElectron;
