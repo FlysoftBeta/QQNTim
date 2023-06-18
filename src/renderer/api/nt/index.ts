@@ -239,6 +239,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
             this.once("friends-list-updated", (list) => resolve(list));
         });
     }
+
     async getGroupsList(forced: boolean) {
         ntCall("ns-ntApi-2", "nodeIKernelGroupService/getGroupList", [
             { forceFetch: forced },
@@ -247,6 +248,30 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
         return await new Promise<Group[]>((resolve) => {
             this.once("groups-list-updated", (list) => resolve(list));
         });
+    }
+
+    async getPreviousMessages(peer: Peer, count: number = 20, startMsgId = "0") {
+        try {
+            const msgs = await ntCall(
+                "ns-ntApi-2",
+                "nodeIKernelMsgService/getMsgsIncludeSelf",
+                [
+                    {
+                        peer: destructPeer(peer),
+                        msgId: startMsgId,
+                        cnt: count,
+                        queryOrder: true,
+                    },
+                    undefined,
+                ]
+            );
+            const messages = (msgs.msgList as any[]).map((msg) =>
+                constructMessage(msg, this.pendingMediaDownloads)
+            );
+            return messages;
+        } catch {
+            return [];
+        }
     }
 }
 
