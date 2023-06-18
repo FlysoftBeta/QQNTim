@@ -25,16 +25,20 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
         const win = new BrowserWindow(patchedArgs);
         const send = win.webContents.send;
         win.webContents.send = (channel: string, ...args: IPCArgs<any>) => {
-            handleIpc(args, false);
+            handleIpc(args, channel, false);
             send.bind(win.webContents, channel, ...args)();
         };
-        win.webContents.on("ipc-message", (_event, _channel, ...args: IPCArgs<any>) => {
-            if (!handleIpc(args, true)) args.splice(0, args.length);
+        win.webContents.on("ipc-message", (event, channel, ...args: IPCArgs<any>) => {
+            if (!handleIpc(args, channel, true, win.webContents)) {
+                throw new Error(
+                    "Forcibly stopped IPC propagation (Note that this is not a bug.)"
+                );
+            }
         });
         win.webContents.on(
             "ipc-message-sync",
             (event, channel, ...args: IPCArgs<any>) => {
-                handleIpc(args, true);
+                handleIpc(args, channel, true);
                 if (channel == "___!boot") {
                     event.returnValue = {
                         plugins: plugins,

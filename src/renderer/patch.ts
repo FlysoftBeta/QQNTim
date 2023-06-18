@@ -25,11 +25,11 @@ function patchIpcRenderer(ipcRenderer: typeof Electron.ipcRenderer) {
                             }
                         }
                     }
-                if (handleIpc(args, true)) listener(event, ...args);
+                if (handleIpc(args, channel, true)) listener(event, ...args);
             });
         },
         send(channel: string, ...args: IPCArgs<any>) {
-            if (handleIpc(args, false)) ipcRenderer.send(channel, ...args);
+            if (handleIpc(args, channel, false)) ipcRenderer.send(channel, ...args);
         },
     };
     Object.setPrototypeOf(object, ipcRenderer);

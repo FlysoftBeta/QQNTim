@@ -10,14 +10,23 @@ export interface InterruptIPCOptions {
     cmdName?: string;
     direction?: "in" | "out" | undefined;
 }
-export type InterruptIPC = (args: IPCArgs<any>) => boolean | void;
+export type InterruptIPC = (
+    args: IPCArgs<any>,
+    channel: string,
+    sender?: Electron.WebContents
+) => boolean | void;
 export type InterruptWindowCreation = (
     args: Electron.BrowserWindowConstructorOptions
 ) => Electron.BrowserWindowConstructorOptions;
 
 const interruptIpcs: [InterruptIPC, InterruptIPCOptions | undefined][] = [];
 
-export function handleIpc(args: IPCArgs<any>, ipcIn: boolean) {
+export function handleIpc(
+    args: IPCArgs<any>,
+    channel: string,
+    ipcIn: boolean,
+    sender?: Electron.WebContents
+) {
     if (!ipcIn && (!args[0] || !args[0]?.eventName)) {
         args.push(
             { eventName: "QQNTIM_WRAPPER", type: "request" },
@@ -32,16 +41,20 @@ export function handleIpc(args: IPCArgs<any>, ipcIn: boolean) {
 
     for (const [func, options] of interruptIpcs) {
         if (
-            (options?.cmdName && (!args[1] || args[1][0]?.cmdName != options?.cmdName)) ||
+            (options?.cmdName &&
+                (!args[1] ||
+                    (args[1][0]?.cmdName != options?.cmdName &&
+                        args[1][0] != options?.cmdName))) ||
             (options?.eventName &&
                 (!args[0] || args[0].eventName != options?.eventName)) ||
             (options?.type && (!args[0] || args[0].type != options?.type)) ||
             (options?.direction == "in" && !ipcIn) ||
             (options?.direction == "out" && ipcIn)
-        )
+        ) {
             continue;
+        }
 
-        const ret = func(args);
+        const ret = func(args, channel, sender);
         if (ret == false) return false;
     }
     return true;
@@ -53,9 +66,9 @@ export function addInterruptIpc(func: InterruptIPC, options?: InterruptIPCOption
 
 if (verboseLogging) {
     addInterruptIpc(
-        (args) =>
+        (args, channel) =>
             console.debug(
-                `[IPC] (In)`,
+                `[IPC] (In) ${channel}`,
                 global.window
                     ? JSON.stringify(args)
                     : inspect(args, {
@@ -68,9 +81,9 @@ if (verboseLogging) {
         { direction: "in" }
     );
     addInterruptIpc(
-        (args) =>
+        (args, channel) =>
             console.debug(
-                `[IPC] (Out)`,
+                `[IPC] (Out) ${channel}`,
                 global.window
                     ? JSON.stringify(args)
                     : inspect(args, {
