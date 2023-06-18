@@ -1,18 +1,12 @@
 import * as path from "path";
-import * as electron from "electron";
-import * as fs from "fs-extra";
 import { Plugin } from "../plugin";
-import { addInterruptWindowCreation } from "./patch";
-import {
-    addInterruptIpc,
-    InterruptIPCOptions,
-    InterruptIPC,
-    InterruptWindowCreation,
-} from "../ipc";
+import { getAPI } from "./api";
 
 const s = path.sep;
 
 export let plugins: Record<string, Plugin> = {};
+
+const api = getAPI();
 
 export function setPlugins(newPlugins: Record<string, Plugin>) {
     for (const id in newPlugins) {
@@ -29,18 +23,7 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
         });
         scripts.forEach((script) => {
             try {
-                require(script)({
-                    interrupt: {
-                        ipc: (func: InterruptIPC, options?: InterruptIPCOptions) =>
-                            addInterruptIpc(func, options),
-                        windowCreation: (func: InterruptWindowCreation) =>
-                            addInterruptWindowCreation(func),
-                    },
-                    modules: {
-                        electron: electron,
-                        fs: fs,
-                    },
-                });
+                require(script)(api);
             } catch (reason) {
                 console.error(
                     `[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者解决`
