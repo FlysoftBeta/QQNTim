@@ -45,6 +45,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                 type: "request",
                 eventName: "ns-ntApi-2",
                 cmdName: "nodeIKernelMsgListener/onRichMediaDownloadComplete",
+                direction: "in",
             }
         );
     }
@@ -63,6 +64,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                 type: "request",
                 eventName: "ns-ntApi-2",
                 cmdName: "nodeIKernelMsgListener/onAddSendMsg",
+                direction: "in",
             }
         );
     }
@@ -79,6 +81,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                 type: "request",
                 eventName: "ns-ntApi-2",
                 cmdName: "nodeIKernelMsgListener/onRecvMsg",
+                direction: "in",
             }
         );
     }
@@ -118,6 +121,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                 type: "request",
                 eventName: "ns-ntApi-2",
                 cmdName: "nodeIKernelBuddyListener/onBuddyListChange",
+                direction: "in",
             }
         );
         addInterruptIpc(
@@ -148,6 +152,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                 type: "request",
                 eventName: "ns-ntApi-2",
                 cmdName: "nodeIKernelGroupListener/onGroupListUpdate",
+                direction: "in",
             }
         );
     }

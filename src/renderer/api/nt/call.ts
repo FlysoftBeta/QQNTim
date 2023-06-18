@@ -14,14 +14,19 @@ class NTCallError extends Error {
 
 const pendingCallbacks: Record<string, Function> = {};
 
-addInterruptIpc((args) => {
-    const id = args[0].callbackId;
-    if (pendingCallbacks[id]) {
-        pendingCallbacks[id](args);
-        delete pendingCallbacks[id];
-        return false;
+addInterruptIpc(
+    (args) => {
+        const id = args[0].callbackId;
+        if (pendingCallbacks[id]) {
+            pendingCallbacks[id](args);
+            delete pendingCallbacks[id];
+            return false;
+        }
+    },
+    {
+        direction: "in",
     }
-});
+);
 
 export function ntCall(eventName: string, cmd: string, args: any[]) {
     return new Promise<any>((resolve, reject) => {
