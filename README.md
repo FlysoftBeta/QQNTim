@@ -4,6 +4,8 @@
 
 ![截图](./.github/screenshot.png)
 
+**注意:** 我们注意到 QQNT (Windows) 最近在进行大幅度修改。为了防止我们的前功尽弃，我们将适当减小更新频率。
+
 QQNT-Improved (简称 QQNTim) 是一个给 QQNT 的插件管理器，目前处于 Alpha 版本阶段，支持 Windows，Linux 等平台 (macOS 未测试，不保证可用性)。
 
 本程序**不提供任何担保**（包括但不限于使用导致的系统故障、封号等）。
