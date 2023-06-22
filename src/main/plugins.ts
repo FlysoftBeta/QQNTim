@@ -4,36 +4,19 @@ import * as fs from "fs-extra";
 import * as path from "path";
 import { Plugin, Manifest } from "../plugin";
 import { Configuration } from "../config";
+import { configFile, dataDir, pluginDir } from "../env";
 
 let config: Configuration = {};
 export const plugins: Record<string, Plugin> = {};
 const s = path.sep;
 
-function getConfigDir() {
-    return process.platform == "win32"
-        ? `${process.env["UserProfile"]}${s}.qqntim`
-        : `${process.env["HOME"]}${s}.local${s}share${s}QQNTim`;
-}
-
-function getConfigFile() {
-    return `${getConfigDir()}${s}config.json`;
-}
-
-function getPluginDir() {
-    return `${getConfigDir()}${s}plugins`;
-}
-
 export function prepareConfigDir() {
-    const configDir = getConfigDir(),
-        configFile = getConfigFile(),
-        pluginDir = getPluginDir();
-    fs.ensureDirSync(configDir);
+    fs.ensureDirSync(dataDir);
     fs.ensureDirSync(pluginDir);
     if (!fs.existsSync(configFile)) fs.writeJSONSync(configFile, {});
 }
 
 export function loadConfig() {
-    const configFile = getConfigFile();
     config = fs.readJSONSync(configFile) || {};
 }
 
@@ -102,7 +85,6 @@ export function parsePlugin(dir: string) {
 }
 
 export function collectPlugins() {
-    const pluginDir = getPluginDir();
     const folders = fs.readdirSync(pluginDir);
 
     folders.forEach((folder) => {
