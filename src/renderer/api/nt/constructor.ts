@@ -1,3 +1,4 @@
+import { downloadMedia } from "./media";
 import {
     MessageElementText,
     MessageElementImage,
@@ -14,18 +15,19 @@ export function constructTextElement(ele: any): MessageElementText {
         raw: ele,
     };
 }
-export function constructImageElement(
-    ele: any,
-    mediaDownloads: Record<string, Function>
-): MessageElementImage {
+
+export function constructImageElement(ele: any, msg: any): MessageElementImage {
     return {
         type: "image",
         file: ele.picElement.sourcePath,
-        downloadedPromise: new Promise<void>((resolve, reject) => {
-            mediaDownloads[ele.elementId] = () => {
-                resolve();
-            };
-        }),
+        downloadedPromise: downloadMedia(
+            msg.msgId,
+            ele.elementId,
+            msg.peerUid,
+            msg.chatType,
+            ele.picElement.thumbPath.get(0),
+            ele.picElement.sourcePath
+        ),
         raw: ele,
     };
 }
@@ -51,15 +53,12 @@ export function constructRawElement(ele: any): MessageElementRaw {
         raw: ele,
     };
 }
-export function constructMessage(
-    msg: any,
-    mediaDownloads: Record<string, Function>
-): Message {
+export function constructMessage(msg: any): Message {
     const downloadedPromises: Promise<void>[] = [];
     const elements = (msg.elements as any[]).map((ele): MessageElement => {
         if (ele.elementType == 1) return constructTextElement(ele);
         else if (ele.elementType == 2) {
-            const element = constructImageElement(ele, mediaDownloads);
+            const element = constructImageElement(ele, msg);
             downloadedPromises.push(element.downloadedPromise);
             return element;
         } else if (ele.elementType == 6) return constructFaceElement(ele);
