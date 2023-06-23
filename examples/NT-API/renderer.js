@@ -1,36 +1,38 @@
+const path = require("path");
+
 module.exports = (qqntim) => {
+    //#region 示例：获取好友和群的最近 20 条历史消息
     qqntim.nt.getFriendsList().then((list) => {
-        console.log("[Example-AutoReply] 好友列表", list);
+        console.log(`[Example-NT-API] 好友列表`, list);
         list.forEach((friend) =>
             qqntim.nt
                 .getPreviousMessages({ chatType: "friend", uid: friend.uid }, 20)
                 .then((messages) =>
                     console.log(
-                        "[Example-AutoReply] 好友 " +
-                            friend.nickName +
-                            " 的最近 20 条消息",
+                        `[Example-NT-API] 好友 ${friend.nickName} (${friend.uid}) 的最近 20 条消息`,
                         messages
                     )
                 )
         );
     });
-
     qqntim.nt.getGroupsList().then((list) => {
-        console.log("[Example-AutoReply] 群组列表", list);
+        console.log(`[Example-NT-API] 群组列表`, list);
         list.forEach((group) =>
             qqntim.nt
                 .getPreviousMessages({ chatType: "group", uid: group.uid }, 20)
                 .then((messages) =>
                     console.log(
-                        "[Example-AutoReply] 群组 " + group.name + " 的最近 20 条消息",
+                        `[Example-NT-API] 群组 ${group.name} (${group.uid}) 的最近 20 条消息`,
                         messages
                     )
                 )
         );
     });
+    //#endregion
 
+    //#region 示例：自动回复
     qqntim.nt.on("new-messages", (messages) => {
-        console.log("[Example-AutoReply] 收到新消息", messages);
+        console.log("[Example-NT-API] 收到新消息", messages);
         messages.forEach((message) => {
             if (message.peer.chatType != "friend") return;
             message.allDownloadedPromise.then(() => {
@@ -43,7 +45,12 @@ module.exports = (qqntim) => {
                         ...message.elements,
                         {
                             type: "text",
-                            content: "（此消息两秒后自动撤回）",
+                            content: "（此消息两秒后自动撤回）\n示例图片：",
+                        },
+                        // 附带一个插件目录下的 example.jpg 作为图片发送
+                        {
+                            type: "image",
+                            file: path.join(__dirname, "example.jpg"),
                         },
                     ])
                     .then((id) => {
@@ -54,4 +61,5 @@ module.exports = (qqntim) => {
             });
         });
     });
+    //#endregion
 };

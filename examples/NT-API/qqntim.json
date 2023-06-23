@@ -1,6 +1,6 @@
 {
-    "id": "example-auto-reply",
-    "name": "示例插件：自动回复",
+    "id": "example-nt-api",
+    "name": "示例插件：NT API",
     "author": "Flysoft",
     "injections": [{ "type": "renderer", "script": "renderer.js", "page": "main" }]
 }
