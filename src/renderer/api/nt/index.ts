@@ -11,6 +11,7 @@ import {
     destructTextElement,
 } from "./destructor";
 import { ntCall } from "./call";
+import { prepareImageElement } from "./media";
 
 type NTEvents = {
     "new-messages": (messages: Message[]) => void;
@@ -19,35 +20,15 @@ type NTEvents = {
 };
 
 class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
-    private pendingMediaDownloads: Record<string, Function> = {};
     private pendingSentMessages: Record<string, Function> = {};
     private friendsList: Friend[] = [];
     private groupsList: Group[] = [];
 
     constructor() {
         super();
-        this.listenMediaDownload();
         this.listenSentMessages();
         this.listenNewMessages();
         this.listenContactListChange();
-    }
-
-    private listenMediaDownload() {
-        addInterruptIpc(
-            (args) => {
-                const id = args[1][0].payload?.notifyInfo?.msgElementId;
-                if (this.pendingMediaDownloads[id]) {
-                    this.pendingMediaDownloads[id](args);
-                    delete this.pendingMediaDownloads[id];
-                }
-            },
-            {
-                type: "request",
-                eventName: "ns-ntApi-2",
-                cmdName: "nodeIKernelMsgListener/onRichMediaDownloadComplete",
-                direction: "in",
-            }
-        );
     }
 
     private listenSentMessages() {
@@ -73,7 +54,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
         addInterruptIpc(
             (args) => {
                 const messages = (args[1][0].payload.msgList as any[]).map(
-                    (msg): Message => constructMessage(msg, this.pendingMediaDownloads)
+                    (msg): Message => constructMessage(msg)
                 );
                 this.emit("new-messages", messages);
             },
@@ -157,45 +138,6 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
         );
     }
 
-    private async prepareImageElement(file: string) {
-        const type = await ntCall("ns-fsApi-2", "getFileType", [file]);
-        const md5 = await ntCall("ns-fsApi-2", "getFileMd5", [file]);
-        const fileName = `${md5}.${type.ext}`;
-        const filePath = await ntCall(
-            "ns-ntApi-2",
-            "nodeIKernelMsgService/getRichMediaFilePath",
-            [
-                {
-                    md5HexStr: md5,
-                    fileName: fileName,
-                    elementType: 2,
-                    elementSubType: 0,
-                    thumbSize: 0,
-                    needCreate: true,
-                    fileType: 1,
-                },
-            ]
-        );
-        await ntCall("ns-fsApi-2", "copyFile", [{ fromPath: file, toPath: filePath }]);
-        const imageSize = await ntCall("ns-fsApi-2", "getImageSizeFromPath", [file]);
-        const fileSize = await ntCall("ns-fsApi-2", "getFileSize", [file]);
-        return {
-            md5HexStr: md5,
-            fileSize: fileSize,
-            picWidth: imageSize.width,
-            picHeight: imageSize.height,
-            fileName: fileName,
-            sourcePath: filePath,
-            original: true,
-            picType: 1001,
-            picSubType: 0,
-            fileUuid: "",
-            fileSubId: "",
-            thumbFileSize: 0,
-            summary: "",
-        };
-    }
-
     async revokeMessage(peer: Peer, message: string) {
         await ntCall("ns-ntApi-2", "nodeIKernelMsgService/recallMsg", [
             {
@@ -216,7 +158,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                         else if (element.type == "image")
                             return destructImageElement(
                                 element,
-                                this.prepareImageElement(element.file)
+                                await prepareImageElement(element.file)
                             );
                         else if (element.type == "face")
                             return destructFaceElement(element);
@@ -270,9 +212,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
                     undefined,
                 ]
             );
-            const messages = (msgs.msgList as any[]).map((msg) =>
-                constructMessage(msg, this.pendingMediaDownloads)
-            );
+            const messages = (msgs.msgList as any[]).map((msg) => constructMessage(msg));
             return messages;
         } catch {
             return [];
