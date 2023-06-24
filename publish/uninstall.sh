@@ -46,6 +46,7 @@ killall -vw qq
 
 echo "Removing files..."
 rm -vf "$qq_applauncher_dir/qqntim.js" "$qq_applauncher_dir/qqntim-renderer.js"
+rm -vrf "$qq_applauncher_dir/node_modules"
 
 echo "Restoring package.json..."
 sed -i "s#\.\/app_launcher\/qqntim\.js#\.\/app_launcher\/index\.js#g" "$package_json_file"

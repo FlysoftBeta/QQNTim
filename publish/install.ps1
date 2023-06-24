@@ -33,7 +33,7 @@ $QQNTimFlagFile = "$QQAppLauncherDir\qqntim-flag.txt"
 if ((Test-Path $EntryBackupFile) -eq $true) {
     Write-Output "Cleaning up old installation..."
     Move-Item $EntryFile $EntryBackupFile -Force
-    "" | Set-Content $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
+    "" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
 }
 
 if ((Test-Path $QQNTimFlagFile) -eq $false) {
@@ -47,11 +47,13 @@ Stop-Process -Name QQ -ErrorAction SilentlyContinue
 
 Write-Output "Copying files..."
 Copy-Item ".\qqntim.js", ".\qqntim-renderer.js" $QQAppLauncherDir -Force
+Copy-Item ".\node_modules\*" "$QQAppLauncherDir\node_modules" -Recurse -Force
 
 Write-Output "Patching package.json..."
-(Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/index.js", "./app_launcher/qqntim.js" | Set-Content $PackageJSONFile -Encoding UTF8 -Force -NoNewline
+$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+[System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/index.js", "./app_launcher/qqntim.js"), $Utf8NoBomEncoding)
 
-"" | Set-Content $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
+"" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
 
 Write-Output "Installed successfully."
 Pause

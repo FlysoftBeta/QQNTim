@@ -36,7 +36,9 @@ echo "Killing QQ processes..."
 killall -vw qq
 
 echo "Copying files..."
+mkdir -p "$qq_applauncher_dir/node_modules"
 cp -vf ./qqntim.js ./qqntim-renderer.js "$qq_applauncher_dir"
+cp -vrf ./node_modules/* "$qq_applauncher_dir/node_modules"
 
 echo "Patching package.json..."
 sed -i "s#\.\/app_launcher\/index\.js#\.\/app_launcher\/qqntim\.js#g" "$package_json_file"

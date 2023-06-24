@@ -33,7 +33,7 @@ $QQNTimFlagFile = "$QQAppLauncherDir\qqntim-flag.txt"
 if ((Test-Path $EntryBackupFile) -eq $true) {
     Write-Output "Cleaning up old installation..."
     Move-Item $EntryFile $EntryBackupFile -Force
-    "" | Set-Content $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
+    "" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
 }
 
 if ((Test-Path $QQNTimFlagFile) -eq $false) {
@@ -53,11 +53,11 @@ Stop-Process -Name QQ -ErrorAction SilentlyContinue
 
 Write-Output "Removing files..."
 Remove-Item "$QQAppLauncherDir\qqntim.js", "$QQAppLauncherDir\qqntim-renderer.js" -Force
+Remove-Item "$QQAppLauncherDir\node_modules" -Recurse -Force
 
-Write-Output "Restoring entry..."
-Move-Item $EntryFileBackup $EntryFile -Force
 Write-Output "Restoring package.json..."
-(Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/qqntim.js", "./app_launcher/index.js" | Set-Content $PackageJSONFile -Encoding UTF8 -Force -NoNewline
+$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+[System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/qqntim.js", "./app_launcher/index.js"), $Utf8NoBomEncoding)
 
 Remove-Item $QQNTimFlagFile -Force
 
