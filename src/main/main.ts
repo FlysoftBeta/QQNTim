@@ -6,27 +6,19 @@
 import { patchElectron } from "./patch";
 import { collectPlugins, loadConfig, plugins, prepareConfigDir } from "./plugins";
 import { setPlugins } from "./loader";
+import { initDebugger } from "./debugger";
+import { useNativeDevTools } from "../env";
 
-console.log("[!Main] QQNTim 加载成功");
-try {
+function init() {
+    console.log("[!Main] QQNTim 开始加载");
     prepareConfigDir();
     loadConfig();
     collectPlugins();
-} catch (reason) {
-    console.error(`[!Main] 无法加载配置`);
-    console.error(reason);
-}
-
-try {
     setPlugins(plugins);
-} catch (reason) {
-    console.error(`[!Main] 无法加载插件`);
-    console.error(reason);
+    patchElectron();
+    console.log("[!Main] QQNTim 加载成功");
 }
 
-try {
-    patchElectron();
-} catch (reason) {
-    console.error(`[!Main] 无法修补 Electron 模块`);
-    console.error(reason);
-}
+if (!useNativeDevTools) initDebugger();
+init();
+require("./launcher.node").load("external_index", module);

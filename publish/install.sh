@@ -11,12 +11,20 @@ qq_installation_dir=$( dirname $( readlink $( which qq ) ) )
 if [ ! -d "$qq_installation_dir" ]; then
     echo "QQNT installation not found."
 fi
-qq_applauncher_dir="$qq_installation_dir/resources/app/app_launcher"
-
+qq_app_dir="$qq_installation_dir/resources/app"
+qq_applauncher_dir="$qq_app_dir/app_launcher"
 entry_file="$qq_applauncher_dir/index.js"
-entry_file_backup="$entry_file.bak"
+entry_backup_file="$qq_applauncher_dir/index.js.bak"
+package_json_file="$qq_app_dir/package.json"
+qqntim_flag_file="$qq_applauncher_dir/qqntim-flag.txt"
 
-if [ ! -f "$entry_file_backup" ]; then
+if [ -f "$entry_backup_file" ]; then
+    echo "Cleaning up old installation..."
+    mv -vf "$entry_backup_file" "$entry_file"
+    touch "$qqntim_flag_file"
+fi
+
+if [ ! -f "$qqntim_flag_file" ]; then
     read -p "Do you want to install QQNTim (y/n)?" choice
     case $choice in
     y) ;;
@@ -30,11 +38,9 @@ killall -vw qq
 echo "Copying files..."
 cp -vf ./qqntim.js ./qqntim-renderer.js "$qq_applauncher_dir"
 
-if [ ! -f "$entry_file_backup" ]; then
-    echo "Patching entry..."
-    cp -vf "$entry_file" "$entry_file_backup"
-    echo "require(\"./qqntim\");" | cat - "$entry_file" > "$entry_file.tmp"
-    mv -vf "$entry_file.tmp" "$entry_file"
-fi
+echo "Patching package.json..."
+sed -i "s#\.\/app_launcher\/index\.js#\.\/app_launcher\/qqntim\.js#g" "$package_json_file"
+
+touch "$qqntim_flag_file"
 
 echo "Installed successfully."

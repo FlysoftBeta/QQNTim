@@ -2,36 +2,44 @@ import * as path from "path";
 import { Module } from "module";
 import { plugins } from "./loader";
 import { InterruptWindowCreation, IPCArgs, handleIpc } from "../ipc";
+import { createDebuggerWindow, debuggerOrigin } from "./debugger";
+import { BrowserWindow, Menu } from "electron";
+import { useNativeDevTools } from "../env";
 
 const s = path.sep;
 
 const interruptWindowCreation: InterruptWindowCreation[] = [];
 
-function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
+function patchBrowserWindow() {
     const func = function (options: Electron.BrowserWindowConstructorOptions) {
         let patchedArgs: Electron.BrowserWindowConstructorOptions = {
             ...options,
             webPreferences: {
                 ...options.webPreferences,
                 preload: `${__dirname}${s}qqntim-renderer.js`,
-                devTools: true,
                 webSecurity: false,
+                allowRunningInsecureContent: true,
                 nodeIntegration: true,
                 nodeIntegrationInSubFrames: true,
+                contextIsolation: true,
+                devTools: true,
                 sandbox: false,
             },
         };
         interruptWindowCreation.forEach((func) => (patchedArgs = func(patchedArgs)));
         const win = new BrowserWindow(patchedArgs);
+        const debuggerId = win.webContents.id.toString();
+
         const send = win.webContents.send;
         win.webContents.send = (channel: string, ...args: IPCArgs<any>) => {
             handleIpc(args, channel, false);
             send.bind(win.webContents, channel, ...args)();
         };
-        win.webContents.on("ipc-message", (event, channel, ...args: IPCArgs<any>) => {
+
+        win.webContents.on("ipc-message", (_, channel, ...args: IPCArgs<any>) => {
             if (!handleIpc(args, channel, true, win.webContents)) {
                 throw new Error(
-                    "Forcibly stopped IPC propagation (Note that this is not a bug.)"
+                    "forcibly stopped IPC propagation (Note that this is not a bug.)"
                 );
             }
         });
@@ -41,36 +49,52 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
                 handleIpc(args, channel, true);
                 if (channel == "___!boot") {
                     event.returnValue = {
+                        debuggerOrigin: !useNativeDevTools && debuggerOrigin,
+                        debuggerId: debuggerId,
                         plugins: plugins,
                         resourceDir: path.dirname(options.webPreferences?.preload!),
                     };
                 }
             }
         );
+
+        win.setMenu(
+            Menu.buildFromTemplate([
+                {
+                    label: "刷新",
+                    role: "reload",
+                    accelerator: "F5",
+                },
+                {
+                    label: "强制刷新",
+                    role: "forceReload",
+                    accelerator: "Ctrl+F5",
+                },
+                useNativeDevTools
+                    ? {
+                          label: "开发者工具",
+                          role: "toggleDevTools",
+                          accelerator: "F12",
+                      }
+                    : {
+                          label: "开发者工具",
+                          accelerator: "F12",
+                          click: (_, win) => {
+                              if (!win) return;
+                              const debuggerId = win.webContents.id.toString();
+                              createDebuggerWindow(debuggerId, win);
+                          },
+                      },
+            ])
+        );
+
+        win.setMenu = () => undefined;
+
         return win;
     };
     Object.setPrototypeOf(func, BrowserWindow);
 
     return func as any as typeof Electron.BrowserWindow;
-}
-
-function patchMenu(Menu: typeof Electron.Menu) {
-    const object = {
-        ...Menu,
-        setApplicationMenu() {
-            const menu = Menu.buildFromTemplate([
-                {
-                    role: "toggleDevTools",
-                    accelerator: "F12",
-                },
-                { role: "reload", accelerator: "F5" },
-            ]);
-            Menu.setApplicationMenu(menu);
-        },
-    };
-    Object.setPrototypeOf(object, Menu);
-
-    return object as any as typeof Electron.Menu;
 }
 
 export function patchElectron() {
@@ -86,8 +110,7 @@ export function patchElectron() {
             if (patchedElectron) return patchedElectron;
             patchedElectron = {
                 ...loadedModule,
-                BrowserWindow: patchBrowserWindow(loadedModule.BrowserWindow),
-                Menu: patchMenu(loadedModule.Menu),
+                BrowserWindow: patchBrowserWindow(),
             };
             return patchedElectron;
         }
