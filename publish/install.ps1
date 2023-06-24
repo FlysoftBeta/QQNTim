@@ -23,14 +23,22 @@ foreach ($RegistryPath in @("HKLM:\Software\WOW6432Node\Microsoft\Windows\Curren
 if (($null -eq $QQInstallDir) -or ((Test-Path $QQInstallDir) -eq $false)) {
     throw "QQNT installation not found."
 }
-$QQAppLauncherDir = "$QQInstallDir\resources\app\app_launcher"
-
+$QQAppDir = "$QQInstallDir\resources\app"
+$QQAppLauncherDir = "$QQAppDir\app_launcher"
 $EntryFile = "$QQAppLauncherDir\index.js"
-$EntryFileBackup = "$EntryFile.bak"
+$EntryBackupFile = "$EntryFile.bak"
+$PackageJSONFile = "$QQAppDir\package.json"
+$QQNTimFlagFile = "$QQAppLauncherDir\qqntim-flag.txt"
 
-if ((Test-Path $EntryFileBackup) -eq $false) {
+if ((Test-Path $EntryBackupFile) -eq $true) {
+    Write-Output "Cleaning up old installation..."
+    Move-Item $EntryFile $EntryBackupFile -Force
+    "" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
+}
+
+if ((Test-Path $QQNTimFlagFile) -eq $false) {
     if ((Read-Host "Do you want to install QQNTim (y/n)?") -notcontains "y") {
-        exit
+        exit -1
     }
 }
 
@@ -38,13 +46,14 @@ Write-Output "Killing QQ processes..."
 Stop-Process -Name QQ -ErrorAction SilentlyContinue
 
 Write-Output "Copying files..."
-Copy-Item ".\qqntim*.js" $QQAppLauncherDir -Force
+Copy-Item ".\qqntim.js", ".\qqntim-renderer.js" $QQAppLauncherDir -Force
+Copy-Item ".\node_modules\*" "$QQAppLauncherDir\node_modules" -Recurse -Force
 
-if ((Test-Path $EntryFileBackup) -eq $false) {
-    Write-Output "Patching entry..."
-    Copy-Item $EntryFile $EntryFileBackup -Force
-    "require(`"./qqntim`");" + (Get-Content $EntryFile -Raw -Encoding UTF8) | Out-File $EntryFile -Encoding UTF8
-}
+Write-Output "Patching package.json..."
+$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+[System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/index.js", "./app_launcher/qqntim.js"), $Utf8NoBomEncoding)
+
+"" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
 
 Write-Output "Installed successfully."
 Pause

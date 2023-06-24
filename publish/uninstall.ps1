@@ -23,16 +23,25 @@ foreach ($RegistryPath in @("HKLM:\Software\WOW6432Node\Microsoft\Windows\Curren
 if (($null -eq $QQInstallDir) -or ((Test-Path $QQInstallDir) -eq $false)) {
     throw "QQNT installation not found."
 }
-$QQAppLauncherDir = "$QQInstallDir\resources\app\app_launcher"
-
+$QQAppDir = "$QQInstallDir\resources\app"
+$QQAppLauncherDir = "$QQAppDir\app_launcher"
 $EntryFile = "$QQAppLauncherDir\index.js"
-$EntryFileBackup = "$EntryFile.bak"
-if ((Test-Path $EntryFileBackup) -eq $false) {
+$EntryBackupFile = "$EntryFile.bak"
+$PackageJSONFile = "$QQAppDir\package.json"
+$QQNTimFlagFile = "$QQAppLauncherDir\qqntim-flag.txt"
+
+if ((Test-Path $EntryBackupFile) -eq $true) {
+    Write-Output "Cleaning up old installation..."
+    Move-Item $EntryFile $EntryBackupFile -Force
+    "" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
+}
+
+if ((Test-Path $QQNTimFlagFile) -eq $false) {
     throw "QQNTim not installed."
 }
 
 if ((Read-Host "Do you want to uninstall QQNTim (y/n)?") -notcontains "y") {
-    exit
+    exit -1
 }
 
 if ((Read-Host "Also remove your data (y/n)?") -contains "y") {
@@ -43,10 +52,14 @@ Write-Output "Killing QQ processes..."
 Stop-Process -Name QQ -ErrorAction SilentlyContinue
 
 Write-Output "Removing files..."
-Remove-Item "$QQAppLauncherDir\qqntim*.js" -Force
+Remove-Item "$QQAppLauncherDir\qqntim.js", "$QQAppLauncherDir\qqntim-renderer.js" -Force
+Remove-Item "$QQAppLauncherDir\node_modules" -Recurse -Force
 
-Write-Output "Restoring entry..."
-Move-Item $EntryFileBackup $EntryFile -Force
+Write-Output "Restoring package.json..."
+$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+[System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/qqntim.js", "./app_launcher/index.js"), $Utf8NoBomEncoding)
+
+Remove-Item $QQNTimFlagFile -Force
 
 Write-Output "Uninstalled successfully."
 Pause

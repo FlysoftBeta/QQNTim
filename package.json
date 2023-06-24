@@ -4,11 +4,14 @@
     "license": "LGPL-3.0-or-later",
     "packageManager": "yarn@3.6.0",
     "scripts": {
-        "dev": "NODE_ENV=development tsc; NODE_ENV=development ts-node ./build.ts",
+        "dev": "NODE_ENV=development tsc && NODE_ENV=development ts-node ./build.ts",
         "build": "NODE_ENV=production tsc && NODE_ENV=production ts-node ./build.ts"
     },
     "dependencies": {
+        "axios": "^1.4.0",
+        "chii": "^1.9.0",
         "fs-extra": "^11.1.1",
+        "portfinder": "^1.0.32",
         "semver": "^7.5.3"
     },
     "devDependencies": {
