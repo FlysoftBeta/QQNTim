@@ -31,6 +31,11 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
         this.listenContactListChange();
     }
 
+    public async getAccountInfo() {
+        const data = await ntCall("ns-BusinessApi-2", "fetchAuthData", []);
+        return { uin: data.uin as string, uid: data.uid as string };
+    }
+
     private listenSentMessages() {
         addInterruptIpc(
             (args) => {
