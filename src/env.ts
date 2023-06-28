@@ -2,6 +2,8 @@ import * as path from "path";
 
 const s = path.sep;
 
+export const isPatcher = !!process.env["QQNTIM_PATCHER"];
+export const isElectronDownloader = !!process.env["QQNTIM_ELECTRON_DOWNLOADER"];
 export const verboseLogging = !!process.env["QQNTIM_VERBOSE_LOGGING"];
 export const dataDir = path.resolve(
     process.env["QQNTIM_HOME"] ||

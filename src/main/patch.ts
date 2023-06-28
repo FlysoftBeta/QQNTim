@@ -1,19 +1,27 @@
 import * as path from "path";
 import { Module } from "module";
+import { app } from "electron";
 import { plugins } from "./loader";
 import { InterruptWindowCreation, IPCArgs, handleIpc } from "../ipc";
+import { isPatcher } from "../env";
 
 const s = path.sep;
 
+let firstPatcherWindowCreated = false;
 const interruptWindowCreation: InterruptWindowCreation[] = [];
 
 function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
     const func = function (options: Electron.BrowserWindowConstructorOptions) {
+        if (firstPatcherWindowCreated)
+            throw new Error("prevented window creation (note that this is not a bug)");
+        if (isPatcher) firstPatcherWindowCreated = true;
         let patchedArgs: Electron.BrowserWindowConstructorOptions = {
             ...options,
             webPreferences: {
                 ...options.webPreferences,
-                preload: `${__dirname}${s}qqntim-renderer.js`,
+                preload: isPatcher
+                    ? `${__dirname}${s}qqntim-patcher.js`
+                    : `${__dirname}${s}qqntim-renderer.js`,
                 devTools: true,
                 webSecurity: false,
                 nodeIntegration: true,
@@ -31,7 +39,7 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
         win.webContents.on("ipc-message", (event, channel, ...args: IPCArgs<any>) => {
             if (!handleIpc(args, channel, true, win.webContents)) {
                 throw new Error(
-                    "Forcibly stopped IPC propagation (Note that this is not a bug.)"
+                    "forcibly stopped IPC propagation (note that this is not a bug)"
                 );
             }
         });
@@ -39,12 +47,20 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
             "ipc-message-sync",
             (event, channel, ...args: IPCArgs<any>) => {
                 handleIpc(args, channel, true);
-                if (channel == "___!boot") {
+                if (channel == "___!boot")
                     event.returnValue = {
                         plugins: plugins,
                         resourceDir: path.dirname(options.webPreferences?.preload!),
                     };
-                }
+                else if (channel == "___!eval") event.returnValue = eval(args[1]);
+
+                if (isPatcher)
+                    if (channel == "___!ok") {
+                        app.exit();
+                    } else if (channel == "___!fail") {
+                        console.error(args[1]);
+                        app.exit();
+                    }
             }
         );
         return win;

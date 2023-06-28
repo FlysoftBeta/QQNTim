@@ -24,6 +24,7 @@ if (($null -eq $QQInstallDir) -or ((Test-Path $QQInstallDir) -eq $false)) {
     throw "QQNT installation not found."
 }
 $QQAppLauncherDir = "$QQInstallDir\resources\app\app_launcher"
+$QQExecutable = "$QQInstallDir\QQ.exe"
 
 $EntryFile = "$QQAppLauncherDir\index.js"
 $EntryFileBackup = "$EntryFile.bak"
@@ -48,3 +49,11 @@ if ((Test-Path $EntryFileBackup) -eq $false) {
 
 Write-Output "Installed successfully."
 Pause
+
+$env:QQNTIM_PATCHER = "1"
+Start-Process "$QQExecutable" -Wait
+$env:QQNTIM_PATCHER = ""
+
+$env:QQNTIM_ELECTRON_DOWNLOADER = "1"
+Start-Process "$QQExecutable" -Wait
+$env:QQNTIM_ELECTRON_DOWNLOADER = ""

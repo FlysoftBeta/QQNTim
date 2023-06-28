@@ -29,7 +29,7 @@ echo "Killing QQ processes..."
 killall -vw qq
 
 echo "Removing files..."
-rm -vf "$qq_applauncher_dir/qqntim.js" "$qq_applauncher_dir/qqntim-renderer.js"
+rm -vf "$qq_applauncher_dir/qqntim.js" "$qq_applauncher_dir/qqntim-renderer.js" "$qq_applauncher_dir/qqntim-patcher.js"
 
 echo "Restoring entry..."
 entry_file="$qq_applauncher_dir/index.js"

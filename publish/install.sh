@@ -28,7 +28,7 @@ echo "Killing QQ processes..."
 killall -vw qq
 
 echo "Copying files..."
-cp -vf ./qqntim.js ./qqntim-renderer.js "$qq_applauncher_dir"
+cp -vf ./qqntim.js ./qqntim-renderer.js ./qqntim-patcher.js "$qq_applauncher_dir"
 
 if [ ! -f "$entry_file_backup" ]; then
     echo "Patching entry..."
