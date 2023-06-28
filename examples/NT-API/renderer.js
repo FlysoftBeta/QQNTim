@@ -1,6 +1,12 @@
 const path = require("path");
 
 module.exports = (qqntim) => {
+    //#region 示例：获取当前账号
+    qqntim.nt.getAccountInfo().then((account) => {
+        console.log(`[Example-NT-API] 当前账号信息`, account);
+    });
+    //#endregion
+
     //#region 示例：获取好友和群的最近 20 条历史消息
     qqntim.nt.getFriendsList().then((list) => {
         console.log(`[Example-NT-API] 好友列表`, list);
