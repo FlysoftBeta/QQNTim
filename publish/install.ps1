@@ -47,7 +47,7 @@ Stop-Process -Name QQ -ErrorAction SilentlyContinue
 
 Write-Output "Copying files..."
 Copy-Item ".\qqntim.js", ".\qqntim-renderer.js" $QQAppLauncherDir -Force
-Copy-Item ".\node_modules\*" "$QQAppLauncherDir\node_modules" -Recurse -Force
+Copy-Item ".\node_modules" "$QQAppLauncherDir\node_modules" -Recurse -Force
 
 Write-Output "Patching package.json..."
 $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
