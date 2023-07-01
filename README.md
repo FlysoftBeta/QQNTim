@@ -1,6 +1,6 @@
 # QQNT-Improved - PC 端 QQNT 插件管理器
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/36d8b1d46c8352fdf9b5/maintainability)](https://codeclimate.com/github/FlysoftBeta/QQNTim/maintainability) [![License](https://img.shields.io/github/license/FlysoftBeta/QQNTim)](https://github.com/FlysoftBeta/QQNTim/blob/dev/COPYING.LESSER) [![Build](https://img.shields.io/github/actions/workflow/status/FlysoftBeta/QQNTim/build.yml)](https://github.com/FlysoftBeta/QQNTim/actions/workflows/build.yml)
+[![Maintainability](https://api.codeclimate.com/v1/badges/bb8c6d1f5c2647ae38e8/maintainability)](https://codeclimate.com/github/Flysoft-Studio/QQNTim/maintainability) [![License](https://img.shields.io/github/license/FlysoftBeta/QQNTim)](https://github.com/FlysoftBeta/QQNTim/blob/dev/COPYING.LESSER) [![Build](https://img.shields.io/github/actions/workflow/status/FlysoftBeta/QQNTim/build.yml)](https://github.com/FlysoftBeta/QQNTim/actions/workflows/build.yml)
 
 ![截图](./.github/screenshot.png)
 
