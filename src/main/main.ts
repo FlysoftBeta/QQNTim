@@ -3,14 +3,11 @@
  * Copyright (c) Flysoft.
  */
 
-import { patchElectron } from "./patch";
 import { collectPlugins, loadConfig, plugins, prepareConfigDir } from "./plugins";
 import { setPlugins } from "./loader";
-import { initDebugger } from "./debugger";
-import { useNativeDevTools } from "../env";
+import { patchElectron } from "./patch";
 
-function init() {
-    console.log("[!Main] QQNTim 开始加载");
+function loadPlugins() {
     prepareConfigDir();
     loadConfig();
     collectPlugins();
@@ -19,6 +16,5 @@ function init() {
     console.log("[!Main] QQNTim 加载成功");
 }
 
-if (!useNativeDevTools) initDebugger();
-init();
+loadPlugins();
 require("./launcher.node").load("external_index", module);

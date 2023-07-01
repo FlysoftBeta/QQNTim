@@ -6,30 +6,11 @@ function patchIpcRenderer(ipcRenderer: typeof Electron.ipcRenderer) {
         ...ipcRenderer,
         on(channel: string, listener: (event: any, ...args: any[]) => void) {
             ipcRenderer.on(channel, (event: any, ...args: IPCArgs<any>) => {
-                if (args[1])
-                    if (
-                        args[1][0]?.cmdName ==
-                        "nodeIKernelMsgListener/onMsgInfoListUpdate"
-                    ) {
-                        for (const msg of args[1][0].payload.msgList) {
-                            if (
-                                msg.elements[0] &&
-                                msg.elements[0].grayTipElement?.revokeElement &&
-                                !msg.elements[0].grayTipElement.revokeElement
-                                    .isSelfOperate
-                            ) {
-                                // Rewrite revoke element to new message
-                                args[1][0].cmdName = "nodeIKernelMsgListener/onRecvMsg";
-                                msg.msgId = (Math.random() * 20).toString();
-                                break;
-                            }
-                        }
-                    }
-                if (handleIpc(args, channel, true)) listener(event, ...args);
+                if (handleIpc(args, "in", channel)) listener(event, ...args);
             });
         },
         send(channel: string, ...args: IPCArgs<any>) {
-            if (handleIpc(args, channel, false)) ipcRenderer.send(channel, ...args);
+            if (handleIpc(args, "out", channel)) ipcRenderer.send(channel, ...args);
         },
     };
     Object.setPrototypeOf(object, ipcRenderer);
@@ -41,19 +22,20 @@ export function patchElectron() {
     let patchedElectron: typeof Electron.CrossProcessExports;
     const loadBackend = (Module as any)._load;
     (Module as any)._load = (request: string, parent: NodeModule, isMain: boolean) => {
-        // Hide `vm` deprecation notice
+        // Hide `vm` deprecation notice.
         if (request == "vm") request = "node:vm";
+
         const loadedModule = loadBackend(
             request,
             parent,
             isMain
         ) as typeof Electron.CrossProcessExports;
         if (request == "electron") {
-            if (patchedElectron) return patchedElectron;
-            patchedElectron = {
-                ...loadedModule,
-                ipcRenderer: patchIpcRenderer(loadedModule.ipcRenderer),
-            };
+            if (!patchedElectron)
+                patchedElectron = {
+                    ...loadedModule,
+                    ipcRenderer: patchIpcRenderer(loadedModule.ipcRenderer),
+                };
             return patchedElectron;
         }
         return loadedModule;

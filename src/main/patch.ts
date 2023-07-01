@@ -10,7 +10,7 @@ const s = path.sep;
 
 const interruptWindowCreation: InterruptWindowCreation[] = [];
 
-function patchBrowserWindow() {
+function patchBrowserWindow(windowMenu: Menu) {
     const func = function (options: Electron.BrowserWindowConstructorOptions) {
         let patchedArgs: Electron.BrowserWindowConstructorOptions = {
             ...options,
@@ -22,31 +22,31 @@ function patchBrowserWindow() {
                 nodeIntegration: true,
                 nodeIntegrationInSubFrames: true,
                 contextIsolation: true,
-                devTools: true,
+                devTools: useNativeDevTools,
                 sandbox: false,
             },
         };
         interruptWindowCreation.forEach((func) => (patchedArgs = func(patchedArgs)));
         const win = new BrowserWindow(patchedArgs);
+
         const debuggerId = win.webContents.id.toString();
 
         const send = win.webContents.send;
         win.webContents.send = (channel: string, ...args: IPCArgs<any>) => {
-            handleIpc(args, channel, false);
+            handleIpc(args, "out", channel);
             send.bind(win.webContents, channel, ...args)();
         };
-
         win.webContents.on("ipc-message", (_, channel, ...args: IPCArgs<any>) => {
-            if (!handleIpc(args, channel, true, win.webContents)) {
+            if (!handleIpc(args, "in", channel, win.webContents)) {
                 throw new Error(
-                    "forcibly stopped IPC propagation (Note that this is not a bug.)"
+                    "forcibly stopped IPC propagation (Note that this is not a bug)"
                 );
             }
         });
         win.webContents.on(
             "ipc-message-sync",
             (event, channel, ...args: IPCArgs<any>) => {
-                handleIpc(args, channel, true);
+                handleIpc(args, "in", channel);
                 if (channel == "___!boot") {
                     event.returnValue = {
                         debuggerOrigin: !useNativeDevTools && debuggerOrigin,
@@ -58,36 +58,7 @@ function patchBrowserWindow() {
             }
         );
 
-        win.setMenu(
-            Menu.buildFromTemplate([
-                {
-                    label: "刷新",
-                    role: "reload",
-                    accelerator: "F5",
-                },
-                {
-                    label: "强制刷新",
-                    role: "forceReload",
-                    accelerator: "Ctrl+F5",
-                },
-                useNativeDevTools
-                    ? {
-                          label: "开发者工具",
-                          role: "toggleDevTools",
-                          accelerator: "F12",
-                      }
-                    : {
-                          label: "开发者工具",
-                          accelerator: "F12",
-                          click: (_, win) => {
-                              if (!win) return;
-                              const debuggerId = win.webContents.id.toString();
-                              createDebuggerWindow(debuggerId, win);
-                          },
-                      },
-            ])
-        );
-
+        win.setMenu(windowMenu);
         win.setMenu = () => undefined;
 
         return win;
@@ -97,7 +68,45 @@ function patchBrowserWindow() {
     return func as any as typeof Electron.BrowserWindow;
 }
 
+function constructMenu() {
+    return Menu.buildFromTemplate([
+        {
+            label: "刷新",
+            role: "reload",
+            accelerator: "F5",
+        },
+        {
+            label: "强制刷新",
+            role: "forceReload",
+            accelerator: "Ctrl+F5",
+        },
+        useNativeDevTools
+            ? {
+                  label: "开发者工具",
+                  role: "toggleDevTools",
+                  accelerator: "F12",
+              }
+            : {
+                  label: "开发者工具",
+                  accelerator: "F12",
+                  click: (_, win) => {
+                      if (!win) return;
+                      const debuggerId = win.webContents.id.toString();
+                      createDebuggerWindow(debuggerId, win);
+                  },
+              },
+    ]);
+}
+
+export function addInterruptWindowCreation(func: InterruptWindowCreation) {
+    interruptWindowCreation.push(func);
+}
+
 export function patchElectron() {
+    // Prevent Electron from generating default menu (which will take a lot system resources).
+    Menu.setApplicationMenu(null);
+    const windowMenu = constructMenu();
+
     let patchedElectron: typeof Electron.CrossProcessExports;
     const loadBackend = (Module as any)._load;
     (Module as any)._load = (request: string, parent: NodeModule, isMain: boolean) => {
@@ -107,17 +116,13 @@ export function patchElectron() {
             isMain
         ) as typeof Electron.CrossProcessExports;
         if (request == "electron") {
-            if (patchedElectron) return patchedElectron;
-            patchedElectron = {
-                ...loadedModule,
-                BrowserWindow: patchBrowserWindow(),
-            };
+            if (!patchedElectron)
+                patchedElectron = {
+                    ...loadedModule,
+                    BrowserWindow: patchBrowserWindow(windowMenu),
+                };
             return patchedElectron;
         }
         return loadedModule;
     };
-}
-
-export function addInterruptWindowCreation(func: InterruptWindowCreation) {
-    interruptWindowCreation.push(func);
 }

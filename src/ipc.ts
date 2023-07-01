@@ -1,6 +1,8 @@
 import { inspect } from "util";
+import supportsColor from "supports-color";
 import { verboseLogging } from "./env";
 
+export type IPCDirection = "in" | "out";
 export type IPCResponse = { errMsg: string; result: number };
 export type IPCRequest = any[];
 export type IPCArgs<T> = [{ type: string; eventName: string; callbackId: string }, T];
@@ -8,7 +10,7 @@ export interface InterruptIPCOptions {
     type?: "request" | "response";
     eventName?: string;
     cmdName?: string;
-    direction?: "in" | "out" | undefined;
+    direction?: IPCDirection | undefined;
 }
 export type InterruptIPC = (
     args: IPCArgs<any>,
@@ -21,43 +23,48 @@ export type InterruptWindowCreation = (
 
 const interruptIpcs: [InterruptIPC, InterruptIPCOptions | undefined][] = [];
 
-export function handleIpc(
+function wrapIpc(args: IPCArgs<any>, direction: IPCDirection) {
+    if (direction == "out" && (!args[0] || !args[0]?.eventName))
+        return [{ eventName: "QQNTIM_WRAPPER", type: "request" }, args];
+    else if (direction == "in" && args[0]?.eventName == "QQNTIM_WRAPPER") return args[1];
+    return args;
+}
+
+function interruptIpc(
     args: IPCArgs<any>,
+    direction: IPCDirection,
     channel: string,
-    ipcIn: boolean,
     sender?: Electron.WebContents
 ) {
-    if (!ipcIn && (!args[0] || !args[0]?.eventName)) {
-        args.push(
-            { eventName: "QQNTIM_WRAPPER", type: "request" },
-            args.splice(0, args.length)
-        );
-    }
-    if (ipcIn && args[0]?.eventName == "QQNTIM_WRAPPER")
-        args.push(...args.splice(0, 2)[1]);
-
-    if (args[0]?.eventName == "ns-LoggerApi-1" || args[0]?.eventName == "ns-LoggerApi-2")
-        return false;
-
     for (const [func, options] of interruptIpcs) {
         if (
-            (options?.cmdName &&
-                (!args[1] ||
-                    (args[1][0]?.cmdName != options?.cmdName &&
-                        args[1][0] != options?.cmdName))) ||
-            (options?.eventName &&
-                (!args[0] || args[0].eventName != options?.eventName)) ||
-            (options?.type && (!args[0] || args[0].type != options?.type)) ||
-            (options?.direction == "in" && !ipcIn) ||
-            (options?.direction == "out" && ipcIn)
-        ) {
+            options?.cmdName &&
+            (!args[1] ||
+                (args[1][0]?.cmdName != options?.cmdName &&
+                    args[1][0] != options?.cmdName))
+        )
             continue;
-        }
+        if (options?.eventName && (!args[0] || args[0].eventName != options?.eventName))
+            continue;
+        if (options?.type && (!args[0] || args[0].type != options?.type)) continue;
+        if (options?.direction && options?.direction != direction) continue;
 
         const ret = func(args, channel, sender);
         if (ret == false) return false;
     }
+
     return true;
+}
+
+export function handleIpc(
+    args: IPCArgs<any>,
+    direction: IPCDirection,
+    channel: string,
+    sender?: Electron.WebContents
+) {
+    if (args[0]?.eventName?.startsWith("ns-LoggerApi-")) return false;
+    wrapIpc(args, direction);
+    return interruptIpc(args, direction, channel, sender);
 }
 
 export function addInterruptIpc(func: InterruptIPC, options?: InterruptIPCOptions) {
@@ -65,34 +72,21 @@ export function addInterruptIpc(func: InterruptIPC, options?: InterruptIPCOption
 }
 
 if (verboseLogging) {
-    addInterruptIpc(
-        (args, channel) =>
-            console.debug(
-                `[IPC] (In) ${channel}`,
-                global.window
-                    ? JSON.stringify(args)
-                    : inspect(args, {
-                          compact: true,
-                          depth: null,
-                          showHidden: true,
-                          colors: true,
-                      })
-            ),
-        { direction: "in" }
-    );
-    addInterruptIpc(
-        (args, channel) =>
-            console.debug(
-                `[IPC] (Out) ${channel}`,
-                global.window
-                    ? JSON.stringify(args)
-                    : inspect(args, {
-                          compact: true,
-                          depth: null,
-                          showHidden: true,
-                          colors: true,
-                      })
-            ),
-        { direction: "out" }
-    );
+    (["in", "out"] as IPCDirection[]).forEach((type) => {
+        addInterruptIpc(
+            (args, channel) =>
+                console.debug(
+                    `[IPC] (${type == "in" ? "In" : "Out"}) ${channel}`,
+                    global.window
+                        ? JSON.stringify(args)
+                        : inspect(args, {
+                              compact: true,
+                              depth: null,
+                              showHidden: true,
+                              colors: !!supportsColor.stdout,
+                          })
+                ),
+            { direction: type }
+        );
+    });
 }
