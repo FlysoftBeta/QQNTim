@@ -45,4 +45,6 @@ sed -i "s#\.\/app_launcher\/index\.js#\.\/app_launcher\/qqntim\.js#g" "$package_
 
 touch "$qqntim_flag_file"
 
-echo "Installed successfully."
+echo "Installed successfully. Installer will exit in 5 sec."
+"$qq_installation_dir/qq" &
+sleep 5s

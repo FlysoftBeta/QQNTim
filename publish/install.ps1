@@ -32,14 +32,15 @@ $QQNTimFlagFile = "$QQAppLauncherDir\qqntim-flag.txt"
 
 if ((Test-Path $EntryBackupFile) -eq $true) {
     Write-Output "Cleaning up old installation..."
-    Move-Item $EntryFile $EntryBackupFile -Force
-    "" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
+    Move-Item $EntryBackupFile $EntryFile -Force
+    "" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force
 }
 
 if ((Test-Path $QQNTimFlagFile) -eq $false) {
     if ((Read-Host "Do you want to install QQNTim (y/n)?") -notcontains "y") {
         exit -1
     }
+    "" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force
 }
 
 Write-Output "Killing QQ processes..."
@@ -47,13 +48,12 @@ Stop-Process -Name QQ -ErrorAction SilentlyContinue
 
 Write-Output "Copying files..."
 Copy-Item ".\qqntim.js", ".\qqntim-renderer.js" $QQAppLauncherDir -Force
-Copy-Item ".\node_modules" "$QQAppLauncherDir\node_modules" -Recurse -Force
+Copy-Item ".\node_modules" $QQAppLauncherDir -Recurse -Force
 
 Write-Output "Patching package.json..."
 $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
 [System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/index.js", "./app_launcher/qqntim.js"), $Utf8NoBomEncoding)
 
-"" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
-
-Write-Output "Installed successfully."
-Pause
+Write-Output "Installed successfully. Installer will exit in 5 sec."
+Start-Process "$QQInstallDir\QQ.exe" -UseNewEnvironment
+Start-Sleep 5
