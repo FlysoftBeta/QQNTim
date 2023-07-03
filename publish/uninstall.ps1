@@ -33,7 +33,7 @@ $QQNTimFlagFile = "$QQAppLauncherDir\qqntim-flag.txt"
 if ((Test-Path $EntryBackupFile) -eq $true) {
     Write-Output "Cleaning up old installation..."
     Move-Item $EntryFile $EntryBackupFile -Force
-    "" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force -NoNewline
+    "" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force
 }
 
 if ((Test-Path $QQNTimFlagFile) -eq $false) {
@@ -45,7 +45,7 @@ if ((Read-Host "Do you want to uninstall QQNTim (y/n)?") -notcontains "y") {
 }
 
 if ((Read-Host "Also remove your data (y/n)?") -contains "y") {
-    Remove-Item "${env:UserProfile}\.qqntim" -Recurse -Force
+    Remove-Item "${env:UserProfile}\.qqntim" -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 Write-Output "Killing QQ processes..."
@@ -61,5 +61,5 @@ $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
 
 Remove-Item $QQNTimFlagFile -Force
 
-Write-Output "Uninstalled successfully."
-Pause
+Write-Output "Uninstalled successfully. Uninstaller will exit in 5 sec."
+Start-Sleep 5

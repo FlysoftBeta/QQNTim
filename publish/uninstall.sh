@@ -53,4 +53,5 @@ sed -i "s#\.\/app_launcher\/qqntim\.js#\.\/app_launcher\/index\.js#g" "$package_
 
 rm -f "$qqntim_flag_file"
 
-echo "Uninstalled successfully."
+echo "Uninstalled successfully. Uninstaller will exit in 5 sec."
+sleep 5s
