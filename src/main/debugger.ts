@@ -2,48 +2,57 @@ import axios from "axios";
 import { start } from "chii/server";
 import { BrowserWindow } from "electron";
 import { getPortPromise } from "portfinder";
+import { useNativeDevTools } from "../env";
 
 export let debuggerHost = "";
-export let debuggerPort = Infinity;
+export let debuggerPort = -1;
 export let debuggerOrigin = "";
+const initDebuggerPromise = (async () => {
+    if (!useNativeDevTools) {
+        debuggerPort = await getPortPromise();
+        debuggerHost = "127.0.0.1";
+        debuggerOrigin = `http://${debuggerHost}:${debuggerPort}`;
 
-export async function initDebugger() {
-    debuggerPort = await getPortPromise();
-    debuggerHost = "127.0.0.1";
-    debuggerOrigin = `http://${debuggerHost}:${debuggerPort}`;
+        console.log(`[!Debugger] 正在启动 chii 调试器：${debuggerOrigin}`);
+        await start({ host: debuggerHost, port: debuggerPort, useHttps: false });
+    }
+})();
 
-    await start({ host: debuggerHost, port: debuggerPort, useHttps: false });
+async function listChiiTargets() {
+    await initDebuggerPromise;
+    const res = await axios.get(`${debuggerOrigin}/targets`);
+    return (res.data.targets as any[]).map((target) => target.title);
 }
 
-export function createDebuggerWindow(debuggerId: string, win: BrowserWindow) {
-    axios.get(`${debuggerOrigin}/targets`).then((ret) => {
-        const targets = ret.data.targets as any[];
-        for (const target of targets) {
-            if (target.title == debuggerId) {
-                const debuggerWin = new BrowserWindow({
-                    width: 800,
-                    height: 600,
-                    show: true,
-                    webPreferences: {
-                        webSecurity: false,
-                        allowRunningInsecureContent: true,
-                        devTools: false,
-                        nodeIntegration: false,
-                        nodeIntegrationInSubFrames: false,
-                        contextIsolation: true,
-                    },
-                });
+export async function createDebuggerWindow(debuggerId: string, win: BrowserWindow) {
+    const targets = await listChiiTargets();
+    for (const target of targets) {
+        if (target == debuggerId) {
+            const url = `${debuggerOrigin}/front_end/chii_app.html?ws=${debuggerHost}:${debuggerPort}/client/${(
+                Math.random() * 6
+            ).toString()}?target=${target.id}`;
 
-                debuggerWin.webContents.loadURL(
-                    `${debuggerOrigin}/front_end/chii_app.html?ws=${debuggerHost}:${debuggerPort}/client/${(
-                        Math.random() * 6
-                    ).toString()}?target=${target.id}`
-                );
+            console.log(`[!Debugger] 正在打开 chii 调试器窗口：${url}`);
 
-                win.on("closed", () => debuggerWin.destroy());
+            const debuggerWin = new BrowserWindow({
+                width: 800,
+                height: 600,
+                show: true,
+                webPreferences: {
+                    webSecurity: false,
+                    allowRunningInsecureContent: true,
+                    devTools: false,
+                    nodeIntegration: false,
+                    nodeIntegrationInSubFrames: false,
+                    contextIsolation: true,
+                },
+            });
 
-                break;
-            }
+            debuggerWin.webContents.loadURL(url);
+
+            win.on("closed", () => debuggerWin.destroy());
+
+            break;
         }
-    });
+    }
 }

@@ -2042,6 +2042,7 @@ __metadata:
     fs-extra: ^11.1.1
     portfinder: ^1.0.32
     semver: ^7.5.3
+    supports-color: ^9.4.0
     ts-node: ^10.9.1
     typed-emitter: ^2.1.0
     typescript: ^5.1.6
@@ -2292,6 +2293,13 @@ __metadata:
   dependencies:
     has-flag: ^4.0.0
   checksum: 3dda818de06ebbe5b9653e07842d9479f3555ebc77e9a0280caf5a14fb877ffee9ed57007c3b78f5a6324b8dbeec648d9e97a24e2ed9fdb81ddc69ea07100f4a
+  languageName: node
+  linkType: hard
+
+"supports-color@npm:^9.4.0":
+  version: 9.4.0
+  resolution: "supports-color@npm:9.4.0"
+  checksum: cb8ff8daeaf1db642156f69a9aa545b6c01dd9c4def4f90a49f46cbf24be0c245d392fcf37acd119cd1819b99dad2cc9b7e3260813f64bcfd7f5b18b5a1eefb8
   languageName: node
   linkType: hard
 

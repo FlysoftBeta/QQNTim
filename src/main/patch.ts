@@ -3,12 +3,33 @@ import { Module } from "module";
 import { plugins } from "./loader";
 import { InterruptWindowCreation, IPCArgs, handleIpc } from "../ipc";
 import { createDebuggerWindow, debuggerOrigin } from "./debugger";
-import { BrowserWindow, Menu } from "electron";
+import { BrowserWindow, Menu, MenuItem } from "electron";
 import { useNativeDevTools } from "../env";
 
 const s = path.sep;
 
 const interruptWindowCreation: InterruptWindowCreation[] = [];
+
+const windowMenu: Electron.MenuItem[] = [
+    new MenuItem({
+        label: "刷新",
+        role: "reload",
+        accelerator: "F5",
+    }),
+    new MenuItem({
+        label: "开发者工具",
+        accelerator: "F12",
+        ...(useNativeDevTools
+            ? { role: "toggleDevTools" }
+            : {
+                  click: (_, win) => {
+                      if (!win) return;
+                      const debuggerId = win.webContents.id.toString();
+                      createDebuggerWindow(debuggerId, win);
+                  },
+              }),
+    }),
+];
 
 function patchBrowserWindow() {
     const func = function (options: Electron.BrowserWindowConstructorOptions) {
@@ -22,31 +43,31 @@ function patchBrowserWindow() {
                 nodeIntegration: true,
                 nodeIntegrationInSubFrames: true,
                 contextIsolation: true,
-                devTools: true,
+                devTools: useNativeDevTools,
                 sandbox: false,
             },
         };
         interruptWindowCreation.forEach((func) => (patchedArgs = func(patchedArgs)));
         const win = new BrowserWindow(patchedArgs);
+
         const debuggerId = win.webContents.id.toString();
 
         const send = win.webContents.send;
         win.webContents.send = (channel: string, ...args: IPCArgs<any>) => {
-            handleIpc(args, channel, false);
+            handleIpc(args, "out", channel);
             send.bind(win.webContents, channel, ...args)();
         };
-
         win.webContents.on("ipc-message", (_, channel, ...args: IPCArgs<any>) => {
-            if (!handleIpc(args, channel, true, win.webContents)) {
+            if (!handleIpc(args, "in", channel, win.webContents)) {
                 throw new Error(
-                    "forcibly stopped IPC propagation (Note that this is not a bug.)"
+                    "forcibly stopped IPC propagation (Note that this is not a bug)"
                 );
             }
         });
         win.webContents.on(
             "ipc-message-sync",
             (event, channel, ...args: IPCArgs<any>) => {
-                handleIpc(args, channel, true);
+                handleIpc(args, "in", channel);
                 if (channel == "___!boot") {
                     event.returnValue = {
                         debuggerOrigin: !useNativeDevTools && debuggerOrigin,
@@ -58,37 +79,12 @@ function patchBrowserWindow() {
             }
         );
 
-        win.setMenu(
-            Menu.buildFromTemplate([
-                {
-                    label: "刷新",
-                    role: "reload",
-                    accelerator: "F5",
-                },
-                {
-                    label: "强制刷新",
-                    role: "forceReload",
-                    accelerator: "Ctrl+F5",
-                },
-                useNativeDevTools
-                    ? {
-                          label: "开发者工具",
-                          role: "toggleDevTools",
-                          accelerator: "F12",
-                      }
-                    : {
-                          label: "开发者工具",
-                          accelerator: "F12",
-                          click: (_, win) => {
-                              if (!win) return;
-                              const debuggerId = win.webContents.id.toString();
-                              createDebuggerWindow(debuggerId, win);
-                          },
-                      },
-            ])
-        );
-
-        win.setMenu = () => undefined;
+        win.setMenu(Menu.buildFromTemplate(windowMenu));
+        win.setMenu = (menu) => {
+            if (!menu) return;
+            win.setMenu = () => {};
+            windowMenu.forEach((item) => menu.append(item));
+        };
 
         return win;
     };
@@ -97,7 +93,14 @@ function patchBrowserWindow() {
     return func as any as typeof Electron.BrowserWindow;
 }
 
+export function addInterruptWindowCreation(func: InterruptWindowCreation) {
+    interruptWindowCreation.push(func);
+}
+
 export function patchElectron() {
+    // Prevent Electron from generating default menu (which will take a lot system resources).
+    Menu.setApplicationMenu(null);
+
     let patchedElectron: typeof Electron.CrossProcessExports;
     const loadBackend = (Module as any)._load;
     (Module as any)._load = (request: string, parent: NodeModule, isMain: boolean) => {
@@ -107,17 +110,13 @@ export function patchElectron() {
             isMain
         ) as typeof Electron.CrossProcessExports;
         if (request == "electron") {
-            if (patchedElectron) return patchedElectron;
-            patchedElectron = {
-                ...loadedModule,
-                BrowserWindow: patchBrowserWindow(),
-            };
+            if (!patchedElectron)
+                patchedElectron = {
+                    ...loadedModule,
+                    BrowserWindow: patchBrowserWindow(),
+                };
             return patchedElectron;
         }
         return loadedModule;
     };
-}
-
-export function addInterruptWindowCreation(func: InterruptWindowCreation) {
-    interruptWindowCreation.push(func);
 }
