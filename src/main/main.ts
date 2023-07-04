@@ -4,14 +4,14 @@
  */
 
 import { collectPlugins, loadConfig, plugins, prepareConfigDir } from "./plugins";
-import { setPlugins } from "./loader";
+import { applyPlugins } from "./loader";
 import { patchElectron } from "./patch";
 
 function loadPlugins() {
     prepareConfigDir();
     loadConfig();
     collectPlugins();
-    setPlugins(plugins);
+    applyPlugins(plugins);
     patchElectron();
     console.log("[!Main] QQNTim 加载成功");
 }

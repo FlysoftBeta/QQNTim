@@ -65,3 +65,7 @@ export interface Group {
     members: number;
     raw: object;
 }
+export interface LoginAccount {
+    uid: string;
+    uin: string;
+}

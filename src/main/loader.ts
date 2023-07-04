@@ -1,19 +1,19 @@
 import * as path from "path";
-import { Plugin } from "../plugin";
+import { AllUsersPlugins, LoadedPlugins, UserPlugins } from "../plugin";
 import { getAPI } from "./api";
 
 const s = path.sep;
 
-export let plugins: Record<string, Plugin> = {};
+let loadedPlugins: LoadedPlugins = {};
 
 const api = getAPI();
 
-export function setPlugins(newPlugins: Record<string, Plugin>) {
-    for (const id in newPlugins) {
-        if (plugins[id]) continue;
-        const plugin = newPlugins[id];
+function loadPlugins(userPlugins: UserPlugins) {
+    for (const id in userPlugins) {
+        if (loadedPlugins[id]) continue;
+        const plugin = userPlugins[id];
         if (!plugin.loaded) continue;
-        plugins[id] = plugin;
+        loadedPlugins[id] = plugin;
         console.log(`[!Loader] 正在加载插件：${id}`);
 
         const scripts: string[] = [];
@@ -32,4 +32,16 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
             }
         });
     }
+}
+
+export function applyPlugins(allPlugins: AllUsersPlugins, uin: string = "") {
+    const userPlugins = allPlugins[uin];
+    if (!userPlugins) {
+        console.warn(`[!Loader] 当前账户 (${uin}) 没有插件，跳过加载`);
+        return false;
+    }
+
+    loadPlugins(userPlugins);
+
+    return true;
 }

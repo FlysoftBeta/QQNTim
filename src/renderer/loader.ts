@@ -1,19 +1,19 @@
 import * as path from "path";
 import * as fs from "fs-extra";
-import { Plugin } from "../plugin";
+import { AllUsersPlugins, LoadedPlugins, PageWithAbout, UserPlugins } from "../plugin";
 import { getAPI } from "./api";
 
 const s = path.sep;
 
 const stylesheets: string[] = [];
-export let plugins: Record<string, Plugin> = {};
+let loadedPlugins: LoadedPlugins = {};
 
 const windowLoadPromise = new Promise<void>((resolve) =>
     window.addEventListener("load", () => resolve())
 );
 const api = getAPI(windowLoadPromise);
 
-function detectCurrentPage() {
+function detectCurrentPage(): PageWithAbout {
     const url = window.location.href;
     if (url.includes("login")) {
         return "login";
@@ -30,15 +30,15 @@ function detectCurrentPage() {
     }
 }
 
-export function setPlugins(newPlugins: Record<string, Plugin>) {
+function loadPlugins(userPlugins: UserPlugins) {
     const page = detectCurrentPage();
-    if (page == "about") return;
+    if (page == "about") return false;
 
-    for (const id in newPlugins) {
-        if (plugins[id]) continue;
-        const plugin = newPlugins[id];
+    for (const id in userPlugins) {
+        if (loadedPlugins[id]) continue;
+        const plugin = userPlugins[id];
         if (!plugin.loaded) continue;
-        plugins[id] = plugin;
+        loadedPlugins[id] = plugin;
         console.log(`[!Loader] 正在加载插件：${id}`);
 
         const scripts: string[] = [];
@@ -60,16 +60,28 @@ export function setPlugins(newPlugins: Record<string, Plugin>) {
                 require(script)(api);
             } catch (reason) {
                 console.error(
-                    `[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者解决`
+                    `[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者 (${plugin.manifest.author}) 解决`
                 );
                 console.error(reason);
             }
         });
     }
-    loadStylesheet();
 }
 
-async function loadStylesheet() {
+export function applyPlugins(allPlugins: AllUsersPlugins, uin: string = "") {
+    const userPlugins = allPlugins[uin];
+    if (!userPlugins) {
+        console.warn(`[!Loader] 当前账户 (${uin}) 没有插件，跳过加载`);
+        return false;
+    }
+
+    loadPlugins(userPlugins);
+    applyStylesheets();
+
+    return true;
+}
+
+async function applyStylesheets() {
     console.log(`[!Loader] 正在注入 CSS`, stylesheets);
 
     await windowLoadPromise;
