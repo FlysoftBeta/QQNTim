@@ -1,6 +1,5 @@
-import { inspect } from "util";
-import supportsColor from "supports-color";
 import { verboseLogging } from "./env";
+import { printObject } from "./console";
 
 export type IPCDirection = "in" | "out";
 export type IPCResponse = { errMsg: string; result: number };
@@ -74,17 +73,12 @@ export function addInterruptIpc(func: InterruptIPC, options?: InterruptIPCOption
 if (verboseLogging) {
     (["in", "out"] as IPCDirection[]).forEach((type) => {
         addInterruptIpc(
-            (args, channel) =>
+            (args, channel, sender) =>
                 console.debug(
-                    `[IPC] (${type == "in" ? "In" : "Out"}) ${channel}`,
-                    global.window
-                        ? JSON.stringify(args)
-                        : inspect(args, {
-                              compact: true,
-                              depth: null,
-                              showHidden: true,
-                              colors: !!supportsColor.stdout,
-                          })
+                    `[!Watch:IPC?${type == "in" ? "In" : "Out"}${
+                        sender ? `:${sender.id.toString()}` : ""
+                    }] ${channel}`,
+                    printObject(args)
                 ),
             { direction: type }
         );
