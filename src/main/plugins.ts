@@ -87,9 +87,7 @@ export function parsePlugin(dir: string) {
 
 function collectPluginsFromDir(baseDir: string, uin: string = "") {
     const folders = fs.readdirSync(baseDir);
-
-    plugins[uin] = {};
-
+    if (!plugins[uin]) plugins[uin] = {};
     folders.forEach((folder) => {
         const folderPath = `${baseDir}${s}${folder}`;
         if (fs.statSync(folderPath).isDirectory()) {
@@ -99,7 +97,6 @@ function collectPluginsFromDir(baseDir: string, uin: string = "") {
             plugins[uin][plugin.id] = plugin;
         }
     });
-    return plugins;
 }
 
 export function collectPlugins() {
@@ -108,8 +105,7 @@ export function collectPlugins() {
     folders.forEach((folder) => {
         const folderPath = `${pluginPerUserDir}${s}${folder}`;
         if (fs.statSync(folderPath).isDirectory()) {
-            collectPluginsFromDir(folderPath);
+            collectPluginsFromDir(folderPath, folder);
         }
     });
-    return plugins;
 }
