@@ -20,7 +20,7 @@ const timer = setInterval(() => {
     nt.getAccountInfo().then((account) => {
         const uin = account.uin;
         applyPlugins(plugins, uin);
-        ipcRenderer.sendSync(
+        ipcRenderer.send(
             "___!apply_plugins",
             {
                 eventName: "QQNTIM_APPLY_PLUGINS",
