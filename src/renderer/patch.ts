@@ -1,21 +1,35 @@
 import { Module } from "module";
+import { ipcRenderer } from "electron";
 import { IPCArgs, handleIpc } from "../ipc";
+import { getter, setter } from "../watch";
 
-function patchIpcRenderer(ipcRenderer: typeof Electron.ipcRenderer) {
-    const object = {
-        ...ipcRenderer,
-        on(channel: string, listener: (event: any, ...args: any[]) => void) {
-            ipcRenderer.on(channel, (event: any, ...args: IPCArgs<any>) => {
-                if (handleIpc(args, "in", channel)) listener(event, ...args);
-            });
+function patchIpcRenderer() {
+    return new Proxy(ipcRenderer, {
+        get(target, p) {
+            if (p == "on")
+                return (
+                    channel: string,
+                    listener: (event: any, ...args: any[]) => void
+                ) => {
+                    target.on(channel, (event: any, ...args: IPCArgs<any>) => {
+                        if (handleIpc(args, "in", channel)) listener(event, ...args);
+                    });
+                };
+            else if (p == "send")
+                return (channel: string, ...args: IPCArgs<any>) => {
+                    if (handleIpc(args, "out", channel)) target.send(channel, ...args);
+                };
+            else if (p == "sendSync")
+                return (channel: string, ...args: IPCArgs<any>) => {
+                    if (handleIpc(args, "out", channel))
+                        return target.sendSync(channel, ...args);
+                };
+            return getter("ipcRenderer", target, p as any);
         },
-        send(channel: string, ...args: IPCArgs<any>) {
-            if (handleIpc(args, "out", channel)) ipcRenderer.send(channel, ...args);
+        set(target, p, newValue) {
+            return setter("ipcRenderer", target, p as any, newValue);
         },
-    };
-    Object.setPrototypeOf(object, ipcRenderer);
-
-    return object as any as typeof Electron.ipcRenderer;
+    });
 }
 
 export function patchElectron() {
@@ -34,7 +48,7 @@ export function patchElectron() {
             if (!patchedElectron)
                 patchedElectron = {
                     ...loadedModule,
-                    ipcRenderer: patchIpcRenderer(loadedModule.ipcRenderer),
+                    ipcRenderer: patchIpcRenderer(),
                 };
             return patchedElectron;
         }
