@@ -5,7 +5,7 @@ import { applyScripts, loadPlugins } from "../loader";
 const api = getAPI();
 
 function shouldInject(injection: PluginInjection) {
-    return injection.type != "main";
+    return injection.type == "main";
 }
 
 export function applyPlugins(allPlugins: AllUsersPlugins, uin: string = "") {
