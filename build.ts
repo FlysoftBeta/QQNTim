@@ -1,18 +1,12 @@
 import { BuildOptions, build } from "esbuild";
-import {
-    copySync,
-    emptyDirSync,
-    ensureDirSync,
-    readJSONSync,
-    readdirSync,
-} from "fs-extra";
-import { sep as s, dirname } from "path";
+import { copySync, emptyDirSync, ensureDirSync } from "fs-extra";
+import { sep as s } from "path";
 import { getAllLocators, getPackageInformation } from "pnpapi";
-
-const isProduction = process.env["NODE_ENV"] == "production";
 
 emptyDirSync("dist");
 
+const isProduction = process.env["NODE_ENV"] == "production";
+const unpackedPackages = ["fs-extra", "chii"];
 const commonOptions: Partial<BuildOptions> = {
     target: "node18",
     bundle: true,
@@ -28,13 +22,19 @@ build({
     ...commonOptions,
     entryPoints: ["src/main/main.ts"],
     outfile: "dist/qqntim.js",
-    external: ["electron", "fs-extra", "chii", "./launcher.node"],
+    external: ["electron", "./launcher.node", ...unpackedPackages],
 });
 build({
     ...commonOptions,
     entryPoints: ["src/renderer/main.ts"],
     outfile: "dist/qqntim-renderer.js",
-    external: ["electron", "fs-extra", "./major.node", "../major.node"],
+    external: [
+        "electron",
+        "fs-extra",
+        "./major.node",
+        "../major.node",
+        ...unpackedPackages,
+    ],
 });
 
 const packages: Record<
@@ -59,6 +59,6 @@ function unpackPackage(rootDir: string, name: string, reference?: string) {
     }
 }
 
-unpackPackage("dist", "chii");
-unpackPackage("dist", "fs-extra");
+unpackedPackages.forEach((unpackedPackage) => unpackPackage("dist", unpackedPackage));
+
 copySync("publish", "dist");
