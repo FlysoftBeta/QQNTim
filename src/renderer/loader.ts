@@ -25,10 +25,10 @@ function detectCurrentPage(): PageWithAbout {
 }
 
 function shouldInject(injection: PluginInjection, page: Page) {
-    return !!(
-        injection.type != "renderer" ||
-        (injection.pattern && !injection.pattern.test(window.location.href)) ||
-        (injection.page && !injection.page.includes(page))
+    return (
+        injection.type == "renderer" &&
+        (!injection.pattern || injection.pattern.test(window.location.href)) &&
+        (!injection.page || injection.page.includes(page))
     );
 }
 
