@@ -1,11 +1,22 @@
 import * as path from "path";
 import * as fs from "fs-extra";
-import { AllUsersPlugins, LoadedPlugins, PageWithAbout, UserPlugins } from "../plugin";
+import {
+    AllUsersPlugins,
+    LoadedPlugins,
+    Page,
+    PageWithAbout,
+    Plugin,
+    PluginInjection,
+    PluginInjectionRenderer,
+    UserPlugins,
+} from "../plugin";
 import { getAPI } from "./api";
+import { applyScripts } from "../loader";
 
 const s = path.sep;
 
-const stylesheets: string[] = [];
+const stylesheets: [Plugin, string][] = [],
+    scripts: [Plugin, string][] = [];
 let loadedPlugins: LoadedPlugins = {};
 
 const windowLoadPromise = new Promise<void>((resolve) =>
@@ -30,6 +41,14 @@ function detectCurrentPage(): PageWithAbout {
     }
 }
 
+function shouldInject(injection: PluginInjection, page: Page) {
+    return (
+        injection.type != "renderer" ||
+        (injection.pattern && !injection.pattern.test(window.location.href)) ||
+        (injection.page && !injection.page.includes(page))
+    );
+}
+
 function loadPlugins(userPlugins: UserPlugins) {
     const page = detectCurrentPage();
     if (page == "about") return false;
@@ -41,29 +60,18 @@ function loadPlugins(userPlugins: UserPlugins) {
         loadedPlugins[id] = plugin;
         console.log(`[!Loader] 正在加载插件：${id}`);
 
-        const scripts: string[] = [];
-        plugin.injections.forEach((injection) => {
-            if (
-                injection.type != "renderer" ||
-                (injection.pattern && !injection.pattern.test(window.location.href)) ||
-                (injection.page && !injection.page.includes(page))
-            )
-                return;
+        plugin.injections.forEach((_injection) => {
+            const injection = _injection as PluginInjectionRenderer;
+            if (!shouldInject(injection, page)) return;
             injection.stylesheet &&
-                stylesheets.push(
-                    fs.readFileSync(`${plugin.dir}${s}${injection.stylesheet}`).toString()
-                );
-            injection.script && scripts.push(`${plugin.dir}${s}${injection.script}`);
-        });
-        scripts.forEach((script) => {
-            try {
-                require(script)(api);
-            } catch (reason) {
-                console.error(
-                    `[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者 (${plugin.manifest.author}) 解决`
-                );
-                console.error(reason);
-            }
+                stylesheets.push([
+                    plugin,
+                    fs
+                        .readFileSync(`${plugin.dir}${s}${injection.stylesheet}`)
+                        .toString(),
+                ]);
+            injection.script &&
+                scripts.push([plugin, `${plugin.dir}${s}${injection.script}`]);
         });
     }
 }
@@ -76,12 +84,13 @@ export function applyPlugins(allPlugins: AllUsersPlugins, uin: string = "") {
     }
 
     loadPlugins(userPlugins);
-    applyStylesheets();
+    applyStylesheets(stylesheets);
+    applyScripts(scripts, api);
 
     return true;
 }
 
-async function applyStylesheets() {
+async function applyStylesheets(stylesheets: [Plugin, string][]) {
     console.log(`[!Loader] 正在注入 CSS`, stylesheets);
 
     await windowLoadPromise;
@@ -91,6 +100,6 @@ async function applyStylesheets() {
 
     element = document.createElement("style");
     element.id = "qqntim_injected_styles";
-    element.innerText = stylesheets.join("\n");
+    element.innerHTML = stylesheets.map(([_, stylesheet]) => stylesheet).join("\n");
     document.body.appendChild(element);
 }

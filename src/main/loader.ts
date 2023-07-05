@@ -1,12 +1,25 @@
 import * as path from "path";
-import { AllUsersPlugins, LoadedPlugins, UserPlugins } from "../plugin";
+import {
+    AllUsersPlugins,
+    LoadedPlugins,
+    UserPlugins,
+    Plugin,
+    PluginInjection,
+    PluginInjectionMain,
+} from "../plugin";
 import { getAPI } from "./api";
+import { applyScripts } from "../loader";
 
 const s = path.sep;
 
+const scripts: [Plugin, string][] = [];
 let loadedPlugins: LoadedPlugins = {};
 
 const api = getAPI();
+
+function shouldInject(injection: PluginInjection) {
+    return injection.type != "main";
+}
 
 function loadPlugins(userPlugins: UserPlugins) {
     for (const id in userPlugins) {
@@ -16,20 +29,11 @@ function loadPlugins(userPlugins: UserPlugins) {
         loadedPlugins[id] = plugin;
         console.log(`[!Loader] 正在加载插件：${id}`);
 
-        const scripts: string[] = [];
-        plugin.injections.forEach((injection) => {
-            if (injection.type != "main") return;
-            injection.script && scripts.push(`${plugin.dir}${s}${injection.script}`);
-        });
-        scripts.forEach((script) => {
-            try {
-                require(script)(api);
-            } catch (reason) {
-                console.error(
-                    `[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者解决`
-                );
-                console.error(reason);
-            }
+        plugin.injections.forEach((_injection) => {
+            const injection = _injection as PluginInjectionMain;
+            if (!shouldInject(injection)) return;
+            injection.script &&
+                scripts.push([plugin, `${plugin.dir}${s}${injection.script}`]);
         });
     }
 }
@@ -42,6 +46,7 @@ export function applyPlugins(allPlugins: AllUsersPlugins, uin: string = "") {
     }
 
     loadPlugins(userPlugins);
+    applyScripts(scripts, api);
 
     return true;
 }
