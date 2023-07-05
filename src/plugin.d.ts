@@ -1,10 +1,12 @@
+export type Page = "login" | "main" | "chat" | "settings" | "others";
+export type PageWithAbout = Page | "about";
 export interface ManifestInjectionMain {
     type: "main";
     script?: string;
 }
 export interface ManifestInjectionRenderer {
     type: "renderer";
-    page?: ("login" | "main" | "chat" | "settings" | "others")[] | undefined;
+    page?: Page[] | undefined;
     pattern?: string;
     stylesheet?: string;
     script?: string;
@@ -21,6 +23,7 @@ export type ManifestInjection = ManifestInjectionMain | ManifestInjectionRendere
 export interface Manifest {
     id: string;
     name: string;
+    author: string;
     injections: ManifestInjection[];
     requirements?: {
         os: ManifestRequirementOS[];
@@ -33,7 +36,7 @@ export interface PluginInjectionMain {
 }
 export interface PluginInjectionRenderer {
     type: "renderer";
-    page: ("login" | "main" | "chat" | "settings" | "others")[] | undefined;
+    page: Page[] | undefined;
     pattern: RegExp | undefined;
     stylesheet: string | undefined;
     script: string | undefined;
@@ -47,4 +50,8 @@ export interface Plugin {
     name: string;
     dir: string;
     injections: PluginInjection[];
+    manifest: Manifest;
 }
+export type AllUsersPlugins = Record<string, UserPlugins>;
+export type UserPlugins = Record<string, Plugin>;
+export type LoadedPlugins = Record<string, Plugin>;

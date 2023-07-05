@@ -2,17 +2,18 @@ import * as semver from "semver";
 import * as os from "os";
 import * as fs from "fs-extra";
 import * as path from "path";
-import { Plugin, Manifest } from "../plugin";
+import { Plugin, Manifest, AllUsersPlugins } from "../plugin";
 import { Configuration } from "../config";
-import { configFile, dataDir, pluginDir } from "../env";
+import { configFile, dataDir, pluginDir, pluginPerUserDir } from "../env";
 
 let config: Configuration = {};
-export const plugins: Record<string, Plugin> = {};
+export const plugins: AllUsersPlugins = {};
 const s = path.sep;
 
 export function prepareConfigDir() {
     fs.ensureDirSync(dataDir);
     fs.ensureDirSync(pluginDir);
+    fs.ensureDirSync(pluginPerUserDir);
     if (!fs.existsSync(configFile)) fs.writeJSONSync(configFile, {});
 }
 
@@ -71,7 +72,6 @@ export function parsePlugin(dir: string) {
         meetRequirements: meetRequirements,
         loaded: loaded,
         id: manifest.id,
-        name: manifest.name,
         dir: dir,
         injections: manifest.injections.map((injection) => {
             return injection.type == "main"
@@ -81,20 +81,31 @@ export function parsePlugin(dir: string) {
                       pattern: injection.pattern && new RegExp(injection.pattern),
                   };
         }),
+        manifest: manifest,
     } as Plugin;
 }
 
-export function collectPlugins() {
-    const folders = fs.readdirSync(pluginDir);
-
+function collectPluginsFromDir(baseDir: string, uin: string = "") {
+    const folders = fs.readdirSync(baseDir);
+    if (!plugins[uin]) plugins[uin] = {};
     folders.forEach((folder) => {
-        const folderPath = `${pluginDir}${s}${folder}`;
+        const folderPath = `${baseDir}${s}${folder}`;
         if (fs.statSync(folderPath).isDirectory()) {
             const plugin = parsePlugin(folderPath);
             if (!plugin) return;
-            if (plugins[plugin.id]) return;
-            plugins[plugin.id] = plugin;
+            if (plugins[uin][plugin.id]) return;
+            plugins[uin][plugin.id] = plugin;
         }
     });
-    return plugins;
+}
+
+export function collectPlugins() {
+    collectPluginsFromDir(pluginDir);
+    const folders = fs.readdirSync(pluginPerUserDir);
+    folders.forEach((folder) => {
+        const folderPath = `${pluginPerUserDir}${s}${folder}`;
+        if (fs.statSync(folderPath).isDirectory()) {
+            collectPluginsFromDir(folderPath, folder);
+        }
+    });
 }

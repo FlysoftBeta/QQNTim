@@ -1,19 +1,13 @@
-import * as path from "path";
-import * as fs from "fs-extra";
-import { Plugin } from "../plugin";
+import { AllUsersPlugins, Page, PageWithAbout, PluginInjection } from "../plugin";
 import { getAPI } from "./api";
-
-const s = path.sep;
-
-const stylesheets: string[] = [];
-export let plugins: Record<string, Plugin> = {};
+import { applyScripts, applyStylesheets, loadPlugins } from "../loader";
 
 const windowLoadPromise = new Promise<void>((resolve) =>
     window.addEventListener("load", () => resolve())
 );
 const api = getAPI(windowLoadPromise);
 
-function detectCurrentPage() {
+function detectCurrentPage(): PageWithAbout {
     const url = window.location.href;
     if (url.includes("login")) {
         return "login";
@@ -30,55 +24,21 @@ function detectCurrentPage() {
     }
 }
 
-export function setPlugins(newPlugins: Record<string, Plugin>) {
-    const page = detectCurrentPage();
-    if (page == "about") return;
-
-    for (const id in newPlugins) {
-        if (plugins[id]) continue;
-        const plugin = newPlugins[id];
-        if (!plugin.loaded) continue;
-        plugins[id] = plugin;
-        console.log(`[!Loader] 正在加载插件：${id}`);
-
-        const scripts: string[] = [];
-        plugin.injections.forEach((injection) => {
-            if (
-                injection.type != "renderer" ||
-                (injection.pattern && !injection.pattern.test(window.location.href)) ||
-                (injection.page && !injection.page.includes(page))
-            )
-                return;
-            injection.stylesheet &&
-                stylesheets.push(
-                    fs.readFileSync(`${plugin.dir}${s}${injection.stylesheet}`).toString()
-                );
-            injection.script && scripts.push(`${plugin.dir}${s}${injection.script}`);
-        });
-        scripts.forEach((script) => {
-            try {
-                require(script)(api);
-            } catch (reason) {
-                console.error(
-                    `[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者解决`
-                );
-                console.error(reason);
-            }
-        });
-    }
-    loadStylesheet();
+function shouldInject(injection: PluginInjection, page: Page) {
+    return (
+        injection.type == "renderer" &&
+        (!injection.pattern || injection.pattern.test(window.location.href)) &&
+        (!injection.page || injection.page.includes(page))
+    );
 }
 
-async function loadStylesheet() {
-    console.log(`[!Loader] 正在注入 CSS`, stylesheets);
+export function applyPlugins(allPlugins: AllUsersPlugins, uin: string = "") {
+    const page = detectCurrentPage();
+    if (page == "about") return false;
 
-    await windowLoadPromise;
+    loadPlugins(allPlugins, uin, (injection) => shouldInject(injection, page), true);
+    applyScripts(api);
+    windowLoadPromise.then(() => applyStylesheets());
 
-    let element: HTMLStyleElement = document.querySelector("#qqntim_injected_styles")!;
-    if (element) element.remove();
-
-    element = document.createElement("style");
-    element.id = "qqntim_injected_styles";
-    element.innerText = stylesheets.join("\n");
-    document.body.appendChild(element);
+    return true;
 }

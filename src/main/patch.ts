@@ -1,10 +1,11 @@
 import * as path from "path";
 import { Module } from "module";
-import { plugins } from "./loader";
+import { applyPlugins } from "./loader";
 import { InterruptWindowCreation, IPCArgs, handleIpc } from "../ipc";
 import { createDebuggerWindow, debuggerOrigin } from "./debugger";
 import { BrowserWindow, Menu, MenuItem } from "electron";
 import { useNativeDevTools } from "../env";
+import { plugins } from "./plugins";
 
 const s = path.sep;
 
@@ -63,11 +64,16 @@ function patchBrowserWindow() {
                     "forcibly stopped IPC propagation (Note that this is not a bug)"
                 );
             }
+            if (channel == "___!apply_plugins") applyPlugins(plugins, args[1] as string);
         });
         win.webContents.on(
             "ipc-message-sync",
             (event, channel, ...args: IPCArgs<any>) => {
-                handleIpc(args, "in", channel);
+                if (!handleIpc(args, "in", channel, win.webContents)) {
+                    throw new Error(
+                        "forcibly stopped IPC propagation (Note that this is not a bug)"
+                    );
+                }
                 if (channel == "___!boot") {
                     event.returnValue = {
                         debuggerOrigin: !useNativeDevTools && debuggerOrigin,

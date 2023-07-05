@@ -12,3 +12,4 @@ export const dataDir = path.resolve(
 );
 export const configFile = `${dataDir}${s}config.json`;
 export const pluginDir = `${dataDir}${s}plugins`;
+export const pluginPerUserDir = `${dataDir}${s}plugins-user`;

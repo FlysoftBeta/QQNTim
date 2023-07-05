@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import TypedEmitter from "typed-emitter";
 import { IPCArgs, addInterruptIpc } from "../../../ipc";
-import { Friend, Group, Message, MessageElement, Peer } from "./nt";
+import { Friend, Group, LoginAccount, Message, MessageElement, Peer } from "./nt";
 import { constructMessage } from "./constructor";
 import {
     destructFaceElement,
@@ -31,7 +31,7 @@ class NT extends (EventEmitter as new () => TypedEmitter<NTEvents>) {
         this.listenContactListChange();
     }
 
-    public async getAccountInfo() {
+    public async getAccountInfo(): Promise<LoginAccount> {
         const data = await ntCall("ns-BusinessApi-2", "fetchAuthData", []);
         return { uin: data.uin as string, uid: data.uid as string };
     }
