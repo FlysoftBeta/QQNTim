@@ -64,9 +64,7 @@ function patchBrowserWindow() {
                     "forcibly stopped IPC propagation (Note that this is not a bug)"
                 );
             }
-            if (channel == "___!apply_plugins") {
-                applyPlugins(plugins, args[0] as any as string);
-            }
+            if (channel == "___!apply_plugins") applyPlugins(plugins, args[1] as string);
         });
         win.webContents.on(
             "ipc-message-sync",
