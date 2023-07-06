@@ -6,7 +6,6 @@ import {
     Plugin,
     PluginInjection,
     PluginInjectionRenderer,
-    UserPlugins,
 } from "./plugin";
 
 const s = path.sep;
@@ -38,7 +37,13 @@ export function applyStylesheets() {
     element = document.createElement("style");
     element.id = "qqntim_injected_styles";
     element.innerHTML = stylesheets
-        .map(([_, stylesheet]) => fs.readFileSync(stylesheet).toString())
+        .map(
+            ([plugin, stylesheet]) => `/* ${plugin.manifest.id.replaceAll(
+                "/",
+                "-"
+            )} - ${stylesheet.replaceAll("/", "-")} */
+${fs.readFileSync(stylesheet).toString()}`
+        )
         .join("\n");
     document.body.appendChild(element);
 }

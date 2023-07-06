@@ -6,15 +6,14 @@
 import { collectPlugins, loadConfig, plugins, prepareConfigDir } from "./plugins";
 import { applyPlugins } from "./loader";
 import { patchElectron } from "./patch";
+import { hookPostPatchElectron } from "./compatibility";
 
-function loadPlugins() {
-    prepareConfigDir();
-    loadConfig();
-    collectPlugins();
-    applyPlugins(plugins);
-    patchElectron();
-    console.log("[!Main] QQNTim 加载成功");
-}
+patchElectron();
+hookPostPatchElectron();
+prepareConfigDir();
+loadConfig();
+collectPlugins();
+applyPlugins(plugins);
+console.log("[!Main] QQNTim 加载成功");
 
-loadPlugins();
-require("./launcher.node").load("external_index", module);
+require("./index.js");

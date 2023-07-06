@@ -4,12 +4,10 @@ import { patchElectron } from "./patch";
 import { attachDebugger } from "./debugger";
 import { nt } from "./api/nt";
 
-const { debuggerOrigin, debuggerId, plugins, resourceDir } = ipcRenderer.sendSync(
-    "___!boot",
-    {
+const { preload, debuggerOrigin, debuggerId, plugins, resourceDir } =
+    ipcRenderer.sendSync("___!boot", {
         eventName: "QQNTIM_BOOT",
-    }
-);
+    });
 
 attachDebugger(debuggerId, debuggerOrigin);
 
@@ -33,17 +31,4 @@ const timer = setInterval(() => {
 
 patchElectron();
 
-contextBridge.exposeInMainWorld("electron", {
-    load: (file) => {
-        require(resourceDir +
-            (process.platform == "win32" ? "/../major.node" : "/major.node")).load(
-            file,
-            module
-        );
-    },
-});
-require(resourceDir +
-    (process.platform == "win32" ? "/../major.node" : "/major.node")).load(
-    "p_preload",
-    module
-);
+require(preload);
