@@ -3,6 +3,7 @@ import { InterruptIPC, InterruptIPCOptions, addInterruptIpc } from "../../ipc";
 import { nt } from "./nt";
 import { startWatchingElement, waitForElement } from "./waitForElement";
 import { ntCall } from "./nt/call";
+import { browserwindow } from "./browserWindow";
 
 export function getAPI(windowLoadPromise: Promise<void>) {
     windowLoadPromise.then(() => startWatchingElement());
@@ -13,12 +14,13 @@ export function getAPI(windowLoadPromise: Promise<void>) {
                 addInterruptIpc(func, options),
         },
         nt: nt,
-        ntCall: ntCall,
+        window: browserwindow,
         modules: {
             fs: fs,
         },
         utils: {
             waitForElement: waitForElement,
+            ntCall: ntCall,
         },
         windowLoadPromise: windowLoadPromise,
     };
