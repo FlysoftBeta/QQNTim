@@ -101,6 +101,8 @@ function patchBrowserWindow() {
                             debuggerId: id,
                             plugins: plugins,
                         };
+                    } else if (channel == "___!browserwindow_api") {
+                        event.returnValue = win[args[1][0]](...args[1][1]);
                     }
                 }
             );
