@@ -44,7 +44,7 @@ function patchBrowserWindow() {
         set(target, p, newValue) {
             return setter(`BrowserWindow(static)`, target, p as any, newValue);
         },
-        construct(target, [options]: [Electron.BrowserViewConstructorOptions]) {
+        construct(target, [options]: [Electron.BrowserWindowConstructorOptions]) {
             let patchedArgs: Electron.BrowserWindowConstructorOptions = {
                 ...options,
                 webPreferences: {
@@ -82,7 +82,7 @@ function patchBrowserWindow() {
             });
             win.webContents.on(
                 "ipc-message-sync",
-                (event, channel, ...args: IPCArgs<any>) => {
+                (_, channel, ...args: IPCArgs<any>) => {
                     if (!handleIpc(args, "in", channel, win.webContents)) {
                         throw new Error(
                             "forcibly stopped IPC propagation (Note that this is not a bug)"
@@ -96,10 +96,10 @@ function patchBrowserWindow() {
                     handleIpc(args, "in", channel);
                     if (channel == "___!boot") {
                         event.returnValue = {
+                            preload: options.webPreferences?.preload,
                             debuggerOrigin: !useNativeDevTools && debuggerOrigin,
                             debuggerId: id,
                             plugins: plugins,
-                            resourceDir: path.dirname(options.webPreferences?.preload!),
                         };
                     }
                 }
