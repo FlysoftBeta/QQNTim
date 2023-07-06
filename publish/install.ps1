@@ -55,5 +55,4 @@ $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
 [System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/index.js", "./app_launcher/qqntim.js"), $Utf8NoBomEncoding)
 
 Write-Output "Installed successfully. Installer will exit in 5 sec."
-Start-Process "$QQInstallDir\QQ.exe" -UseNewEnvironment
 Start-Sleep 5
