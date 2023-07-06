@@ -21,16 +21,16 @@ const initDebuggerPromise = (async () => {
 async function listChiiTargets() {
     await initDebuggerPromise;
     const res = await axios.get(`${debuggerOrigin}/targets`);
-    return (res.data.targets as any[]).map((target) => target.title);
+    return (res.data.targets as any[]).map((target) => [target.title, target.id]);
 }
 
 export async function createDebuggerWindow(debuggerId: string, win: BrowserWindow) {
     const targets = await listChiiTargets();
-    for (const target of targets) {
-        if (target == debuggerId) {
+    for (const [id, target] of targets) {
+        if (id == debuggerId) {
             const url = `${debuggerOrigin}/front_end/chii_app.html?ws=${debuggerHost}:${debuggerPort}/client/${(
                 Math.random() * 6
-            ).toString()}?target=${target.id}`;
+            ).toString()}?target=${target}`;
 
             console.log(`[!Debugger] 正在打开 chii 调试器窗口：${url}`);
 
