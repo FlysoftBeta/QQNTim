@@ -12,19 +12,21 @@ const s = path.sep;
 
 const loadedPlugins: LoadedPlugins = {};
 
-const stylesheets: [Plugin, string][] = [],
+let stylesheets: [Plugin, string][] = [],
     scripts: [Plugin, string][] = [];
 
 export function applyScripts(api: any) {
-    scripts.forEach(([plugin, script]) => {
+    scripts = scripts.filter(([plugin, script]) => {
         try {
             require(script)(api);
+            return false;
         } catch (reason) {
             console.error(
                 `[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者 (${plugin.manifest.author}) 解决`
             );
             console.error(reason);
         }
+        return true;
     });
 }
 
