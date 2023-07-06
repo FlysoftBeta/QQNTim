@@ -22,13 +22,13 @@ build({
     ...commonOptions,
     entryPoints: ["src/main/main.ts"],
     outfile: "dist/qqntim.js",
-    external: ["electron", "./index.js", "LiteLoader", ...unpackedPackages],
+    external: ["electron", "./index.js", ...unpackedPackages],
 });
 build({
     ...commonOptions,
     entryPoints: ["src/renderer/main.ts"],
     outfile: "dist/qqntim-renderer.js",
-    external: ["electron", "fs-extra", ...unpackedPackages],
+    external: ["electron", ...unpackedPackages],
 });
 
 const packages: Record<
