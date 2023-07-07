@@ -69,7 +69,7 @@ function patchBrowserWindow() {
             const send = win.webContents.send;
             win.webContents.send = (channel: string, ...args: IPCArgs<any>) => {
                 handleIpc(args, "out", channel);
-                send.bind(win.webContents, channel, ...args)();
+                return send.call(win.webContents, channel, ...args);
             };
             win.webContents.on("ipc-message", (_, channel, ...args: IPCArgs<any>) => {
                 if (!handleIpc(args, "in", channel, win.webContents)) {
@@ -107,12 +107,15 @@ function patchBrowserWindow() {
                 }
             );
 
-            win.setMenu(Menu.buildFromTemplate(windowMenu));
+            const setMenu = win.setMenu;
             win.setMenu = (menu) => {
-                if (!menu) return;
-                win.setMenu = () => {};
-                windowMenu.forEach((item) => menu.append(item));
+                const patchedMenu = Menu.buildFromTemplate([
+                    ...(menu?.items || []),
+                    ...windowMenu,
+                ]);
+                return setMenu.call(win, patchedMenu);
             };
+            win.setMenu(null);
 
             return new Proxy(win, {
                 get(target, p) {
