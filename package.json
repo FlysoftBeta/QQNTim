@@ -12,7 +12,7 @@
         "chii": "^1.9.0",
         "fs-extra": "^11.1.1",
         "portfinder": "^1.0.32",
-        "semver": "^7.5.3",
+        "semver": "^7.5.4",
         "supports-color": "^9.4.0"
     },
     "devDependencies": {
