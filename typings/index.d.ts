@@ -42,6 +42,8 @@ declare namespace QQNTim {
     namespace API {
         namespace Main {
             interface API {
+                version: string;
+                ntVersion: string;
                 interrupt: {
                     /**
                      * 拦截 IPC 通讯
@@ -70,6 +72,8 @@ declare namespace QQNTim {
         }
         namespace Renderer {
             interface API {
+                version: string;
+                ntVersion: string;
                 interrupt: {
                     /**
                      * 拦截 IPC 通讯
@@ -87,6 +91,7 @@ declare namespace QQNTim {
                 utils: {
                     waitForElement<T extends Element>(selector: string): Promise<T>;
                     ntCall(eventName: string, cmd: string, args: any[]): Promise<IPC.Response>;
+                    getVueId(element: HTMLElement): string | undefined;
                 };
                 windowLoadPromise: WindowLoadPromise;
             }

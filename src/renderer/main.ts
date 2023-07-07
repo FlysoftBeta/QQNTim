@@ -1,11 +1,13 @@
 import { setEnv } from "../config";
+import { watchIpc } from "../ipc";
 import { nt } from "./api/nt";
 import { attachDebugger } from "./debugger";
 import { applyPlugins } from "./loader";
 import { patchElectron } from "./patch";
-import { ipcRenderer } from "electron";
 import { hookVue3 } from "./vueHelper";
-import { watchIpc } from "../ipc";
+import { ipcRenderer } from "electron";
+import * as React from "react";
+import * as ReactDOMClient from "react-dom/client";
 
 const { enabled, preload, debuggerOrigin, debuggerId, plugins, env } = ipcRenderer.sendSync("___!boot", {
     eventName: "QQNTIM_BOOT",
@@ -15,6 +17,10 @@ if (enabled) {
     setEnv(env);
     watchIpc();
     hookVue3();
+    attachDebugger(debuggerId, debuggerOrigin);
+    (window as any).React = React;
+    (window as any).ReactDOMClient = ReactDOMClient;
+
     attachDebugger(debuggerId, debuggerOrigin);
 
     const timer = setInterval(() => {

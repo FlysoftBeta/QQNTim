@@ -1,0 +1,46 @@
+.qqntim-settings-panel-open
+    .setting-main
+    .setting-main__content:not(.qqntim-settings-panel),
+body:not(.qqntim-settings-panel-open)
+    .setting-main
+    .setting-main__content.qqntim-settings-panel {
+    display: none !important;
+}
+
+.qqntim-settings-panel-section-title {
+    padding: 8px;
+    font-size: 17px;
+}
+
+.qqntim-settings-panel-section-content {
+    border-radius: 5px;
+    padding: 0 16px;
+    background-color: var(--fg_white);
+}
+
+.qqntim-settings-panel-settings-versions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 5px;
+    padding: 16px 0;
+}
+
+.qqntim-settings-panel-settings-versions-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.qqntim-settings-panel-settings-versions-item > h3 {
+    font-size: 15px;
+}
+
+.qqntim-settings-panel-settings-versions-item > div {
+    font-size: 15px;
+    color: var(--text_secondary_01);
+}

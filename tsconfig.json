@@ -3,6 +3,7 @@
         "module": "CommonJS",
         "moduleResolution": "Node",
         "target": "ESNext",
+        "resolveJsonModule": true,
         "strictNullChecks": true,
         "strictFunctionTypes": true,
         "outDir": "dist",

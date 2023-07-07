@@ -1,0 +1,13 @@
+{
+    "id": "builtin-settings-ui",
+    "name": "设置",
+    "author": "Flysoft",
+    "injections": [
+        {
+            "type": "renderer",
+            "page": "settings",
+            "stylesheet": "style.css",
+            "script": "renderer.js"
+        }
+    ]
+}

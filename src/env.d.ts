@@ -1,1 +1,4 @@
-declare const __TYPE: "main" | "renderer";
+interface Window {
+    React: typeof import("react");
+    ReactDOMClient: typeof import("react-dom/client");
+}

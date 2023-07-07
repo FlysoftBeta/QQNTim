@@ -5,7 +5,7 @@ import { createDebuggerWindow, debuggerOrigin } from "./debugger";
 import { applyPlugins } from "./loader";
 import { plugins } from "./plugins";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
-import { BrowserWindow, Menu, MenuItem, ipcMain, Session, session } from "electron";
+import { BrowserWindow, Menu, MenuItem, Session, ipcMain, session } from "electron";
 import { Module } from "module";
 import * as path from "path";
 

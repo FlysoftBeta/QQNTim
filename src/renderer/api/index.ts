@@ -1,5 +1,8 @@
+import { version } from "../../../package.json";
 import { addInterruptIpc } from "../../ipc";
+import { getCurrentNTVersion } from "../../ntVersion";
 import { browserwindow } from "./browserWindow";
+import { getVueId } from "./getVueId";
 import { nt } from "./nt";
 import { ntCall } from "./nt/call";
 import { startWatchingElement, waitForElement } from "./waitForElement";
@@ -10,6 +13,8 @@ export function getAPI(windowLoadPromise: Promise<void>) {
     windowLoadPromise.then(() => startWatchingElement());
 
     const api: QQNTim.API.Renderer.API = {
+        version: version,
+        ntVersion: getCurrentNTVersion(),
         interrupt: {
             ipc: addInterruptIpc,
         },
@@ -20,6 +25,7 @@ export function getAPI(windowLoadPromise: Promise<void>) {
         },
         utils: {
             waitForElement: waitForElement,
+            getVueId: getVueId,
             ntCall: ntCall,
         },
         windowLoadPromise: windowLoadPromise,
