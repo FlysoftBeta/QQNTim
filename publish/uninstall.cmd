@@ -6,7 +6,7 @@ title QQNTim 卸载程序
 color F0
 mode con cols=65 lines=16
 
-set PS_PREFIX=powershell -NoProfile -ExecutionPolicy RemoteSigned
+set PS_PREFIX=powershell -NoProfile -ExecutionPolicy Unrestricted
 
 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system" >nul 2>nul 
 if "%ERRORLEVEL%" neq "0" (
