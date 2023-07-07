@@ -1,59 +1,121 @@
 import { BuildOptions, build } from "esbuild";
-import { copySync, emptyDirSync, ensureDirSync } from "fs-extra";
+import { copy, emptyDir, ensureDir } from "fs-extra";
 import { sep as s } from "path";
 import { getAllLocators, getPackageInformation } from "pnpapi";
 
-emptyDirSync("dist");
-ensureDirSync("dist/_");
+type Package = { packageLocation: string; packageDependencies: Map<string, string> };
+type Packages = Record<string, Record<string, Package>>;
+
+const unpackedPackages = ["fs-extra", "chii"];
+const junkFiles = [
+    ".d.ts",
+    ".markdown",
+    ".md",
+    ".eslintrc",
+    ".eslintrc.js",
+    ".prettierrc",
+    ".nycrc",
+    ".yml",
+    ".yaml",
+    ".bak",
+    ".editorconfig",
+    "bower.json",
+    ".jscs.json",
+    "AUTHORS",
+    "LICENSE",
+    "License",
+    "yarn.lock",
+    "package-lock.json",
+    ".map",
+    ".debug.js",
+    ".min.js",
+    "/test/",
+    "/bin/",
+    "/tests/",
+    "/.github/",
+];
 
 const isProduction = process.env["NODE_ENV"] == "production";
-const unpackedPackages = ["fs-extra", "chii"];
-const commonOptions: Partial<BuildOptions> = {
-    target: "node18",
-    bundle: true,
-    platform: "node",
-    write: true,
-    allowOverwrite: true,
-    sourcemap: isProduction ? false : "inline",
-    minify: isProduction,
-    treeShaking: isProduction,
-};
 
-build({
-    ...commonOptions,
-    entryPoints: ["src/main/main.ts"],
-    outfile: "dist/_/qqntim.js",
-    external: ["electron", "./index.js", ...unpackedPackages],
-});
-build({
-    ...commonOptions,
-    entryPoints: ["src/renderer/main.ts"],
-    outfile: "dist/_/qqntim-renderer.js",
-    external: ["electron", ...unpackedPackages],
-});
+async function buildBundles() {
+    const commonOptions: Partial<BuildOptions> = {
+        target: "node18",
+        bundle: true,
+        platform: "node",
+        write: true,
+        allowOverwrite: true,
+        sourcemap: isProduction ? false : "inline",
+        minify: isProduction,
+        treeShaking: isProduction,
+    };
 
-const packages: Record<
-    string,
-    Record<string, { packageLocation: string; packageDependencies: Map<string, string> }>
-> = {};
-getAllLocators().forEach((locator) => {
-    if (!packages[locator.name]) packages[locator.name] = {};
-    packages[locator.name][locator.reference] = getPackageInformation(locator);
-});
+    const buildPromise = Promise.all([
+        build({
+            ...commonOptions,
+            entryPoints: ["src/main/main.ts"],
+            outfile: "dist/_/qqntim.js",
+            external: ["electron", "./index.js", ...unpackedPackages],
+        }),
+        build({
+            ...commonOptions,
+            entryPoints: ["src/renderer/main.ts"],
+            outfile: "dist/_/qqntim-renderer.js",
+            external: ["electron", ...unpackedPackages],
+        }),
+    ]);
 
-function unpackPackage(rootDir: string, name: string, reference?: string) {
+    return await buildPromise;
+}
+
+async function prepareDistDir() {
+    await emptyDir("dist");
+    await ensureDir("dist/_");
+    await copy("publish", "dist");
+}
+
+function collectDeps() {
+    const packages: Packages = {};
+    getAllLocators().forEach((locator) => {
+        if (!packages[locator.name]) packages[locator.name] = {};
+        packages[locator.name][locator.reference] = getPackageInformation(locator);
+    });
+    return packages;
+}
+
+async function unpackPackage(
+    packages: Packages,
+    rootDir: string,
+    name: string,
+    reference?: string
+) {
     const item = packages[name];
     if (!item) return;
     const location = item[reference ? reference : Object.keys(item)[0]];
     const dir = `${rootDir}${s}node_modules${s}${name}`;
-    ensureDirSync(dir);
-    copySync(location.packageLocation, dir);
-    for (const dep of location.packageDependencies) {
-        if (dep[0] == name) continue;
-        unpackPackage(dir, dep[0], dep[1]);
-    }
+    await ensureDir(dir);
+    await copy(location.packageLocation, dir, {
+        filter: (src) => {
+            for (const file of junkFiles) {
+                if (src.includes(file)) return false;
+            }
+            return true;
+        },
+    });
+    const promises: Promise<void>[] = [];
+    location.packageDependencies.forEach(([name, reference]) => {
+        promises.push(unpackPackage(packages, dir, name, reference));
+    });
+    await Promise.all(promises);
 }
 
-unpackedPackages.forEach((unpackedPackage) => unpackPackage("dist/_", unpackedPackage));
-
-copySync("publish", "dist");
+const packages = collectDeps();
+prepareDistDir().then(() =>
+    Promise.all([
+        buildBundles(),
+        Promise.all(
+            unpackedPackages.map((unpackedPackage) =>
+                unpackPackage(packages, "dist/_", unpackedPackage)
+            )
+        ),
+    ])
+);
