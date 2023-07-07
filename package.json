@@ -17,7 +17,7 @@
     },
     "devDependencies": {
         "@types/fs-extra": "^11.0.1",
-        "@types/node": "^20.3.3",
+        "@types/node": "^20.4.0",
         "@types/semver": "^7.5.0",
         "@yarnpkg/sdks": "^3.0.0-rc.48",
         "esbuild": "^0.18.11",
