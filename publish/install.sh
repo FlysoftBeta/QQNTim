@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 
-cd "$( dirname "${BASH_SOURCE[0]}" )"
+cd "$( dirname "${BASH_SOURCE[0]}" )/_"
 
 if [ ! "$(whoami)" == "root" ]; then
-    echo "The installation script must be run by root user."
+    echo "正在提升权限……"
+    sudo "${BASH_SOURCE[0]}"
     exit -2
 fi
 
 qq_installation_dir=$( dirname $( readlink $( which qq ) ) )
 if [ ! -d "$qq_installation_dir" ]; then
-    echo "QQNT installation not found."
+    echo "未找到 QQNT 安装目录。"
 fi
 qq_app_dir="$qq_installation_dir/resources/app"
 qq_applauncher_dir="$qq_app_dir/app_launcher"
@@ -19,31 +20,31 @@ package_json_file="$qq_app_dir/package.json"
 qqntim_flag_file="$qq_applauncher_dir/qqntim-flag.txt"
 
 if [ -f "$entry_backup_file" ]; then
-    echo "Cleaning up old installation..."
+    echo "正在清理旧版 QQNTim……"
     mv -vf "$entry_backup_file" "$entry_file"
     touch "$qqntim_flag_file"
 fi
 
 if [ ! -f "$qqntim_flag_file" ]; then
-    read -p "Do you want to install QQNTim (y/n)?" choice
+    read -p "是否要安装 QQNTim (y/n)？" choice
     case $choice in
     y) ;;
     *) exit -1 ;;
     esac
 fi
 
-echo "Killing QQ processes..."
+echo "正在关闭 QQ……"
 killall -vw qq
 
-echo "Copying files..."
+echo "正在复制文件……"
 mkdir -p "$qq_applauncher_dir/node_modules"
 cp -vf ./qqntim.js ./qqntim-renderer.js "$qq_applauncher_dir"
 cp -vrf ./node_modules/* "$qq_applauncher_dir/node_modules"
 
-echo "Patching package.json..."
+echo "正在修补 package.json……"
 sed -i "s#\.\/app_launcher\/index\.js#\.\/app_launcher\/qqntim\.js#g" "$package_json_file"
 
 touch "$qqntim_flag_file"
 
-echo "Installed successfully. Installer will exit in 5 sec."
+echo "安装成功。安装程序将在 5 秒后退出。"
 sleep 5s
