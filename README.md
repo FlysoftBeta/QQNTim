@@ -10,6 +10,10 @@ QQNT-Improved (简称 QQNTim) 是一个给 QQNT 的插件管理器，目前处�
 
 本程序**不提供任何担保**（包括但不限于使用导致的系统故障、封号等）。
 
+> QQNTim 可以与 **[LiteLoaderQQNT](https://github.com/mo-jinran/LiteLoaderQQNT)** 并存，快去试试吧！
+>
+> **注意：** 请先 [安装 LiteLoaderQQNT](https://github.com/mo-jinran/LiteLoaderQQNT#%E5%AE%89%E8%A3%85%E6%96%B9%E6%B3%95) 再 [安装 QQNTim](#安装和卸载)
+
 ## 简介
 
 QQNTim 是一个用于管理插件的程序，其功能需要通过[安装插件](#插件)实现。
@@ -21,7 +25,7 @@ QQNTim 是一个用于管理插件的程序，其功能需要通过[安装插件
 安装前请确保电脑上已经安装了 QQNT (Windows 版需要有内测资格)。
 请右键使用 PowerShell 运行 `install.ps1` 安装插件管理器，`uninstall.ps1` 卸载插件管理器。
 
-**注意:** 如果遇到脚本无法打开的情况，请在运行 (Win+R) 中输入以下内容并点击“确定”以允许 PowerShell 运行脚本：
+**注意：** 如果遇到脚本无法打开的情况，请在运行 (Win+R) 中输入以下内容并点击“确定”以允许 PowerShell 运行脚本：
 
 ```powershell
 powershell -Command Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
