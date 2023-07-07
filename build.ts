@@ -102,8 +102,9 @@ async function unpackPackage(
         },
     });
     const promises: Promise<void>[] = [];
-    location.packageDependencies.forEach(([name, reference]) => {
-        promises.push(unpackPackage(packages, dir, name, reference));
+    location.packageDependencies.forEach((depReference, depName) => {
+        if (name == depName) return;
+        promises.push(unpackPackage(packages, dir, depName, depReference));
     });
     await Promise.all(promises);
 }
