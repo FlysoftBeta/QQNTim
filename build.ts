@@ -4,6 +4,7 @@ import { sep as s } from "path";
 import { getAllLocators, getPackageInformation } from "pnpapi";
 
 emptyDirSync("dist");
+ensureDirSync("dist/_");
 
 const isProduction = process.env["NODE_ENV"] == "production";
 const unpackedPackages = ["fs-extra", "chii"];
@@ -21,13 +22,13 @@ const commonOptions: Partial<BuildOptions> = {
 build({
     ...commonOptions,
     entryPoints: ["src/main/main.ts"],
-    outfile: "dist/qqntim.js",
+    outfile: "dist/_/qqntim.js",
     external: ["electron", "./index.js", ...unpackedPackages],
 });
 build({
     ...commonOptions,
     entryPoints: ["src/renderer/main.ts"],
-    outfile: "dist/qqntim-renderer.js",
+    outfile: "dist/_/qqntim-renderer.js",
     external: ["electron", ...unpackedPackages],
 });
 
@@ -53,6 +54,6 @@ function unpackPackage(rootDir: string, name: string, reference?: string) {
     }
 }
 
-unpackedPackages.forEach((unpackedPackage) => unpackPackage("dist", unpackedPackage));
+unpackedPackages.forEach((unpackedPackage) => unpackPackage("dist/_", unpackedPackage));
 
 copySync("publish", "dist");
