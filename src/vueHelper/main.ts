@@ -7,6 +7,10 @@ interface Component {
     uid: number;
 }
 
+interface HTMLElement {
+    __VUE__?: Component;
+}
+
 const __VUE_ELEMENTS__ = (() => {
     // Modified from https://greasyfork.org/zh-CN/scripts/449444-hook-vue3-app
     // Thanks to DreamNya & Cesaryuan ;)
@@ -30,13 +34,17 @@ const __VUE_ELEMENTS__ = (() => {
         if (!component.bum) component.bum = [];
         component.bum.push(() => {
             const element = component.vnode.el;
-            if (element) elements.delete(element);
+            if (element) {
+                elements.delete(element);
+                if (element.__VUE__) delete element.__VUE__;
+            }
         });
     };
 
     const recordComponent = (element: HTMLElement, component: Component) => {
         if (element instanceof Text) element = element.parentElement!;
 
+        element.__VUE__ = component;
         element.classList.add("vue-component");
         elements.set(element, component);
 
