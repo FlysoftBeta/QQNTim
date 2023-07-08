@@ -1,5 +1,5 @@
 import { printObject } from "./console";
-import { verboseLogging } from "./env";
+import { env } from "./config";
 
 type Constructor<T> = new (...args: any[]) => T;
 
@@ -8,7 +8,7 @@ export function getter<T, R extends keyof T>(scope: string, target: T, p: R) {
     if (typeof target[p] == "function")
         return (...argArray: any[]) => {
             const res = (target[p] as Function).apply(target, argArray);
-            if (verboseLogging)
+            if (env.verboseLogging)
                 console.debug(
                     `[!Watch:${scope}] 调用：${p as string}`,
                     printObject(argArray),
@@ -18,7 +18,7 @@ export function getter<T, R extends keyof T>(scope: string, target: T, p: R) {
         };
     else {
         const res = target[p];
-        if (verboseLogging) console.debug(`[!Watch:${scope}] 获取：${p as string}`);
+        if (env.verboseLogging) console.debug(`[!Watch:${scope}] 获取：${p as string}`);
         return res;
     }
 }
@@ -29,7 +29,7 @@ export function setter<T, R extends keyof T>(
     p: R,
     newValue: T[R]
 ) {
-    if (verboseLogging)
+    if (env.verboseLogging)
         console.debug(`[!Watch:${scope}] 设置：${p as string}`, printObject(newValue));
     return true;
 }
@@ -39,7 +39,7 @@ export function construct<F, T extends Constructor<F>>(
     target: T,
     argArray: any[]
 ) {
-    if (verboseLogging)
+    if (env.verboseLogging)
         console.debug(`[!Watch:${scope}] 构造新实例：`, printObject(argArray));
     return new target(...argArray);
 }

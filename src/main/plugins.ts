@@ -3,33 +3,16 @@ import * as os from "os";
 import * as fs from "fs-extra";
 import * as path from "path";
 import { Plugin, Manifest, AllUsersPlugins } from "../plugin";
-import { Configuration } from "../config";
-import { configFile, dataDir, pluginDir, pluginPerUserDir } from "../env";
+import { env } from "../config";
+import { pluginDir, pluginPerUserDir } from "../files";
 
-let config: Configuration = {};
 export const plugins: AllUsersPlugins = {};
 const s = path.sep;
 
-export function prepareConfigDir() {
-    fs.ensureDirSync(dataDir);
-    fs.ensureDirSync(pluginDir);
-    fs.ensureDirSync(pluginPerUserDir);
-    if (!fs.existsSync(configFile)) fs.writeJSONSync(configFile, {});
-}
-
-export function loadConfig() {
-    config = fs.readJSONSync(configFile) || {};
-}
-
 function isPluginEnabled(manifest: Manifest) {
-    if (config.plugins?.whitelist && !config.plugins.whitelist.includes(manifest.id)) {
-        return false;
-    }
-    if (config.plugins?.blacklist && config.plugins.blacklist.includes(manifest.id)) {
-        return false;
-    }
-
-    return true;
+    if (env.plugins?.whitelist) return env.plugins.whitelist.includes(manifest.id);
+    else if (env.plugins?.blacklist) return !env.plugins.blacklist.includes(manifest.id);
+    else return true;
 }
 
 function isPluginRequirementsMet(manifest: Manifest) {

@@ -1,4 +1,4 @@
-import { verboseLogging } from "./env";
+import { env } from "./config";
 import { printObject } from "./console";
 
 export type IPCDirection = "in" | "out";
@@ -70,7 +70,7 @@ export function addInterruptIpc(func: InterruptIPC, options?: InterruptIPCOption
     interruptIpcs.push([func, options]);
 }
 
-if (verboseLogging) {
+if (env.verboseLogging) {
     (["in", "out"] as IPCDirection[]).forEach((type) => {
         addInterruptIpc(
             (args, channel, sender) =>
