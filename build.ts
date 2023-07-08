@@ -36,19 +36,18 @@ const junkFiles = [
 ];
 
 const isProduction = process.env["NODE_ENV"] == "production";
+const commonOptions: Partial<BuildOptions> = {
+    target: "node18",
+    bundle: true,
+    platform: "node",
+    write: true,
+    allowOverwrite: true,
+    sourcemap: isProduction ? false : "inline",
+    minify: isProduction,
+    treeShaking: isProduction,
+};
 
 async function buildBundles() {
-    const commonOptions: Partial<BuildOptions> = {
-        target: "node18",
-        bundle: true,
-        platform: "node",
-        write: true,
-        allowOverwrite: true,
-        sourcemap: isProduction ? false : "inline",
-        minify: isProduction,
-        treeShaking: isProduction,
-    };
-
     const buildPromise = Promise.all([
         build({
             ...commonOptions,
