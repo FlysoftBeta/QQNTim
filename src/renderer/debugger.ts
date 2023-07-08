@@ -1,7 +1,7 @@
-import { useNativeDevTools } from "../env";
+import { env } from "../config";
 
 export function attachDebugger(debuggerId: string, debuggerOrigin: string) {
-    if (!useNativeDevTools)
+    if (!env.useNativeDevTools)
         window.addEventListener("DOMContentLoaded", () => {
             const oldTitle = document.title;
             document.title = debuggerId;

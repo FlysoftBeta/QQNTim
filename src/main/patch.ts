@@ -5,7 +5,7 @@ import { BrowserWindow, Menu, MenuItem } from "electron";
 import { applyPlugins } from "./loader";
 import { InterruptWindowCreation, IPCArgs, handleIpc } from "../ipc";
 import { createDebuggerWindow, debuggerOrigin } from "./debugger";
-import { useNativeDevTools } from "../env";
+import { env } from "../config";
 import { plugins } from "./plugins";
 import { apply, construct, getter, setter } from "../watch";
 
@@ -22,7 +22,7 @@ const windowMenu: Electron.MenuItem[] = [
     new MenuItem({
         label: "开发者工具",
         accelerator: "F12",
-        ...(useNativeDevTools
+        ...(env.useNativeDevTools
             ? { role: "toggleDevTools" }
             : {
                   click: (_, win) => {
@@ -56,7 +56,7 @@ function patchBrowserWindow() {
                     nodeIntegration: true,
                     nodeIntegrationInSubFrames: true,
                     contextIsolation: true,
-                    devTools: useNativeDevTools,
+                    devTools: env.useNativeDevTools,
                     sandbox: false,
                 },
             };
@@ -104,15 +104,25 @@ function patchBrowserWindow() {
                         );
                         event.returnValue = {
                             preload: options.webPreferences?.preload,
-                            debuggerOrigin: !useNativeDevTools && debuggerOrigin,
+                            debuggerOrigin: !env.useNativeDevTools && debuggerOrigin,
                             debuggerId: id,
                             plugins: plugins,
                         };
+                    } else if (channel == "___!get_env") {
+                        event.returnValue = env;
                     } else if (channel == "___!browserwindow_api") {
                         event.returnValue = win[args[1][0]](...args[1][1]);
                     }
                 }
             );
+            if (!env.useNativeDevTools)
+                win.webContents.on("console-message", (_, level, message) => {
+                    message = `[!Renderer:${id}] ${message}`;
+                    if (level == 0) console.debug(message);
+                    else if (level == 1) console.log(message);
+                    else if (level == 2) console.warn(message);
+                    else if (level == 3) console.error(message);
+                });
 
             const setMenu = win.setMenu;
             win.setMenu = (menu) => {

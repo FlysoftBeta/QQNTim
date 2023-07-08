@@ -3,15 +3,13 @@
  * Copyright (c) Flysoft.
  */
 
-import { collectPlugins, loadConfig, plugins, prepareConfigDir } from "./plugins";
+import { collectPlugins, plugins } from "./plugins";
 import { applyPlugins } from "./loader";
 import { patchElectron } from "./patch";
 import { hookPostPatchElectron } from "./compatibility";
 
 patchElectron();
 hookPostPatchElectron();
-prepareConfigDir();
-loadConfig();
 collectPlugins();
 applyPlugins(plugins);
 console.log("[!Main] QQNTim 加载成功");
