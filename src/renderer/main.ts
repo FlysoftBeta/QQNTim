@@ -1,13 +1,15 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { ipcRenderer } from "electron";
 import { applyPlugins } from "./loader";
 import { patchElectron } from "./patch";
 import { attachDebugger } from "./debugger";
 import { nt } from "./api/nt";
 
-const { preload, debuggerOrigin, debuggerId, plugins, resourceDir } =
-    ipcRenderer.sendSync("___!boot", {
+const { preload, debuggerOrigin, debuggerId, plugins } = ipcRenderer.sendSync(
+    "___!boot",
+    {
         eventName: "QQNTIM_BOOT",
-    });
+    }
+);
 
 attachDebugger(debuggerId, debuggerOrigin);
 
