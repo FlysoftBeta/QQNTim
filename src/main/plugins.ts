@@ -55,34 +55,42 @@ function isPluginRequirementsMet(manifest: Manifest) {
 }
 
 export function parsePlugin(dir: string) {
-    const manifestFile = `${dir}${s}qqntim.json`;
-    if (!fs.existsSync(manifestFile)) return null;
-    const manifest = fs.readJSONSync(manifestFile) as Manifest;
+    try {
+        const manifestFile = `${dir}${s}qqntim.json`;
+        if (!fs.existsSync(manifestFile)) return null;
+        const manifest = fs.readJSONSync(manifestFile) as Manifest;
 
-    const meetRequirements = isPluginRequirementsMet(manifest),
-        enabled = isPluginEnabled(manifest),
-        loaded = meetRequirements && enabled;
-    if (!meetRequirements)
-        console.error(`[!Plugins] 跳过加载插件：${manifest.id}（当前环境不满足要求）`);
-    else if (!enabled)
-        console.error(`[!Plugins] 跳过加载插件：${manifest.id}（插件已被禁用）`);
+        const meetRequirements = isPluginRequirementsMet(manifest),
+            enabled = isPluginEnabled(manifest),
+            loaded = meetRequirements && enabled;
+        if (!meetRequirements)
+            console.error(
+                `[!Plugins] 跳过加载插件：${manifest.id}（当前环境不满足要求）`
+            );
+        else if (!enabled)
+            console.error(`[!Plugins] 跳过加载插件：${manifest.id}（插件已被禁用）`);
 
-    return {
-        enabled: enabled,
-        meetRequirements: meetRequirements,
-        loaded: loaded,
-        id: manifest.id,
-        dir: dir,
-        injections: manifest.injections.map((injection) => {
-            return injection.type == "main"
-                ? { ...injection }
-                : {
-                      ...injection,
-                      pattern: injection.pattern && new RegExp(injection.pattern),
-                  };
-        }),
-        manifest: manifest,
-    } as Plugin;
+        return {
+            enabled: enabled,
+            meetRequirements: meetRequirements,
+            loaded: loaded,
+            id: manifest.id,
+            dir: dir,
+            injections: manifest.injections.map((injection) => {
+                return injection.type == "main"
+                    ? { ...injection }
+                    : {
+                          ...injection,
+                          pattern: injection.pattern && new RegExp(injection.pattern),
+                      };
+            }),
+            manifest: manifest,
+        } as Plugin;
+    } catch (reason) {
+        console.error("[!Loader] 解析插件时出现意外错误：", dir);
+        console.error(reason);
+        return null;
+    }
 }
 
 function collectPluginsFromDir(baseDir: string, uin: string = "") {
@@ -90,7 +98,7 @@ function collectPluginsFromDir(baseDir: string, uin: string = "") {
     if (!plugins[uin]) plugins[uin] = {};
     folders.forEach((folder) => {
         const folderPath = `${baseDir}${s}${folder}`;
-        if (fs.statSync(folderPath).isDirectory()) {
+        if (fs.existsSync(folderPath) && fs.statSync(folderPath).isDirectory()) {
             const plugin = parsePlugin(folderPath);
             if (!plugin) return;
             if (plugins[uin][plugin.id]) return;
