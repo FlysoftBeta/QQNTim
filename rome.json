@@ -3,7 +3,15 @@
     "organizeImports": {
         "enabled": true
     },
-    "files": { "ignore": [".pnp.cjs", ".pnp.loader.mjs", ".yarn/*", "dist/*"] },
+    "files": {
+        "ignore": [
+            ".pnp.cjs",
+            ".pnp.loader.mjs",
+            ".yarn/*",
+            "dist/*",
+            "src/electron.d.ts"
+        ]
+    },
     "formatter": {
         "indentSize": 4,
         "indentStyle": "space",
