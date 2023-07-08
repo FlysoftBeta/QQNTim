@@ -36,19 +36,18 @@ const junkFiles = [
 ];
 
 const isProduction = process.env["NODE_ENV"] == "production";
+const commonOptions: Partial<BuildOptions> = {
+    target: "node18",
+    bundle: true,
+    platform: "node",
+    write: true,
+    allowOverwrite: true,
+    sourcemap: isProduction ? false : "inline",
+    minify: isProduction,
+    treeShaking: isProduction,
+};
 
 async function buildBundles() {
-    const commonOptions: Partial<BuildOptions> = {
-        target: "node18",
-        bundle: true,
-        platform: "node",
-        write: true,
-        allowOverwrite: true,
-        sourcemap: isProduction ? false : "inline",
-        minify: isProduction,
-        treeShaking: isProduction,
-    };
-
     const buildPromise = Promise.all([
         build({
             ...commonOptions,
@@ -61,6 +60,12 @@ async function buildBundles() {
             entryPoints: ["src/renderer/main.ts"],
             outfile: "dist/_/qqntim-renderer.js",
             external: ["electron", ...unpackedPackages],
+        }),
+        build({
+            ...commonOptions,
+            entryPoints: ["src/vueHelper/main.ts"],
+            outfile: "dist/_/qqntim-vue-helper.js",
+            external: [...unpackedPackages],
         }),
     ]);
 

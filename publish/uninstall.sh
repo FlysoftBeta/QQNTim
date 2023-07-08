@@ -46,7 +46,7 @@ echo "正在关闭 QQ……"
 killall -vw qq
 
 echo "正在移除文件……"
-rm -vf "$qq_applauncher_dir/qqntim.js" "$qq_applauncher_dir/qqntim-renderer.js"
+rm -vf "$qq_applauncher_dir/qqntim.js" "$qq_applauncher_dir/qqntim-renderer.js" "$qq_applauncher_dir/qqntim-vue-helper.js"
 rm -vrf "$qq_applauncher_dir/node_modules"
 
 echo "正在还原 package.json……"
