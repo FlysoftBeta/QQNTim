@@ -1,31 +1,34 @@
+import { getter, setter } from "../watch";
+
 interface Component {
     vnode: {
-        el: HTMLElement;
+        el: VueElement;
         component: Component;
     };
     bum: Function[];
     uid: number;
 }
 
-interface HTMLElement {
+interface VueElement extends HTMLElement {
     __VUE__?: WeakSet<Component>;
 }
 
-const __VUE_ELEMENTS__ = (() => {
+(window as any).__VUE_ELEMENTS__ = (() => {
     // Modified from https://greasyfork.org/zh-CN/scripts/449444-hook-vue3-app
     // Thanks to DreamNya & Cesaryuan ;)
 
-    const elements = new WeakMap<HTMLElement, WeakSet<Component>>();
+    const elements = new WeakMap<VueElement, WeakSet<Component>>();
 
     const watchComponentMount = (component: Component) => {
-        let hooked = false;
         component.vnode = new Proxy(component.vnode, {
-            set(target) {
-                if (!hooked && target.el) {
-                    hooked = true;
-                    recordComponent(target.el, target.component);
+            get(target, p) {
+                return getter(undefined, target, p as any);
+            },
+            set(target, p, newValue) {
+                if (p == "el" && target.el) {
+                    recordComponent(target.component);
                 }
-                return true;
+                return setter(undefined, target, p as any, newValue);
             },
         });
     };
@@ -41,8 +44,8 @@ const __VUE_ELEMENTS__ = (() => {
         });
     };
 
-    const recordComponent = (element: HTMLElement, component: Component) => {
-        if (element instanceof Text) element = element.parentElement!;
+    const recordComponent = (component: Component) => {
+        const element = component.vnode.el instanceof Text ? (component.vnode.el.parentElement! as VueElement) : component.vnode.el;
 
         // Expose component to element's __VUE__ property
         if (element.__VUE__) {
@@ -67,7 +70,7 @@ const __VUE_ELEMENTS__ = (() => {
             const component = proxyTarget?._ as Component;
             if (component?.uid >= 0) {
                 const element = component.vnode.el;
-                if (element) recordComponent(element, component);
+                if (element) recordComponent(component);
                 else watchComponentMount(component);
             }
             return new target(proxyTarget, proxyHandler);
