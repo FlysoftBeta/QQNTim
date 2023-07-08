@@ -68,7 +68,7 @@ async function buildBundles() {
             ...commonOptions,
             entryPoints: ["src/vueHelper/main.ts"],
             outfile: "dist/_/qqntim-vue-helper.js",
-            external: [...unpackedPackages],
+            external: ["electron", ...unpackedPackages],
         }),
     ]);
 
