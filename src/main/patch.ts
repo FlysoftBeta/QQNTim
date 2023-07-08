@@ -1,4 +1,5 @@
 import * as path from "path";
+import * as fs from "fs-extra";
 import { Module } from "module";
 import { BrowserWindow, Menu, MenuItem } from "electron";
 import { applyPlugins } from "./loader";
@@ -95,6 +96,12 @@ function patchBrowserWindow() {
                 (event, channel, ...args: IPCArgs<any>) => {
                     handleIpc(args, "in", channel);
                     if (channel == "___!boot") {
+                        win.webContents.executeJavaScript(
+                            fs
+                                .readFileSync(`${__dirname}${s}qqntim-vue-helper.js`)
+                                .toString(),
+                            true
+                        );
                         event.returnValue = {
                             preload: options.webPreferences?.preload,
                             debuggerOrigin: !useNativeDevTools && debuggerOrigin,

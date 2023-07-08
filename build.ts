@@ -62,6 +62,12 @@ async function buildBundles() {
             outfile: "dist/_/qqntim-renderer.js",
             external: ["electron", ...unpackedPackages],
         }),
+        build({
+            ...commonOptions,
+            entryPoints: ["src/vueHelper/main.ts"],
+            outfile: "dist/_/qqntim-vue-helper.js",
+            external: [...unpackedPackages],
+        }),
     ]);
 
     return await buildPromise;
