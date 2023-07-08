@@ -1,5 +1,5 @@
-import { app, ipcRenderer } from "electron";
 import { Environment, loadConfig } from "./main/config";
+import { app, ipcRenderer } from "electron";
 
 const isMainProcess = !!app;
 export const env: Environment = isMainProcess

@@ -1,16 +1,13 @@
-import { Module } from "module";
-import { ipcRenderer } from "electron";
 import { IPCArgs, handleIpc } from "../ipc";
 import { getter, setter } from "../watch";
+import { ipcRenderer } from "electron";
+import { Module } from "module";
 
 function patchIpcRenderer() {
     return new Proxy(ipcRenderer, {
         get(target, p) {
             if (p == "on")
-                return (
-                    channel: string,
-                    listener: (event: any, ...args: any[]) => void
-                ) => {
+                return (channel: string, listener: (event: any, ...args: any[]) => void) => {
                     target.on(channel, (event: any, ...args: IPCArgs<any>) => {
                         if (handleIpc(args, "in", channel)) listener(event, ...args);
                     });
@@ -21,8 +18,7 @@ function patchIpcRenderer() {
                 };
             else if (p == "sendSync")
                 return (channel: string, ...args: IPCArgs<any>) => {
-                    if (handleIpc(args, "out", channel))
-                        return target.sendSync(channel, ...args);
+                    if (handleIpc(args, "out", channel)) return target.sendSync(channel, ...args);
                 };
             return getter("ipcRenderer", target, p as any);
         },
@@ -39,11 +35,7 @@ export function patchElectron() {
         // Hide `vm` deprecation notice.
         if (request == "vm") request = "node:vm";
 
-        const loadedModule = loadBackend(
-            request,
-            parent,
-            isMain
-        ) as typeof Electron.CrossProcessExports;
+        const loadedModule = loadBackend(request, parent, isMain) as typeof Electron.CrossProcessExports;
         if (request == "electron") {
             if (!patchedElectron)
                 patchedElectron = {

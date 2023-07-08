@@ -1,8 +1,8 @@
+import { env } from "../config";
 import axios from "axios";
 import { start } from "chii/server";
 import { BrowserWindow } from "electron";
 import { getPortPromise } from "portfinder";
-import { env } from "../config";
 
 export let debuggerHost = "";
 export let debuggerPort = -1;
@@ -14,7 +14,11 @@ const initDebuggerPromise = (async () => {
         debuggerOrigin = `http://${debuggerHost}:${debuggerPort}`;
 
         console.log(`[!Debugger] 正在启动 chii 调试器：${debuggerOrigin}`);
-        await start({ host: debuggerHost, port: debuggerPort, useHttps: false });
+        await start({
+            host: debuggerHost,
+            port: debuggerPort,
+            useHttps: false,
+        });
     }
 })();
 
@@ -28,9 +32,7 @@ export async function createDebuggerWindow(debuggerId: string, win: BrowserWindo
     const targets = await listChiiTargets();
     for (const [id, target] of targets) {
         if (id == debuggerId) {
-            const url = `${debuggerOrigin}/front_end/chii_app.html?ws=${debuggerHost}:${debuggerPort}/client/${(
-                Math.random() * 6
-            ).toString()}?target=${target}`;
+            const url = `${debuggerOrigin}/front_end/chii_app.html?ws=${debuggerHost}:${debuggerPort}/client/${(Math.random() * 6).toString()}?target=${target}`;
 
             console.log(`[!Debugger] 正在打开 chii 调试器窗口：${url}`);
 

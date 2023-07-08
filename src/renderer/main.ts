@@ -1,15 +1,12 @@
-import { ipcRenderer } from "electron";
+import { nt } from "./api/nt";
+import { attachDebugger } from "./debugger";
 import { applyPlugins } from "./loader";
 import { patchElectron } from "./patch";
-import { attachDebugger } from "./debugger";
-import { nt } from "./api/nt";
+import { ipcRenderer } from "electron";
 
-const { preload, debuggerOrigin, debuggerId, plugins } = ipcRenderer.sendSync(
-    "___!boot",
-    {
-        eventName: "QQNTIM_BOOT",
-    }
-);
+const { preload, debuggerOrigin, debuggerId, plugins } = ipcRenderer.sendSync("___!boot", {
+    eventName: "QQNTIM_BOOT",
+});
 
 attachDebugger(debuggerId, debuggerOrigin);
 
@@ -25,7 +22,7 @@ const timer = setInterval(() => {
             {
                 eventName: "QQNTIM_APPLY_PLUGINS",
             },
-            uin
+            uin,
         );
     });
     console.log("[!Main] QQNTim 加载成功");

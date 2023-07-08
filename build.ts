@@ -3,7 +3,10 @@ import { copy, emptyDir, ensureDir } from "fs-extra";
 import { sep as s } from "path";
 import { getAllLocators, getPackageInformation } from "pnpapi";
 
-type Package = { packageLocation: string; packageDependencies: Map<string, string> };
+type Package = {
+    packageLocation: string;
+    packageDependencies: Map<string, string>;
+};
 type Packages = Record<string, Record<string, Package>>;
 
 const unpackedPackages = ["fs-extra", "chii"];
@@ -87,12 +90,7 @@ function collectDeps() {
     return packages;
 }
 
-async function unpackPackage(
-    packages: Packages,
-    rootDir: string,
-    name: string,
-    reference?: string
-) {
+async function unpackPackage(packages: Packages, rootDir: string, name: string, reference?: string) {
     const item = packages[name];
     if (!item) return;
     const location = item[reference ? reference : Object.keys(item)[0]];
@@ -115,13 +113,4 @@ async function unpackPackage(
 }
 
 const packages = collectDeps();
-prepareDistDir().then(() =>
-    Promise.all([
-        buildBundles(),
-        Promise.all(
-            unpackedPackages.map((unpackedPackage) =>
-                unpackPackage(packages, "dist/_", unpackedPackage)
-            )
-        ),
-    ])
-);
+prepareDistDir().then(() => Promise.all([buildBundles(), Promise.all(unpackedPackages.map((unpackedPackage) => unpackPackage(packages, "dist/_", unpackedPackage)))]));

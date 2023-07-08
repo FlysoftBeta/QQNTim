@@ -3,10 +3,10 @@
  * Copyright (c) Flysoft.
  */
 
-import { collectPlugins, plugins } from "./plugins";
+import { hookPostPatchElectron } from "./compatibility";
 import { applyPlugins } from "./loader";
 import { patchElectron } from "./patch";
-import { hookPostPatchElectron } from "./compatibility";
+import { collectPlugins, plugins } from "./plugins";
 
 patchElectron();
 hookPostPatchElectron();

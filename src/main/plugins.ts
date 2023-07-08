@@ -1,10 +1,10 @@
-import * as semver from "semver";
-import * as os from "os";
-import * as fs from "fs-extra";
-import * as path from "path";
-import { Plugin, Manifest, AllUsersPlugins } from "../plugin";
 import { env } from "../config";
 import { pluginDir, pluginPerUserDir } from "../files";
+import { AllUsersPlugins, Manifest, Plugin } from "../plugin";
+import * as fs from "fs-extra";
+import * as os from "os";
+import * as path from "path";
+import * as semver from "semver";
 
 export const plugins: AllUsersPlugins = {};
 const s = path.sep;
@@ -43,15 +43,11 @@ export function parsePlugin(dir: string) {
         if (!fs.existsSync(manifestFile)) return null;
         const manifest = fs.readJSONSync(manifestFile) as Manifest;
 
-        const meetRequirements = isPluginRequirementsMet(manifest),
-            enabled = isPluginEnabled(manifest),
-            loaded = meetRequirements && enabled;
-        if (!meetRequirements)
-            console.error(
-                `[!Plugins] 跳过加载插件：${manifest.id}（当前环境不满足要求）`
-            );
-        else if (!enabled)
-            console.error(`[!Plugins] 跳过加载插件：${manifest.id}（插件已被禁用）`);
+        const meetRequirements = isPluginRequirementsMet(manifest);
+        const enabled = isPluginEnabled(manifest);
+        const loaded = meetRequirements && enabled;
+        if (!meetRequirements) console.error(`[!Plugins] 跳过加载插件：${manifest.id}（当前环境不满足要求）`);
+        else if (!enabled) console.error(`[!Plugins] 跳过加载插件：${manifest.id}（插件已被禁用）`);
 
         return {
             enabled: enabled,
@@ -76,7 +72,7 @@ export function parsePlugin(dir: string) {
     }
 }
 
-function collectPluginsFromDir(baseDir: string, uin: string = "") {
+function collectPluginsFromDir(baseDir: string, uin = "") {
     const folders = fs.readdirSync(baseDir);
     if (!plugins[uin]) plugins[uin] = {};
     folders.forEach((folder) => {

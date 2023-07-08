@@ -1,7 +1,7 @@
-import * as fs from "fs-extra";
 import { configFile, dataDir, pluginDir, pluginPerUserDir } from "../files";
+import * as fs from "fs-extra";
 
-export interface Configuration extends Partial<Environment> {}
+export type Configuration = Partial<Environment>;
 
 export interface Environment {
     plugins: {
@@ -15,18 +15,10 @@ export interface Environment {
 
 function toBoolean(item: boolean | undefined, env: string, defaultValue: boolean) {
     const envValue = process.env[env];
-    return envValue
-        ? !!parseInt(envValue)
-        : typeof item == "boolean"
-        ? item
-        : defaultValue;
+    return envValue ? !!parseInt(envValue) : typeof item == "boolean" ? item : defaultValue;
 }
 
-function toStringArray(
-    item: string[] | undefined,
-    env: string,
-    defaultValue: string[] | undefined
-) {
+function toStringArray(item: string[] | undefined, env: string, defaultValue: string[] | undefined) {
     const envValue = process.env[env];
     return envValue ? envValue.split(";") : item instanceof Array ? item : defaultValue;
 }
@@ -50,28 +42,12 @@ function toStringArray(
 export function getEnvironment(config: Configuration): Environment {
     return {
         plugins: {
-            whitelist: toStringArray(
-                config.plugins?.whitelist,
-                "QQNTIM_PLUGINS_WHITELIST",
-                undefined
-            ),
-            blacklist: toStringArray(
-                config.plugins?.blacklist,
-                "QQNTIM_PLUGINS_BLACKLIST",
-                undefined
-            ),
+            whitelist: toStringArray(config.plugins?.whitelist, "QQNTIM_PLUGINS_WHITELIST", undefined),
+            blacklist: toStringArray(config.plugins?.blacklist, "QQNTIM_PLUGINS_BLACKLIST", undefined),
         },
         verboseLogging: toBoolean(config.verboseLogging, "QQNTIM_VERBOSE_LOGGING", false),
-        useNativeDevTools: toBoolean(
-            config.useNativeDevTools,
-            "QQNTIM_USE_NATIVE_DEVTOOLS",
-            false
-        ),
-        disableCompatibilityProcessing: toBoolean(
-            config.disableCompatibilityProcessing,
-            "QQNTIM_NO_COMPATIBILITY_PROCESSING",
-            false
-        ),
+        useNativeDevTools: toBoolean(config.useNativeDevTools, "QQNTIM_USE_NATIVE_DEVTOOLS", false),
+        disableCompatibilityProcessing: toBoolean(config.disableCompatibilityProcessing, "QQNTIM_NO_COMPATIBILITY_PROCESSING", false),
     };
 }
 

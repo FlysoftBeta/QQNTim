@@ -1,19 +1,13 @@
-import * as path from "path";
+import { AllUsersPlugins, LoadedPlugins, Plugin, PluginInjection, PluginInjectionRenderer } from "./plugin";
 import * as fs from "fs-extra";
-import {
-    AllUsersPlugins,
-    LoadedPlugins,
-    Plugin,
-    PluginInjection,
-    PluginInjectionRenderer,
-} from "./plugin";
+import * as path from "path";
 
 const s = path.sep;
 
 const loadedPlugins: LoadedPlugins = {};
 
-let stylesheets: [Plugin, string][] = [],
-    scripts: [Plugin, string][] = [];
+const stylesheets: [Plugin, string][] = [];
+let scripts: [Plugin, string][] = [];
 
 export function applyScripts(api: any) {
     scripts = scripts.filter(([plugin, script]) => {
@@ -21,9 +15,7 @@ export function applyScripts(api: any) {
             require(script)(api);
             return false;
         } catch (reason) {
-            console.error(
-                `[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者 (${plugin.manifest.author}) 解决`
-            );
+            console.error(`[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者 (${plugin.manifest.author}) 解决`);
             console.error(reason);
         }
         return true;
@@ -31,7 +23,7 @@ export function applyScripts(api: any) {
 }
 
 export function applyStylesheets() {
-    console.log(`[!Loader] 正在注入 CSS`, stylesheets);
+    console.log("[!Loader] 正在注入 CSS", stylesheets);
 
     let element: HTMLStyleElement = document.querySelector("#qqntim_injected_styles")!;
     if (element) element.remove();
@@ -40,11 +32,8 @@ export function applyStylesheets() {
     element.id = "qqntim_injected_styles";
     element.innerHTML = stylesheets
         .map(
-            ([plugin, stylesheet]) => `/* ${plugin.manifest.id.replaceAll(
-                "/",
-                "-"
-            )} - ${stylesheet.replaceAll("/", "-")} */
-${fs.readFileSync(stylesheet).toString()}`
+            ([plugin, stylesheet]) => `/* ${plugin.manifest.id.replaceAll("/", "-")} - ${stylesheet.replaceAll("/", "-")} */
+${fs.readFileSync(stylesheet).toString()}`,
         )
         .join("\n");
     document.body.appendChild(element);
@@ -57,16 +46,11 @@ function getUserPlugins(allPlugins: AllUsersPlugins, uin: string) {
         return;
     }
     if (uin != "") console.log(`[!Loader] 正在为账户 (${uin}) 加载插件`);
-    else console.log(`[!Loader] 正在为所有账户加载插件`);
+    else console.log("[!Loader] 正在为所有账户加载插件");
     return userPlugins;
 }
 
-export function loadPlugins(
-    allPlugins: AllUsersPlugins,
-    uin: string,
-    shouldInject: (injection: PluginInjection) => boolean,
-    injectStylesheets: boolean
-) {
+export function loadPlugins(allPlugins: AllUsersPlugins, uin: string, shouldInject: (injection: PluginInjection) => boolean, injectStylesheets: boolean) {
     const userPlugins = getUserPlugins(allPlugins, uin);
     if (!userPlugins) return false;
 
@@ -80,14 +64,8 @@ export function loadPlugins(
         plugin.injections.forEach((injection) => {
             const rendererInjection = injection as PluginInjectionRenderer;
             if (!shouldInject(injection)) return;
-            injectStylesheets &&
-                rendererInjection.stylesheet &&
-                stylesheets.push([
-                    plugin,
-                    `${plugin.dir}${s}${rendererInjection.stylesheet}`,
-                ]);
-            injection.script &&
-                scripts.push([plugin, `${plugin.dir}${s}${injection.script}`]);
+            injectStylesheets && rendererInjection.stylesheet && stylesheets.push([plugin, `${plugin.dir}${s}${rendererInjection.stylesheet}`]);
+            injection.script && scripts.push([plugin, `${plugin.dir}${s}${injection.script}`]);
         });
     }
 

@@ -7,7 +7,7 @@ class BrowserWindowApi {
             {
                 eventName: "QQNTIM_BROWSERWINDOW_API",
             },
-            ["setSize", [width, height]]
+            ["setSize", [width, height]],
         );
     }
 
@@ -17,7 +17,7 @@ class BrowserWindowApi {
             {
                 eventName: "QQNTIM_BROWSERWINDOW_API",
             },
-            ["setMinimumSize", [width, height]]
+            ["setMinimumSize", [width, height]],
         );
     }
 }

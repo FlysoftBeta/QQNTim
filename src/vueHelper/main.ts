@@ -36,7 +36,7 @@ const __VUE_ELEMENTS__ = (() => {
             const element = component.vnode.el;
             if (element) {
                 elements.delete(element);
-                if (element.__VUE__) delete element.__VUE__;
+                if (element.__VUE__) element.__VUE__ = undefined;
             }
         });
     };
@@ -55,7 +55,7 @@ const __VUE_ELEMENTS__ = (() => {
         element.classList.add("vue-component");
 
         // Map element to components
-        let components = elements.get(element);
+        const components = elements.get(element);
         if (components) components.add(component);
         else elements.set(element, new WeakSet([component]));
 
