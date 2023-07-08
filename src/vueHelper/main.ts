@@ -8,7 +8,6 @@ interface Component {
 }
 
 interface HTMLElement {
-    // Cannot use `Component[]` because it will cause strange error
     __VUE__?: WeakSet<Component>;
 }
 
@@ -16,7 +15,7 @@ const __VUE_ELEMENTS__ = (() => {
     // Modified from https://greasyfork.org/zh-CN/scripts/449444-hook-vue3-app
     // Thanks to DreamNya & Cesaryuan ;)
 
-    const elements = new WeakMap<HTMLElement, Component[]>();
+    const elements = new WeakMap<HTMLElement, WeakSet<Component>>();
 
     const watchComponentMount = (component: Component) => {
         let hooked = false;
@@ -45,24 +44,20 @@ const __VUE_ELEMENTS__ = (() => {
     const recordComponent = (element: HTMLElement, component: Component) => {
         if (element instanceof Text) element = element.parentElement!;
 
-        // expose component to element's __VUE__ property
+        // Expose component to element's __VUE__ property
         if (element.__VUE__) {
             element.__VUE__.add(component);
-        }
-        else {
+        } else {
             element.__VUE__ = new WeakSet([component]);
         }
 
-        // add class to element
+        // Add class to element
         element.classList.add("vue-component");
 
-        // map element to components
+        // Map element to components
         let components = elements.get(element);
-        if (components && !components.includes(component)) {
-            components.push(component)
-        } else {
-            elements.set(element, [component]);
-        }
+        if (components) components.add(component);
+        else elements.set(element, new WeakSet([component]));
 
         watchComponentUnmount(component);
     };
