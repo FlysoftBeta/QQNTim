@@ -5,7 +5,10 @@
     "packageManager": "yarn@3.6.0",
     "scripts": {
         "dev": "NODE_ENV=development tsc & TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=development ts-node ./build.ts && chmod +x ./scripts/dev.sh && ./scripts/dev.sh",
-        "build": "NODE_ENV=production tsc && TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=production ts-node ./build.ts"
+        "build": "NODE_ENV=production tsc && TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=production ts-node ./build.ts",
+        "lint": "rome check .",
+        "lint:apply": "rome check . --apply",
+        "format": "rome format . --write"
     },
     "dependencies": {
         "axios": "^1.4.0",
