@@ -1,6 +1,6 @@
+import { applyScripts, loadPlugins } from "../loader";
 import { AllUsersPlugins, PluginInjection } from "../plugin";
 import { getAPI } from "./api";
-import { applyScripts, loadPlugins } from "../loader";
 
 const api = getAPI();
 
@@ -8,7 +8,7 @@ function shouldInject(injection: PluginInjection) {
     return injection.type == "main";
 }
 
-export function applyPlugins(allPlugins: AllUsersPlugins, uin: string = "") {
+export function applyPlugins(allPlugins: AllUsersPlugins, uin = "") {
     loadPlugins(allPlugins, uin, shouldInject, false);
     applyScripts(api);
 

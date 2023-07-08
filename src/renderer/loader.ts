@@ -1,10 +1,8 @@
+import { applyScripts, applyStylesheets, loadPlugins } from "../loader";
 import { AllUsersPlugins, Page, PageWithAbout, PluginInjection } from "../plugin";
 import { getAPI } from "./api";
-import { applyScripts, applyStylesheets, loadPlugins } from "../loader";
 
-const windowLoadPromise = new Promise<void>((resolve) =>
-    window.addEventListener("load", () => resolve())
-);
+const windowLoadPromise = new Promise<void>((resolve) => window.addEventListener("load", () => resolve()));
 const api = getAPI(windowLoadPromise);
 
 function detectCurrentPage(): PageWithAbout {
@@ -25,14 +23,10 @@ function detectCurrentPage(): PageWithAbout {
 }
 
 function shouldInject(injection: PluginInjection, page: Page) {
-    return (
-        injection.type == "renderer" &&
-        (!injection.pattern || injection.pattern.test(window.location.href)) &&
-        (!injection.page || injection.page.includes(page))
-    );
+    return injection.type == "renderer" && (!injection.pattern || injection.pattern.test(window.location.href)) && (!injection.page || injection.page.includes(page));
 }
 
-export function applyPlugins(allPlugins: AllUsersPlugins, uin: string = "") {
+export function applyPlugins(allPlugins: AllUsersPlugins, uin = "") {
     const page = detectCurrentPage();
     if (page == "about") return false;
 

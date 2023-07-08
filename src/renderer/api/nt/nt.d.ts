@@ -19,16 +19,8 @@ export interface MessageElementFace extends MessageElementBase {
 export interface MessageElementRaw extends MessageElementBase {
     type: "raw";
 }
-export type MessageElement =
-    | MessageElementText
-    | MessageElementImage
-    | MessageElementFace
-    | MessageElementRaw;
-export type MessageElementSend =
-    | Omit<MessageElementText, "raw">
-    | Omit<MessageElementImage, "raw">
-    | Omit<Omit<MessageElementFace, "raw">, "downloadPromise">
-    | MessageElementRaw;
+export type MessageElement = MessageElementText | MessageElementImage | MessageElementFace | MessageElementRaw;
+export type MessageElementSend = Omit<MessageElementText, "raw"> | Omit<MessageElementImage, "raw"> | Omit<Omit<MessageElementFace, "raw">, "downloadPromise"> | MessageElementRaw;
 export interface Message {
     peer: Peer;
     sender: Sender;

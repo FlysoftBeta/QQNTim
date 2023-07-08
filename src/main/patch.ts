@@ -1,13 +1,13 @@
-import * as path from "path";
+import { env } from "../config";
+import { IPCArgs, InterruptWindowCreation, handleIpc } from "../ipc";
+import { apply, construct, getter, setter } from "../watch";
+import { createDebuggerWindow, debuggerOrigin } from "./debugger";
+import { applyPlugins } from "./loader";
+import { plugins } from "./plugins";
+import { BrowserWindow, Menu, MenuItem } from "electron";
 import * as fs from "fs-extra";
 import { Module } from "module";
-import { BrowserWindow, Menu, MenuItem } from "electron";
-import { applyPlugins } from "./loader";
-import { InterruptWindowCreation, IPCArgs, handleIpc } from "../ipc";
-import { createDebuggerWindow, debuggerOrigin } from "./debugger";
-import { env } from "../config";
-import { plugins } from "./plugins";
-import { apply, construct, getter, setter } from "../watch";
+import * as path from "path";
 
 const s = path.sep;
 
@@ -40,13 +40,13 @@ function patchBrowserWindow() {
             return apply(target, thisArg, argArray);
         },
         get(target, p) {
-            return getter(`BrowserWindow(static)`, target, p as any);
+            return getter("BrowserWindow(static)", target, p as any);
         },
         set(target, p, newValue) {
-            return setter(`BrowserWindow(static)`, target, p as any, newValue);
+            return setter("BrowserWindow(static)", target, p as any, newValue);
         },
         construct(target, [options]: [Electron.BrowserWindowConstructorOptions]) {
-            let patchedArgs: Electron.BrowserWindowConstructorOptions = {
+            const patchedArgs: Electron.BrowserWindowConstructorOptions = {
                 ...options,
                 webPreferences: {
                     ...options.webPreferences,
@@ -60,10 +60,8 @@ function patchBrowserWindow() {
                     sandbox: false,
                 },
             };
-            interruptWindowCreation.forEach((func) => (patchedArgs = func(patchedArgs)));
-            const win = construct(`BrowserWindow`, target, [
-                patchedArgs,
-            ]) as BrowserWindow;
+            interruptWindowCreation.forEach((func) => patchedArgs === func(patchedArgs));
+            const win = construct("BrowserWindow", target, [patchedArgs]) as BrowserWindow;
 
             const id = win.webContents.id.toString();
 
@@ -74,47 +72,31 @@ function patchBrowserWindow() {
             };
             win.webContents.on("ipc-message", (_, channel, ...args: IPCArgs<any>) => {
                 if (!handleIpc(args, "in", channel, win.webContents)) {
-                    throw new Error(
-                        "forcibly stopped IPC propagation (Note that this is not a bug)"
-                    );
+                    throw new Error("forcibly stopped IPC propagation (Note that this is not a bug)");
                 }
-                if (channel == "___!apply_plugins")
-                    applyPlugins(plugins, args[1] as string);
+                if (channel == "___!apply_plugins") applyPlugins(plugins, args[1] as string);
             });
-            win.webContents.on(
-                "ipc-message-sync",
-                (_, channel, ...args: IPCArgs<any>) => {
-                    if (!handleIpc(args, "in", channel, win.webContents)) {
-                        throw new Error(
-                            "forcibly stopped IPC propagation (Note that this is not a bug)"
-                        );
-                    }
+            win.webContents.on("ipc-message-sync", (_, channel, ...args: IPCArgs<any>) => {
+                if (!handleIpc(args, "in", channel, win.webContents)) {
+                    throw new Error("forcibly stopped IPC propagation (Note that this is not a bug)");
                 }
-            );
-            win.webContents.on(
-                "ipc-message-sync",
-                (event, channel, ...args: IPCArgs<any>) => {
-                    handleIpc(args, "in", channel);
-                    if (channel == "___!boot") {
-                        win.webContents.executeJavaScript(
-                            fs
-                                .readFileSync(`${__dirname}${s}qqntim-vue-helper.js`)
-                                .toString(),
-                            true
-                        );
-                        event.returnValue = {
-                            preload: options.webPreferences?.preload,
-                            debuggerOrigin: !env.useNativeDevTools && debuggerOrigin,
-                            debuggerId: id,
-                            plugins: plugins,
-                        };
-                    } else if (channel == "___!get_env") {
-                        event.returnValue = env;
-                    } else if (channel == "___!browserwindow_api") {
-                        event.returnValue = win[args[1][0]](...args[1][1]);
-                    }
+            });
+            win.webContents.on("ipc-message-sync", (event, channel, ...args: IPCArgs<any>) => {
+                handleIpc(args, "in", channel);
+                if (channel == "___!boot") {
+                    win.webContents.executeJavaScript(fs.readFileSync(`${__dirname}${s}qqntim-vue-helper.js`).toString(), true);
+                    event.returnValue = {
+                        preload: options.webPreferences?.preload,
+                        debuggerOrigin: !env.useNativeDevTools && debuggerOrigin,
+                        debuggerId: id,
+                        plugins: plugins,
+                    };
+                } else if (channel == "___!get_env") {
+                    event.returnValue = env;
+                } else if (channel == "___!browserwindow_api") {
+                    event.returnValue = win[args[1][0]](...args[1][1]);
                 }
-            );
+            });
             if (!env.useNativeDevTools)
                 win.webContents.on("console-message", (_, level, message) => {
                     message = `[!Renderer:${id}] ${message}`;
@@ -126,10 +108,7 @@ function patchBrowserWindow() {
 
             const setMenu = win.setMenu;
             win.setMenu = (menu) => {
-                const patchedMenu = Menu.buildFromTemplate([
-                    ...(menu?.items || []),
-                    ...windowMenu,
-                ]);
+                const patchedMenu = Menu.buildFromTemplate([...(menu?.items || []), ...windowMenu]);
                 return setMenu.call(win, patchedMenu);
             };
             win.setMenu(null);
@@ -157,11 +136,7 @@ export function patchElectron() {
     let patchedElectron: typeof Electron.CrossProcessExports;
     const loadBackend = (Module as any)._load;
     (Module as any)._load = (request: string, parent: NodeModule, isMain: boolean) => {
-        const loadedModule = loadBackend(
-            request,
-            parent,
-            isMain
-        ) as typeof Electron.CrossProcessExports;
+        const loadedModule = loadBackend(request, parent, isMain) as typeof Electron.CrossProcessExports;
         if (request == "electron") {
             if (!patchedElectron)
                 patchedElectron = {

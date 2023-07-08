@@ -1,10 +1,4 @@
-import {
-    MessageElementFace,
-    MessageElementImage,
-    MessageElementRaw,
-    MessageElementText,
-    Peer,
-} from "./nt";
+import { MessageElementFace, MessageElementImage, MessageElementRaw, MessageElementText, Peer } from "./nt";
 
 export function destructTextElement(element: MessageElementText) {
     return {
@@ -34,14 +28,7 @@ export function destructFaceElement(element: MessageElementFace) {
         elementId: "",
         faceElement: {
             faceIndex: element.faceIndex,
-            faceType:
-                element.faceType == "normal"
-                    ? 1
-                    : element.faceType == "normal-extended"
-                    ? 2
-                    : element.faceType == "super"
-                    ? 3
-                    : element.faceType,
+            faceType: element.faceType == "normal" ? 1 : element.faceType == "normal-extended" ? 2 : element.faceType == "super" ? 3 : element.faceType,
             ...((element.faceType == "super" || element.faceType == 3) && {
                 packId: "1",
                 stickerId: (element.faceSuperIndex || "0").toString(),
