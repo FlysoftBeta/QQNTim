@@ -16,6 +16,8 @@ Telegram 群组：<https://t.me/qqntim>，欢迎加入。
 >
 > **注意：** 请先 [安装 LiteLoaderQQNT](https://github.com/mo-jinran/LiteLoaderQQNT#%E5%AE%89%E8%A3%85%E6%96%B9%E6%B3%95) 再 [安装 QQNTim](#安装和卸载)
 
+**警告：本文档已过时且长时间未得到更新，请自行摸索安装和使用！**
+
 ## 简介
 
 QQNTim 是一个用于管理插件的程序，其功能需要通过[安装插件](#插件)实现。
