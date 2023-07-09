@@ -39,7 +39,13 @@ export function Panel({ qqntim, currentTab }: { qqntim: QQNTim.API.Renderer.API;
     );
 }
 
-function SettingsPanel({ qqntim, config, setConfig }: { qqntim: QQNTim.API.Renderer.API; config: Required<QQNTim.Configuration.Configuration>; setConfig: React.Dispatch<React.SetStateAction<Required<QQNTim.Configuration.Configuration>>> }) {
+interface PanelsProps {
+    qqntim: QQNTim.API.Renderer.API;
+    config: Required<QQNTim.Configuration.Configuration>;
+    setConfig: React.Dispatch<React.SetStateAction<Required<QQNTim.Configuration.Configuration>>>;
+}
+
+function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
     return (
         <>
             <Section title="版本信息">
@@ -61,43 +67,48 @@ function SettingsPanel({ qqntim, config, setConfig }: { qqntim: QQNTim.API.Rende
             </Section>
             <Section title="选项">
                 <SettingsBox>
-                    <SettingsBoxItem title="显示详细日志输出" description="开启后，可以在控制台内查看到 IPC 通信、部分 Electron 对象的成员访问信息等">
-                        <Switch
-                            checked={config.verboseLogging}
-                            onToggle={(state) =>
-                                setConfig((prev) => {
-                                    return { ...prev, verboseLogging: state };
-                                })
-                            }
-                        />
-                    </SettingsBoxItem>
-                    <SettingsBoxItem title="使用原版 DevTools " description="使用 Chromium DevTools 而不是 chii DevTools (Windows 版 9.8.5 及以上不可用)。">
-                        <Switch
-                            checked={config.useNativeDevTools}
-                            onToggle={(state) =>
-                                setConfig((prev) => {
-                                    return { ...prev, useNativeDevTools: state };
-                                })
-                            }
-                        />
-                    </SettingsBoxItem>
-                    <SettingsBoxItem title="禁用兼容性处理" description="禁用后，LiteLoader 和 BetterQQNT 可能将不能与 QQNTim 一起使用。" isLast={true}>
-                        <Switch
-                            checked={config.disableCompatibilityProcessing}
-                            onToggle={(state) =>
-                                setConfig((prev) => {
-                                    return { ...prev, disableCompatibilityProcessing: state };
-                                })
-                            }
-                        />
-                    </SettingsBoxItem>
+                    {(
+                        [
+                            [
+                                "显示详细日志输出",
+                                "开启后，可以在控制台内查看到 IPC 通信、部分 Electron 对象的成员访问信息等",
+                                config.verboseLogging,
+                                (state: boolean) =>
+                                    setConfig((prev) => {
+                                        return { ...prev, verboseLogging: state };
+                                    }),
+                            ],
+                            [
+                                "使用原版 DevTools",
+                                "使用 Chromium DevTools 而不是 chii DevTools (Windows 版 9.8.5 及以上不可用)。",
+                                config.useNativeDevTools,
+                                (state) =>
+                                    setConfig((prev) => {
+                                        return { ...prev, useNativeDevTools: state };
+                                    }),
+                            ],
+                            [
+                                "禁用兼容性处理",
+                                "禁用后，LiteLoader 和 BetterQQNT 可能将不能与 QQNTim 一起使用。",
+                                config.disableCompatibilityProcessing,
+                                (state) =>
+                                    setConfig((prev) => {
+                                        return { ...prev, disableCompatibilityProcessing: state };
+                                    }),
+                            ],
+                        ] as [string, string, boolean, (state: boolean) => void][]
+                    ).map(([title, description, value, setValue], idx, array) => (
+                        <SettingsBoxItem title={title} description={description} isLast={idx == array.length - 1}>
+                            <Switch checked={value} onToggle={setValue} />
+                        </SettingsBoxItem>
+                    ))}
                 </SettingsBox>
             </Section>
         </>
     );
 }
 
-function PluginsManagerPanel({ qqntim, config, setConfig }: { qqntim: QQNTim.API.Renderer.API; config: Required<QQNTim.Configuration.Configuration>; setConfig: React.Dispatch<React.SetStateAction<Required<QQNTim.Configuration.Configuration>>> }) {
+function PluginsManagerPanel({ qqntim, config, setConfig }: PanelsProps) {
     const togglePluginState = (id: string, enabled: boolean) => {
         setConfig((prev) => {
             let _config = prev;
