@@ -1,4 +1,5 @@
-import { IPCArgs, IPCResponse, addInterruptIpc } from "../../../ipc";
+import { addInterruptIpc } from "../../../ipc";
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { randomUUID } from "crypto";
 import { ipcRenderer } from "electron";
 
@@ -31,7 +32,7 @@ addInterruptIpc(
 export function ntCall(eventName: string, cmd: string, args: any[]) {
     return new Promise<any>((resolve, reject) => {
         const uuid = randomUUID();
-        pendingCallbacks[uuid] = (args: IPCArgs<IPCResponse>) => {
+        pendingCallbacks[uuid] = (args: QQNTim.IPC.Args<QQNTim.IPC.Response>) => {
             if (args[1] && args[1].result != undefined && args[1].result != 0) reject(new NTCallError(args[1].result, args[1].errMsg));
             else resolve(args[1]);
         };

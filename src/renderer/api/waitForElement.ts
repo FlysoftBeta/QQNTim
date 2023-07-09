@@ -1,4 +1,4 @@
-let waitForElementSelectors: [string, (element: HTMLElement) => void][] = [];
+let waitForElementSelectors: [string, (element: Element) => void][] = [];
 
 export function startWatchingElement() {
     new MutationObserver(() => refreshStatus()).observe(document.documentElement, {
@@ -9,18 +9,18 @@ export function startWatchingElement() {
 
 export function refreshStatus() {
     waitForElementSelectors = waitForElementSelectors.filter(([selector, callback]) => {
-        const element = document.querySelector<HTMLElement>(selector);
+        const element = document.querySelector<Element>(selector);
         element && callback(element);
         return !element;
     });
 }
 
-export function waitForElement(selector: string) {
-    return new Promise<HTMLElement>((resolve) => {
+export function waitForElement<T extends Element>(selector: string) {
+    return new Promise<T>((resolve) => {
         waitForElementSelectors.push([
             selector,
             (element) => {
-                resolve(element);
+                resolve(element as T);
             },
         ]);
         refreshStatus();

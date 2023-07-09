@@ -1,9 +1,17 @@
-import { Environment, loadConfig } from "./main/config";
-import { app, ipcRenderer } from "electron";
+import { Environment } from "./main/config";
 
-const isMainProcess = !!app;
-export const env: Environment = isMainProcess
-    ? loadConfig()
-    : ipcRenderer.sendSync("___!get_env", {
-          eventName: "QQNTIM_GET_ENV",
-      });
+export const env: Environment = {
+    plugins: {
+        whitelist: undefined,
+        blacklist: undefined,
+    },
+    verboseLogging: false,
+    useNativeDevTools: false,
+    disableCompatibilityProcessing: false,
+};
+
+export const setEnv = (newEnv: Environment) => {
+    for (const key in newEnv) {
+        env[key] = newEnv[key];
+    }
+};

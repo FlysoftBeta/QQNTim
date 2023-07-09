@@ -1,15 +1,19 @@
-import { InterruptIPC, InterruptIPCOptions, InterruptWindowCreation, addInterruptIpc } from "../../ipc";
-import { addInterruptWindowCreation } from "../patch";
+import { addInterruptIpc } from "../../ipc";
+import { addInterruptWindowArgs, addInterruptWindowCreation } from "../patch";
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as fs from "fs-extra";
 
 export function getAPI() {
-    return {
+    const api: QQNTim.API.Main.API = {
         interrupt: {
-            ipc: (func: InterruptIPC, options?: InterruptIPCOptions) => addInterruptIpc(func, options),
-            windowCreation: (func: InterruptWindowCreation) => addInterruptWindowCreation(func),
+            ipc: addInterruptIpc,
+            windowCreation: addInterruptWindowCreation,
+            windowArgs: addInterruptWindowArgs,
         },
         modules: {
             fs: fs,
         },
     };
+
+    return api;
 }

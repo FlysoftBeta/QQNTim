@@ -1,19 +1,20 @@
-import { InterruptIPC, InterruptIPCOptions, addInterruptIpc } from "../../ipc";
+import { addInterruptIpc } from "../../ipc";
 import { browserwindow } from "./browserWindow";
 import { nt } from "./nt";
 import { ntCall } from "./nt/call";
 import { startWatchingElement, waitForElement } from "./waitForElement";
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as fs from "fs-extra";
 
 export function getAPI(windowLoadPromise: Promise<void>) {
     windowLoadPromise.then(() => startWatchingElement());
 
-    return {
+    const api: QQNTim.API.Renderer.API = {
         interrupt: {
-            ipc: (func: InterruptIPC, options?: InterruptIPCOptions) => addInterruptIpc(func, options),
+            ipc: addInterruptIpc,
         },
         nt: nt,
-        window: browserwindow,
+        browserwindow: browserwindow,
         modules: {
             fs: fs,
         },
@@ -23,4 +24,6 @@ export function getAPI(windowLoadPromise: Promise<void>) {
         },
         windowLoadPromise: windowLoadPromise,
     };
+
+    return api;
 }

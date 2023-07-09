@@ -1,6 +1,6 @@
-import { MessageElementFace, MessageElementImage, MessageElementRaw, MessageElementText, Peer } from "./nt";
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 
-export function destructTextElement(element: MessageElementText) {
+export function destructTextElement(element: QQNTim.API.Renderer.NT.MessageElementText) {
     return {
         elementType: 1,
         elementId: "",
@@ -14,7 +14,7 @@ export function destructTextElement(element: MessageElementText) {
     };
 }
 
-export function destructImageElement(element: MessageElementImage, picElement: any) {
+export function destructImageElement(element: QQNTim.API.Renderer.NT.MessageElementImage, picElement: any) {
     return {
         elementType: 2,
         elementId: "",
@@ -22,7 +22,7 @@ export function destructImageElement(element: MessageElementImage, picElement: a
     };
 }
 
-export function destructFaceElement(element: MessageElementFace) {
+export function destructFaceElement(element: QQNTim.API.Renderer.NT.MessageElementFace) {
     return {
         elementType: 6,
         elementId: "",
@@ -42,11 +42,11 @@ export function destructFaceElement(element: MessageElementFace) {
     };
 }
 
-export function destructRawElement(element: MessageElementRaw) {
+export function destructRawElement(element: QQNTim.API.Renderer.NT.MessageElementRaw) {
     return element.raw;
 }
 
-export function destructPeer(peer: Peer) {
+export function destructPeer(peer: QQNTim.API.Renderer.NT.Peer) {
     return {
         chatType: peer.chatType == "friend" ? 1 : peer.chatType == "group" ? 2 : 1,
         peerUid: peer.uid,
