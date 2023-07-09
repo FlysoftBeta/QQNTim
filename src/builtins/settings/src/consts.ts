@@ -11,7 +11,6 @@ export const cl = {
             c: "qqntim-settings-panel-open",
         },
         settings: {
-            c: "qqntim-settings-panel-settings",
             versions: {
                 c: "qqntim-settings-panel-settings-versions",
                 item: {
@@ -27,6 +26,24 @@ export const cl = {
             content: {
                 c: "qqntim-settings-panel-section-content",
             },
+        },
+        box: {
+            c: "qqntim-settings-panel-box",
+            item: {
+                c: "qqntim-settings-panel-box-item",
+                last: {
+                    c: "qqntim-settings-panel-box-item-last",
+                },
+                title: {
+                    c: "qqntim-settings-panel-box-item-title",
+                },
+                description: {
+                    c: "qqntim-settings-panel-box-item-description",
+                },
+            },
+        },
+        save: {
+            c: "qqntim-settings-panel-save",
         },
     },
 };

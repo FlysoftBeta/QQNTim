@@ -1,4 +1,5 @@
 import { version } from "../../../package.json";
+import { env } from "../../globalVar";
 import { addInterruptIpc } from "../../ipc";
 import { getCurrentNTVersion } from "../../ntVersion";
 import { addInterruptWindowArgs, addInterruptWindowCreation } from "../patch";
@@ -7,6 +8,7 @@ import * as fs from "fs-extra";
 
 export function getAPI() {
     const api: QQNTim.API.Main.API = {
+        env: env,
         version: version,
         ntVersion: getCurrentNTVersion(),
         interrupt: {

@@ -1,4 +1,4 @@
-import { env } from "../config";
+import { env } from "../globalVar";
 import axios from "axios";
 import { start } from "chii/server";
 import { BrowserWindow } from "electron";
@@ -9,7 +9,7 @@ export let debuggerPort = -1;
 export let debuggerOrigin = "";
 
 export async function initDebugger() {
-    if (!env.useNativeDevTools) {
+    if (!env.config.useNativeDevTools) {
         debuggerPort = await getPortPromise();
         debuggerHost = "127.0.0.1";
         debuggerOrigin = `http://${debuggerHost}:${debuggerPort}`;

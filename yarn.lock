@@ -182,6 +182,7 @@ __metadata:
   resolution: "@flysoftbeta/qqntim-plugin-settings@workspace:src/builtins/settings"
   dependencies:
     "@flysoftbeta/qqntim-typings": "workspace:*"
+    "@types/react": ^18.2.14
   languageName: unknown
   linkType: soft
 

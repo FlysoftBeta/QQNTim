@@ -2,6 +2,7 @@
     "name": "@flysoftbeta/qqntim-plugin-settings",
     "private": true,
     "devDependencies": {
-        "@flysoftbeta/qqntim-typings": "workspace:*"
+        "@flysoftbeta/qqntim-typings": "workspace:*",
+        "@types/react": "^18.2.14"
     }
 }

@@ -1,4 +1,4 @@
-import { env } from "./config";
+import { env } from "./globalVar";
 import { printObject } from "./console";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 
@@ -35,7 +35,7 @@ export function addInterruptIpc(func: QQNTim.IPC.InterruptFunction, options?: QQ
 }
 
 export function watchIpc() {
-    if (env.verboseLogging) {
+    if (env.config.verboseLogging) {
         (["in", "out"] as QQNTim.IPC.Direction[]).forEach((type) => {
             addInterruptIpc((args, channel, sender) => console.debug(`[!Watch:IPC?${type == "in" ? "In" : "Out"}${sender ? `:${sender.id.toString()}` : ""}] ${channel}`, printObject(args)), { direction: type });
         });

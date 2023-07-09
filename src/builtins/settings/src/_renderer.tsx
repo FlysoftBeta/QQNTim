@@ -22,7 +22,7 @@ export default class Entry implements QQNTim.Entry.Renderer {
             const navVueId = qqntim.utils.getVueId(nav.firstElementChild as HTMLElement)!;
             const navContainer = document.createElement("div");
             navContainer.classList.add(cl.nav.c);
-            createRoot(navContainer).render(<Navigation vueId={navVueId} onCurrentTabChange={renderPanel} />);
+            createRoot(navContainer).render(<Navigation qqntim={qqntim} vueId={navVueId} onCurrentTabChange={renderPanel} />);
             nav.appendChild(navContainer);
         });
     }

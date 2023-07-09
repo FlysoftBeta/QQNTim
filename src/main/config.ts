@@ -1,17 +1,6 @@
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { configFile, dataDir, pluginDir, pluginPerUserDir } from "../files";
 import * as fs from "fs-extra";
-
-export type Configuration = Partial<Environment>;
-
-export interface Environment {
-    plugins: {
-        whitelist?: string[];
-        blacklist?: string[];
-    };
-    verboseLogging: boolean;
-    useNativeDevTools: boolean;
-    disableCompatibilityProcessing: boolean;
-}
 
 function toBoolean(item: boolean | undefined, env: string, defaultValue: boolean) {
     const envValue = process.env[env];
@@ -39,15 +28,23 @@ function toStringArray(item: string[] | undefined, env: string, defaultValue: st
 //         : defaultValue;
 // }
 
-export function getEnvironment(config: Configuration): Environment {
+export function getEnvironment(config: QQNTim.Configuration.Configuration): QQNTim.Configuration.Environment {
     return {
-        plugins: {
-            whitelist: toStringArray(config.plugins?.whitelist, "QQNTIM_PLUGINS_WHITELIST", undefined),
-            blacklist: toStringArray(config.plugins?.blacklist, "QQNTIM_PLUGINS_BLACKLIST", undefined),
+        config: {
+            plugins: {
+                whitelist: toStringArray(config.plugins?.whitelist, "QQNTIM_PLUGINS_WHITELIST", undefined),
+                blacklist: toStringArray(config.plugins?.blacklist, "QQNTIM_PLUGINS_BLACKLIST", undefined),
+            },
+            verboseLogging: toBoolean(config.verboseLogging, "QQNTIM_VERBOSE_LOGGING", false),
+            useNativeDevTools: toBoolean(config.useNativeDevTools, "QQNTIM_USE_NATIVE_DEVTOOLS", false),
+            disableCompatibilityProcessing: toBoolean(config.disableCompatibilityProcessing, "QQNTIM_NO_COMPATIBILITY_PROCESSING", false),
         },
-        verboseLogging: toBoolean(config.verboseLogging, "QQNTIM_VERBOSE_LOGGING", false),
-        useNativeDevTools: toBoolean(config.useNativeDevTools, "QQNTIM_USE_NATIVE_DEVTOOLS", false),
-        disableCompatibilityProcessing: toBoolean(config.disableCompatibilityProcessing, "QQNTIM_NO_COMPATIBILITY_PROCESSING", false),
+        path: {
+            dataDir,
+            configFile,
+            pluginDir,
+            pluginPerUserDir,
+        },
     };
 }
 

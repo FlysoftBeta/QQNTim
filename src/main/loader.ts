@@ -1,16 +1,15 @@
 import { loadPlugins } from "../loader";
-import { AllUsersPlugins, Plugin, PluginInjection } from "../plugins";
 import { getAPI } from "./api";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 
-let scripts: [Plugin, string][] = [];
+let scripts: [QQNTim.Plugin.Plugin, string][] = [];
 const api = getAPI();
 
-function shouldInject(injection: PluginInjection) {
+function shouldInject(injection: QQNTim.Plugin.Injection) {
     return injection.type == "main";
 }
 
-export function applyPlugins(allPlugins: AllUsersPlugins, uin = "") {
+export function applyPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin = "") {
     loadPlugins(allPlugins, uin, shouldInject, scripts);
     applyScripts();
 

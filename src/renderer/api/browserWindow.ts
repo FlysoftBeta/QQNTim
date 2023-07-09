@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-class BrowserWindowApi {
+class BrowserWindowAPI {
     setSize(width: number, height: number) {
         ipcRenderer.sendSync(
             "___!browserwindow_api",
@@ -22,4 +22,4 @@ class BrowserWindowApi {
     }
 }
 
-export const browserwindow = new BrowserWindowApi();
+export const browserWindowApi = new BrowserWindowAPI();

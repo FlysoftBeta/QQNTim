@@ -1,4 +1,4 @@
-import { setEnv } from "../config";
+import { setAllPlugins, setEnv } from "../globalVar";
 import { watchIpc } from "../ipc";
 import { nt } from "./api/nt";
 import { attachDebugger } from "./debugger";
@@ -15,6 +15,7 @@ const { enabled, preload, debuggerOrigin, debuggerId, plugins, env } = ipcRender
 
 if (enabled) {
     setEnv(env);
+    setAllPlugins(plugins);
     watchIpc();
     hookVue3();
     attachDebugger(debuggerId, debuggerOrigin);
