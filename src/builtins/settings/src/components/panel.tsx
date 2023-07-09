@@ -1,9 +1,10 @@
+import { shell } from "electron";
 import { cl } from "../consts";
 import { Tab } from "./nav";
 import type { QQNTim } from "@flysoftbeta/qqntim-typings";
 import type { ReactNode } from "react";
 const React = window.React;
-const { useEffect, useState } = React;
+const { Fragment, useEffect, useState } = React;
 
 export function Panel({ qqntim, currentTab }: { qqntim: QQNTim.API.Renderer.API; currentTab: Tab }) {
     const fs = qqntim.modules.fs;
@@ -13,6 +14,11 @@ export function Panel({ qqntim, currentTab }: { qqntim: QQNTim.API.Renderer.API;
 
     const saveConfigAndRestart = () => {
         fs.writeJSONSync(qqntim.env.path.configFile, config);
+        qqntim.app.relaunch();
+    };
+
+    const resetConfigAndRestart = () => {
+        fs.writeJSONSync(qqntim.env.path.configFile, {});
         qqntim.app.relaunch();
     };
 
@@ -32,9 +38,14 @@ export function Panel({ qqntim, currentTab }: { qqntim: QQNTim.API.Renderer.API;
     return (
         <>
             {currentTab.type == "settings" ? <SettingsPanel qqntim={qqntim} config={config} setConfig={setConfig} /> : currentTab.type == "plugins-manager" ? <PluginsManagerPanel qqntim={qqntim} config={config} setConfig={setConfig} /> : null}
-            <button className={`${cl.panel.save.c} q-button q-button--default q-button--primary`} onClick={() => saveConfigAndRestart()}>
-                <span className="q-button__slot-warp">保存并重启 QQ</span>
-            </button>
+            <div className={cl.panel.save.c}>
+                <Button onClick={() => resetConfigAndRestart()} small={false} primary={false}>
+                    重置所有设置并重启
+                </Button>
+                <Button onClick={() => saveConfigAndRestart()} small={false} primary={true}>
+                    保存并重启
+                </Button>
+            </div>
         </>
     );
 }
@@ -98,7 +109,7 @@ function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
                             ],
                         ] as [string, string, boolean, (state: boolean) => void][]
                     ).map(([title, description, value, setValue], idx, array) => (
-                        <SettingsBoxItem title={title} description={description} isLast={idx == array.length - 1}>
+                        <SettingsBoxItem title={title} description={[description]} isLast={idx == array.length - 1}>
                             <Switch checked={value} onToggle={setValue} />
                         </SettingsBoxItem>
                     ))}
@@ -121,7 +132,7 @@ function PluginsManagerPanel({ qqntim, config, setConfig }: PanelsProps) {
     const enablePlugin = (id: string, enable: boolean, inWhitelist: boolean, inBlacklist: boolean) =>
         setConfig((prev) => {
             let _config = prev;
-            if (inWhitelist)
+            if (_config.plugins.whitelist && enable != inWhitelist)
                 _config = {
                     ..._config,
                     plugins: {
@@ -130,7 +141,7 @@ function PluginsManagerPanel({ qqntim, config, setConfig }: PanelsProps) {
                     },
                 };
             else if (!_config.plugins.blacklist) _config.plugins.blacklist = [];
-            if (inBlacklist)
+            if (_config.plugins.blacklist && enable == inBlacklist)
                 _config = {
                     ..._config,
                     plugins: {
@@ -152,9 +163,15 @@ function PluginsManagerPanel({ qqntim, config, setConfig }: PanelsProps) {
                                 const plugin = plugins[id];
                                 const inWhitelist = isInWhitelist(id, config.plugins.whitelist);
                                 const inBlacklist = isInBlacklist(id, config.plugins.blacklist);
+                                const warnText = [!plugin.meetRequirements && "当前环境不满足需求，未加载", plugin.manifest.manifestVersion != "2.0" && "插件使用了过时的插件标准，请提醒作者更新"].filter(Boolean).join("; ");
+                                const description = plugin.manifest.description || "该插件没有提供说明。";
+                                console.log(inWhitelist, inBlacklist);
                                 return (
-                                    <SettingsBoxItem key={id} title={plugin.manifest.name} description={[!plugin.meetRequirements && "(当前环境不满足需求，未加载)", plugin.manifest.description || "该插件没有提供说明。"].filter(Boolean).join(" ")}>
+                                    <SettingsBoxItem key={id} title={plugin.manifest.name} description={[warnText && `警告: ${warnText}。`, description].filter(Boolean)}>
                                         <Switch checked={!!(inWhitelist || (!inWhitelist && !inBlacklist))} onToggle={(state) => enablePlugin(id, state, inWhitelist, inBlacklist)} />
+                                        <Button onClick={() => shell.openPath(plugin.dir)} small={true} primary={false}>
+                                            文件夹
+                                        </Button>
                                     </SettingsBoxItem>
                                 );
                             })}
@@ -179,12 +196,24 @@ function SettingsBox({ children }: { children: ReactNode }) {
     return <div className={cl.panel.box.c}>{children}</div>;
 }
 
-function SettingsBoxItem({ title, description, children, isLast = false }: { title: string; description?: string; children: ReactNode; isLast?: boolean }) {
+function SettingsBoxItem({ title, description, children, isLast = false }: { title: string; description?: string[]; children: ReactNode; isLast?: boolean }) {
     return (
         <label className={`${cl.panel.box.item.c}${isLast ? ` ${cl.panel.box.item.last.c}` : ""}`}>
             <span>
                 <span className={cl.panel.box.item.title.c}>{title}</span>
-                {description ? <span className={cl.panel.box.item.description.c}>{description}</span> : null}
+                {description ? (
+                    <span className={cl.panel.box.item.description.c}>
+                        {description.map((text, idx, array) => {
+                            return (
+                                // rome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                                <Fragment key={idx}>
+                                    <span>{text}</span>
+                                    {idx != array.length - 1 && <br />}
+                                </Fragment>
+                            );
+                        })}
+                    </span>
+                ) : null}
             </span>
             <div>{children}</div>
         </label>
@@ -197,5 +226,13 @@ function Switch({ checked, onToggle }: { checked: boolean; onToggle: (checked: b
             <input type="checkbox" checked={checked} onChange={(event) => onToggle(event.target.checked)} />
             <div className="q-switch__handle" />
         </div>
+    );
+}
+
+function Button({ onClick, primary, small, children }: { onClick: () => void; primary: boolean; small: boolean; children: ReactNode }) {
+    return (
+        <button className={`q-button q-button--default ${primary ? "q-button--primary" : "q-button--secondary"}${small ? " q-button--small" : ""}`} onClick={() => onClick()}>
+            <span className="q-button__slot-warp">{children}</span>
+        </button>
     );
 }

@@ -108,7 +108,7 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
                     };
                 } else if (channel == "___!browserwindow_api") {
                     event.returnValue = win[args[1][0]](...args[1][1]);
-                } else if (channel == "___!api_api") {
+                } else if (channel == "___!app_api") {
                     event.returnValue = app[args[1][0]](...args[1][1]);
                 }
             });

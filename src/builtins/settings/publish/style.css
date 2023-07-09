@@ -9,7 +9,8 @@
     top: 0;
     bottom: 0;
     appearance: none !important;
-    z-index: 1;
+    margin: 0;
+    z-index: 10;
 }
 
 .qqntim-settings-panel-open
@@ -81,6 +82,14 @@ body:not(.qqntim-settings-panel-open)
 .qqntim-settings-panel-box-item > span {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+}
+
+.qqntim-settings-panel-box-item > div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
 }
 
 .qqntim-settings-panel-box-item-title {
@@ -100,4 +109,9 @@ body:not(.qqntim-settings-panel-open)
     position: fixed;
     right: 20px;
     bottom: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    z-index: 100;
 }
