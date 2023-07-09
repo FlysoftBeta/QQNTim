@@ -1,11 +1,11 @@
-import { env } from "../config";
+import { env } from "../globalVar";
 import { handleIpc } from "../ipc";
 import { apply, construct, getter, setter } from "../watch";
 import { createDebuggerWindow, debuggerOrigin } from "./debugger";
 import { applyPlugins } from "./loader";
 import { plugins } from "./plugins";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
-import { BrowserWindow, Menu, MenuItem, ipcMain, Session, session } from "electron";
+import { BrowserWindow, Menu, MenuItem, ipcMain, app } from "electron";
 import { Module } from "module";
 import * as path from "path";
 
@@ -27,7 +27,7 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
         new MenuItem({
             label: "开发者工具",
             accelerator: "F12",
-            ...(env.useNativeDevTools
+            ...(env.config.useNativeDevTools
                 ? { role: "toggleDevTools" }
                 : {
                       click: (_, win) => {
@@ -59,7 +59,7 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
                     nodeIntegration: true,
                     nodeIntegrationInSubFrames: true,
                     contextIsolation: false,
-                    devTools: env.useNativeDevTools,
+                    devTools: env.config.useNativeDevTools,
                     sandbox: false,
                 },
             };
@@ -76,13 +76,17 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
             let thirdpartyPreloads: string[] = [];
             sess.setPreloads([`${__dirname}${s}qqntim-renderer.js`]);
 
-            Object.defineProperty(sess, "setPreloads", {
-                get() {
-                    return (newPreloads) => {
-                        thirdpartyPreloads = newPreloads;
-                    };
-                },
-            });
+            // Temporary solution to readonly `setPreloads` :(
+            // TODO: Remove this try {} catch {}
+            try {
+                Object.defineProperty(sess, "setPreloads", {
+                    get() {
+                        return (newPreloads) => {
+                            thirdpartyPreloads = newPreloads;
+                        };
+                    },
+                });
+            } catch {}
 
             const send = win.webContents.send;
             win.webContents.send = (channel: string, ...args: QQNTim.IPC.Args<any>) => {
@@ -101,16 +105,18 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
                     event.returnValue = {
                         enabled: true,
                         preload: [...preloads, ...thirdpartyPreloads],
-                        debuggerOrigin: !env.useNativeDevTools && debuggerOrigin,
+                        debuggerOrigin: !env.config.useNativeDevTools && debuggerOrigin,
                         debuggerId: id,
                         plugins: plugins,
                         env: env,
                     };
                 } else if (channel == "___!browserwindow_api") {
                     event.returnValue = win[args[1][0]](...args[1][1]);
+                } else if (channel == "___!app_api") {
+                    event.returnValue = app[args[1][0]](...args[1][1]);
                 }
             });
-            if (!env.useNativeDevTools)
+            if (!env.config.useNativeDevTools)
                 win.webContents.on("console-message", (_, level, message) => {
                     message = `[!Renderer:${id}] ${message}`;
                     if (level == 0) console.debug(message);

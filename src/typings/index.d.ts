@@ -21,6 +21,28 @@ declare namespace QQNTim {
         type InterruptFunction = (window: Electron.BrowserWindow) => void;
     }
 
+    namespace Configuration {
+        type Configuration = {
+            plugins?: {
+                whitelist?: string[];
+                blacklist?: string[];
+            };
+            verboseLogging?: boolean;
+            useNativeDevTools?: boolean;
+            disableCompatibilityProcessing?: boolean;
+        };
+
+        interface Environment {
+            config: Required<Configuration>;
+            path: {
+                dataDir: string;
+                configFile: string;
+                pluginDir: string;
+                pluginPerUserDir: string;
+            };
+        }
+    }
+
     namespace Entry {
         class Main {
             /**
@@ -39,9 +61,39 @@ declare namespace QQNTim {
         }
     }
 
+    namespace Plugin {
+        interface InjectionMain {
+            type: "main";
+            script: string | undefined;
+        }
+        interface InjectionRenderer {
+            type: "renderer";
+            page: Manifest.Page[] | undefined;
+            pattern: RegExp | undefined;
+            stylesheet: string | undefined;
+            script: string | undefined;
+        }
+        type Injection = InjectionMain | InjectionRenderer;
+        interface Plugin {
+            loaded: boolean;
+            meetRequirements: boolean;
+            enabled: boolean;
+            id: string;
+            dir: string;
+            injections: Injection[];
+            manifest: Manifest.Manifest;
+        }
+        type AllUsersPlugins = Record<string, UserPlugins>;
+        type UserPlugins = Record<string, Plugin>;
+        type LoadedPlugins = Record<string, Plugin>;
+    }
+
     namespace API {
         namespace Main {
             interface API {
+                env: Configuration.Environment;
+                version: string;
+                ntVersion: string;
                 interrupt: {
                     /**
                      * 拦截 IPC 通讯
@@ -70,6 +122,10 @@ declare namespace QQNTim {
         }
         namespace Renderer {
             interface API {
+                allPlugins: Plugin.AllUsersPlugins;
+                env: Configuration.Environment;
+                version: string;
+                ntVersion: string;
                 interrupt: {
                     /**
                      * 拦截 IPC 通讯
@@ -80,13 +136,15 @@ declare namespace QQNTim {
                     ipc(func: IPC.InterruptFunction, options: IPC.InterruptIPCOptions): void;
                 };
                 nt: NT.NT;
-                browserwindow: BrowserWindowAPI;
+                browserWindow: BrowserWindowAPI;
+                app: AppAPI;
                 modules: {
                     fs: typeof import("fs-extra");
                 };
                 utils: {
                     waitForElement<T extends Element>(selector: string): Promise<T>;
                     ntCall(eventName: string, cmd: string, args: any[]): Promise<IPC.Response>;
+                    getVueId(element: HTMLElement): string | undefined;
                 };
                 windowLoadPromise: WindowLoadPromise;
             }
@@ -175,6 +233,11 @@ declare namespace QQNTim {
             interface BrowserWindowAPI {
                 setSize(width: number, height: number): void;
                 setMinimumSize(width: number, height: number): void;
+            }
+            interface AppAPI {
+                relaunch(): void;
+                quit(): void;
+                exit(): void;
             }
         }
     }
@@ -311,6 +374,10 @@ declare namespace QQNTim {
              * 显示名称
              */
             name: string;
+            /**
+             * 说明
+             */
+            description: string;
             /**
              * 作者
              */

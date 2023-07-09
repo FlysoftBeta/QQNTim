@@ -1,11 +1,11 @@
-import { AllUsersPlugins, LoadedPlugins, Plugin, PluginInjection, PluginInjectionRenderer } from "./plugins";
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as path from "path";
 
 const s = path.sep;
 
-const loadedPlugins: LoadedPlugins = {};
+const loadedPlugins: QQNTim.Plugin.LoadedPlugins = {};
 
-function getUserPlugins(allPlugins: AllUsersPlugins, uin: string) {
+function getUserPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin: string) {
     const userPlugins = allPlugins[uin];
     if (!userPlugins) {
         console.warn(`[!Loader] 账户 (${uin}) 没有插件，跳过加载`);
@@ -16,7 +16,7 @@ function getUserPlugins(allPlugins: AllUsersPlugins, uin: string) {
     return userPlugins;
 }
 
-export function loadPlugins(allPlugins: AllUsersPlugins, uin: string, shouldInject: (injection: PluginInjection) => boolean, scripts: [Plugin, string][], stylesheets?: [Plugin, string][]) {
+export function loadPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin: string, shouldInject: (injection: QQNTim.Plugin.Injection) => boolean, scripts: [QQNTim.Plugin.Plugin, string][], stylesheets?: [QQNTim.Plugin.Plugin, string][]) {
     const userPlugins = getUserPlugins(allPlugins, uin);
     if (!userPlugins) return false;
 
@@ -28,7 +28,7 @@ export function loadPlugins(allPlugins: AllUsersPlugins, uin: string, shouldInje
         console.log(`[!Loader] 正在加载插件：${id}`);
 
         plugin.injections.forEach((injection) => {
-            const rendererInjection = injection as PluginInjectionRenderer;
+            const rendererInjection = injection as QQNTim.Plugin.InjectionRenderer;
             if (!shouldInject(injection)) return;
             stylesheets && rendererInjection.stylesheet && stylesheets.push([plugin, `${plugin.dir}${s}${rendererInjection.stylesheet}`]);
             injection.script && scripts.push([plugin, `${plugin.dir}${s}${injection.script}`]);

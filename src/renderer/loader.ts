@@ -1,13 +1,12 @@
 import { loadPlugins } from "../loader";
-import { AllUsersPlugins, Plugin, PluginInjection } from "../plugins";
 import { getAPI } from "./api";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as fs from "fs-extra";
 
 const windowLoadPromise = new Promise<void>((resolve) => window.addEventListener("load", () => resolve()));
 const api = getAPI(windowLoadPromise);
-let scripts: [Plugin, string][] = [];
-const stylesheets: [Plugin, string][] = [];
+let scripts: [QQNTim.Plugin.Plugin, string][] = [];
+const stylesheets: [QQNTim.Plugin.Plugin, string][] = [];
 
 function detectCurrentPage(): QQNTim.Manifest.PageWithAbout {
     const url = window.location.href;
@@ -23,11 +22,11 @@ function detectCurrentPage(): QQNTim.Manifest.PageWithAbout {
     return "others";
 }
 
-function shouldInject(injection: PluginInjection, page: QQNTim.Manifest.Page) {
+function shouldInject(injection: QQNTim.Plugin.Injection, page: QQNTim.Manifest.Page) {
     return injection.type == "renderer" && (!injection.pattern || injection.pattern.test(window.location.href)) && (!injection.page || injection.page.includes(page));
 }
 
-export function applyPlugins(allPlugins: AllUsersPlugins, uin = "") {
+export function applyPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin = "") {
     const page = detectCurrentPage();
     if (page == "about") return false;
 
@@ -59,10 +58,12 @@ ${fs.readFileSync(stylesheet).toString()}`,
 function applyScripts() {
     scripts = scripts.filter(([plugin, script]) => {
         try {
-            if (plugin.manifest.manifestVersion == "2.0") {
-                const entry = new (require(script) as typeof QQNTim.Entry.Renderer)(api);
-                windowLoadPromise.then(() => entry.onWindowLoaded());
-            } else require(script)(api);
+            const mod = require(script);
+            if (mod)
+                if (plugin.manifest.manifestVersion == "2.0") {
+                    const entry = new (mod.default as typeof QQNTim.Entry.Renderer)(api);
+                    windowLoadPromise.then(() => entry.onWindowLoaded());
+                } else mod(api);
 
             return false;
         } catch (reason) {

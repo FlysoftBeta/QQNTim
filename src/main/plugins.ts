@@ -1,6 +1,5 @@
-import { env } from "../config";
+import { env } from "../globalVar";
 import { pluginDir, pluginPerUserDir } from "../files";
-import { AllUsersPlugins, Plugin } from "../plugins";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as fs from "fs-extra";
 import * as os from "os";
@@ -8,12 +7,12 @@ import * as path from "path";
 import * as semver from "semver";
 
 const supportedManifestVersions: QQNTim.Manifest.ManifestVersion[] = ["1.0", "2.0"];
-export const plugins: AllUsersPlugins = {};
+export const plugins: QQNTim.Plugin.AllUsersPlugins = {};
 const s = path.sep;
 
 function isPluginEnabled(manifest: QQNTim.Manifest.Manifest) {
-    if (env.plugins?.whitelist) return env.plugins.whitelist.includes(manifest.id);
-    else if (env.plugins?.blacklist) return !env.plugins.blacklist.includes(manifest.id);
+    if (env.config.plugins.whitelist) return env.config.plugins.whitelist.includes(manifest.id);
+    else if (env.config.plugins.blacklist) return !env.config.plugins.blacklist.includes(manifest.id);
     else return true;
 }
 
@@ -68,7 +67,7 @@ export function parsePlugin(dir: string) {
                       };
             }),
             manifest: manifest,
-        } as Plugin;
+        } as QQNTim.Plugin.Plugin;
     } catch (reason) {
         console.error("[!Plugins] 解析插件时出现意外错误：", dir);
         console.error(reason);
@@ -91,6 +90,7 @@ function collectPluginsFromDir(baseDir: string, uin = "") {
 }
 
 export function collectPlugins() {
+    collectPluginsFromDir(`${__dirname}${s}builtins`);
     collectPluginsFromDir(pluginDir);
     const folders = fs.readdirSync(pluginPerUserDir);
     folders.forEach((folder) => {

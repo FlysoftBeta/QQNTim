@@ -1,7 +1,7 @@
 import { handleIpc } from "../ipc";
 import { getter, setter } from "../watch";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
-import { ipcRenderer, contextBridge } from "electron";
+import { contextBridge, ipcRenderer } from "electron";
 import { Module } from "module";
 
 function patchIpcRenderer() {

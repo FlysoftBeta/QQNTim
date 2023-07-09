@@ -1,8 +1,8 @@
-import { env } from "../../config";
+import { env } from "../../globalVar";
 import { loadLiteLoaderIfExists } from "./liteloader";
 
 export function hookAfterPatchElectron() {
-    if (env.disableCompatibilityProcessing) return;
+    if (env.config.disableCompatibilityProcessing) return;
     console.log("[!Compatibility] 正在进行兼容性处理");
     loadLiteLoaderIfExists();
 }

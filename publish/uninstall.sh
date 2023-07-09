@@ -47,7 +47,7 @@ killall -vw qq
 
 echo "正在移除文件……"
 rm -vf "$qq_applauncher_dir/qqntim.js" "$qq_applauncher_dir/qqntim-renderer.js"
-rm -vrf "$qq_applauncher_dir/node_modules"
+rm -vrf "$qq_applauncher_dir/node_modules" "$qq_applauncher_dir/builtins"
 
 echo "正在还原 package.json……"
 sed -i "s#\.\/app_launcher\/qqntim\.js#\.\/app_launcher\/index\.js#g" "$package_json_file"
