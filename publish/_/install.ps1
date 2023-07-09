@@ -47,7 +47,7 @@ Write-Output "正在关闭 QQ……"
 Stop-Process -Name QQ -ErrorAction SilentlyContinue
 
 Write-Output "正在复制文件……"
-Copy-Item ".\qqntim.js", ".\qqntim-renderer.js", ".\qqntim-vue-helper.js" $QQAppLauncherDir -Force
+Copy-Item ".\qqntim.js", ".\qqntim-renderer.js" $QQAppLauncherDir -Force
 Copy-Item ".\node_modules" $QQAppLauncherDir -Recurse -Force
 
 Write-Output "正在修补 package.json……"

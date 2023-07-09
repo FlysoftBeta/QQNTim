@@ -1,40 +1,43 @@
 import { env } from "../config";
-import { IPCArgs, InterruptWindowCreation, handleIpc } from "../ipc";
+import { handleIpc } from "../ipc";
 import { apply, construct, getter, setter } from "../watch";
 import { createDebuggerWindow, debuggerOrigin } from "./debugger";
 import { applyPlugins } from "./loader";
 import { plugins } from "./plugins";
-import { BrowserWindow, Menu, MenuItem } from "electron";
-import * as fs from "fs-extra";
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
+import { BrowserWindow, Menu, MenuItem, ipcMain, Session, session } from "electron";
 import { Module } from "module";
 import * as path from "path";
 
 const s = path.sep;
+const interruptWindowArgs: QQNTim.WindowCreation.InterruptArgsFunction[] = [];
+const interruptWindowCreation: QQNTim.WindowCreation.InterruptFunction[] = [];
 
-const interruptWindowCreation: InterruptWindowCreation[] = [];
+ipcMain.on("___!boot", (event) => {
+    if (!event.returnValue) event.returnValue = { enabled: false };
+});
 
-const windowMenu: Electron.MenuItem[] = [
-    new MenuItem({
-        label: "刷新",
-        role: "reload",
-        accelerator: "F5",
-    }),
-    new MenuItem({
-        label: "开发者工具",
-        accelerator: "F12",
-        ...(env.useNativeDevTools
-            ? { role: "toggleDevTools" }
-            : {
-                  click: (_, win) => {
-                      if (!win) return;
-                      const debuggerId = win.webContents.id.toString();
-                      createDebuggerWindow(debuggerId, win);
-                  },
-              }),
-    }),
-];
-
-function patchBrowserWindow() {
+function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
+    const windowMenu: Electron.MenuItem[] = [
+        new MenuItem({
+            label: "刷新",
+            role: "reload",
+            accelerator: "F5",
+        }),
+        new MenuItem({
+            label: "开发者工具",
+            accelerator: "F12",
+            ...(env.useNativeDevTools
+                ? { role: "toggleDevTools" }
+                : {
+                      click: (_, win) => {
+                          if (!win) return;
+                          const debuggerId = win.webContents.id.toString();
+                          createDebuggerWindow(debuggerId, win);
+                      },
+                  }),
+        }),
+    ];
     return new Proxy(BrowserWindow, {
         apply(target, thisArg, argArray) {
             return apply(target, thisArg, argArray);
@@ -46,53 +49,63 @@ function patchBrowserWindow() {
             return setter("BrowserWindow(static)", target, p as any, newValue);
         },
         construct(target, [options]: [Electron.BrowserWindowConstructorOptions]) {
-            const patchedArgs: Electron.BrowserWindowConstructorOptions = {
+            let patchedArgs: Electron.BrowserWindowConstructorOptions = {
                 ...options,
                 webPreferences: {
                     ...options.webPreferences,
-                    preload: `${__dirname}${s}qqntim-renderer.js`,
+                    preload: undefined,
                     webSecurity: false,
                     allowRunningInsecureContent: true,
                     nodeIntegration: true,
                     nodeIntegrationInSubFrames: true,
-                    contextIsolation: true,
+                    contextIsolation: false,
                     devTools: env.useNativeDevTools,
                     sandbox: false,
                 },
             };
-            interruptWindowCreation.forEach((func) => patchedArgs === func(patchedArgs));
+            interruptWindowArgs.forEach((func) => {
+                patchedArgs = func(patchedArgs);
+            });
             const win = construct("BrowserWindow", target, [patchedArgs]) as BrowserWindow;
 
             const id = win.webContents.id.toString();
 
+            const sess = win.webContents.session;
+
+            const preloads = [options.webPreferences?.preload, ...sess.getPreloads()];
+            let thirdpartyPreloads: string[] = [];
+            sess.setPreloads([`${__dirname}${s}qqntim-renderer.js`]);
+
+            Object.defineProperty(sess, "setPreloads", {
+                get() {
+                    return (newPreloads) => {
+                        thirdpartyPreloads = newPreloads;
+                    };
+                },
+            });
+
             const send = win.webContents.send;
-            win.webContents.send = (channel: string, ...args: IPCArgs<any>) => {
+            win.webContents.send = (channel: string, ...args: QQNTim.IPC.Args<any>) => {
                 handleIpc(args, "out", channel);
                 return send.call(win.webContents, channel, ...args);
             };
-            win.webContents.on("ipc-message", (_, channel, ...args: IPCArgs<any>) => {
+            win.webContents.on("ipc-message", (_, channel, ...args: QQNTim.IPC.Args<any>) => {
                 if (!handleIpc(args, "in", channel, win.webContents)) {
                     throw new Error("forcibly stopped IPC propagation (Note that this is not a bug)");
                 }
                 if (channel == "___!apply_plugins") applyPlugins(plugins, args[1] as string);
             });
-            win.webContents.on("ipc-message-sync", (_, channel, ...args: IPCArgs<any>) => {
-                if (!handleIpc(args, "in", channel, win.webContents)) {
-                    throw new Error("forcibly stopped IPC propagation (Note that this is not a bug)");
-                }
-            });
-            win.webContents.on("ipc-message-sync", (event, channel, ...args: IPCArgs<any>) => {
-                handleIpc(args, "in", channel);
+            win.webContents.on("ipc-message-sync", (event, channel, ...args: QQNTim.IPC.Args<any>) => {
+                handleIpc(args, "in", channel, win.webContents);
                 if (channel == "___!boot") {
-                    win.webContents.executeJavaScript(fs.readFileSync(`${__dirname}${s}qqntim-vue-helper.js`).toString(), true);
                     event.returnValue = {
-                        preload: options.webPreferences?.preload,
+                        enabled: true,
+                        preload: [...preloads, ...thirdpartyPreloads],
                         debuggerOrigin: !env.useNativeDevTools && debuggerOrigin,
                         debuggerId: id,
                         plugins: plugins,
+                        env: env,
                     };
-                } else if (channel == "___!get_env") {
-                    event.returnValue = env;
                 } else if (channel == "___!browserwindow_api") {
                     event.returnValue = win[args[1][0]](...args[1][1]);
                 }
@@ -125,8 +138,12 @@ function patchBrowserWindow() {
     });
 }
 
-export function addInterruptWindowCreation(func: InterruptWindowCreation) {
+export function addInterruptWindowCreation(func: QQNTim.WindowCreation.InterruptFunction) {
     interruptWindowCreation.push(func);
+}
+
+export function addInterruptWindowArgs(func: QQNTim.WindowCreation.InterruptArgsFunction) {
+    interruptWindowArgs.push(func);
 }
 
 export function patchElectron() {
@@ -141,7 +158,7 @@ export function patchElectron() {
             if (!patchedElectron)
                 patchedElectron = {
                     ...loadedModule,
-                    BrowserWindow: patchBrowserWindow(),
+                    BrowserWindow: patchBrowserWindow(loadedModule.BrowserWindow),
                 };
             return patchedElectron;
         }

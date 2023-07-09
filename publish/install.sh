@@ -38,7 +38,7 @@ killall -vw qq
 
 echo "正在复制文件……"
 mkdir -p "$qq_applauncher_dir/node_modules"
-cp -vf ./qqntim.js ./qqntim-renderer.js ./qqntim-vue-helper.js "$qq_applauncher_dir"
+cp -vf ./qqntim.js ./qqntim-renderer.js "$qq_applauncher_dir"
 cp -rf ./node_modules "$qq_applauncher_dir"
 
 echo "正在修补 package.json……"

@@ -7,7 +7,8 @@ import { getPortPromise } from "portfinder";
 export let debuggerHost = "";
 export let debuggerPort = -1;
 export let debuggerOrigin = "";
-const initDebuggerPromise = (async () => {
+
+export async function initDebugger() {
     if (!env.useNativeDevTools) {
         debuggerPort = await getPortPromise();
         debuggerHost = "127.0.0.1";
@@ -20,10 +21,9 @@ const initDebuggerPromise = (async () => {
             useHttps: false,
         });
     }
-})();
+}
 
 async function listChiiTargets() {
-    await initDebuggerPromise;
     const res = await axios.get(`${debuggerOrigin}/targets`);
     return (res.data.targets as any[]).map((target) => [target.title, target.id]);
 }

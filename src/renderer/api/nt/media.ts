@@ -10,6 +10,7 @@ addInterruptIpc(
         if (pendingMediaDownloads[id]) {
             pendingMediaDownloads[id](args);
             delete pendingMediaDownloads[id];
+            return false;
         }
     },
     {

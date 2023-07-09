@@ -1,21 +1,23 @@
 import { env } from "../config";
 import { pluginDir, pluginPerUserDir } from "../files";
-import { AllUsersPlugins, Manifest, Plugin } from "../plugin";
+import { AllUsersPlugins, Plugin } from "../plugins";
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as fs from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import * as semver from "semver";
 
+const supportedManifestVersions: QQNTim.Manifest.ManifestVersion[] = ["1.0", "2.0"];
 export const plugins: AllUsersPlugins = {};
 const s = path.sep;
 
-function isPluginEnabled(manifest: Manifest) {
+function isPluginEnabled(manifest: QQNTim.Manifest.Manifest) {
     if (env.plugins?.whitelist) return env.plugins.whitelist.includes(manifest.id);
     else if (env.plugins?.blacklist) return !env.plugins.blacklist.includes(manifest.id);
     else return true;
 }
 
-function isPluginRequirementsMet(manifest: Manifest) {
+function isPluginRequirementsMet(manifest: QQNTim.Manifest.Manifest) {
     if (manifest.requirements?.os) {
         let meetRequirements = false;
         const osRelease = os.release();
@@ -41,7 +43,9 @@ export function parsePlugin(dir: string) {
     try {
         const manifestFile = `${dir}${s}qqntim.json`;
         if (!fs.existsSync(manifestFile)) return null;
-        const manifest = fs.readJSONSync(manifestFile) as Manifest;
+        const manifest = fs.readJSONSync(manifestFile) as QQNTim.Manifest.Manifest;
+        if (!manifest.manifestVersion) manifest.manifestVersion = supportedManifestVersions[0];
+        else if (!supportedManifestVersions.includes(manifest.manifestVersion)) throw new TypeError(`此插件包含一个无效的清单版本：${manifest.manifestVersion}，支持的版本有：${supportedManifestVersions.join(", ")}`);
 
         const meetRequirements = isPluginRequirementsMet(manifest);
         const enabled = isPluginEnabled(manifest);
@@ -66,7 +70,7 @@ export function parsePlugin(dir: string) {
             manifest: manifest,
         } as Plugin;
     } catch (reason) {
-        console.error("[!Loader] 解析插件时出现意外错误：", dir);
+        console.error("[!Plugins] 解析插件时出现意外错误：", dir);
         console.error(reason);
         return null;
     }

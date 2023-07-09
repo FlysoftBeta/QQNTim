@@ -1,23 +1,16 @@
-import { IPCArgs, addInterruptIpc } from "../../../ipc";
+import { addInterruptIpc } from "../../../ipc";
 import { ntCall } from "./call";
 import { constructMessage } from "./constructor";
 import { destructFaceElement, destructImageElement, destructPeer, destructRawElement, destructTextElement } from "./destructor";
 import { prepareImageElement } from "./media";
-import { Friend, Group, LoginAccount, Message, MessageElement, Peer } from "./nt";
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { EventEmitter } from "events";
-import TypedEmitter from "typed-emitter";
 
-type NTEvents = {
-    "new-messages": (messages: Message[]) => void;
-    "friends-list-updated": (list: Friend[]) => void;
-    "groups-list-updated": (list: Group[]) => void;
-};
-
-const NTEventEmitter = EventEmitter as new () => TypedEmitter<NTEvents>;
-class NT extends NTEventEmitter {
+const NTEventEmitter = EventEmitter as new () => QQNTim.API.Renderer.NT.EventEmitter;
+class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
     private pendingSentMessages: Record<string, Function> = {};
-    private friendsList: Friend[] = [];
-    private groupsList: Group[] = [];
+    private friendsList: QQNTim.API.Renderer.NT.Friend[] = [];
+    private groupsList: QQNTim.API.Renderer.NT.Group[] = [];
 
     constructor() {
         super();
@@ -26,7 +19,7 @@ class NT extends NTEventEmitter {
         this.listenContactListChange();
     }
 
-    public async getAccountInfo(): Promise<LoginAccount> {
+    public async getAccountInfo(): Promise<QQNTim.API.Renderer.NT.LoginAccount> {
         const data = await ntCall("ns-BusinessApi-2", "fetchAuthData", []);
         return { uin: data.uin as string, uid: data.uid as string };
     }
@@ -53,7 +46,7 @@ class NT extends NTEventEmitter {
     private listenNewMessages() {
         addInterruptIpc(
             (args) => {
-                const messages = (args[1][0].payload.msgList as any[]).map((msg): Message => constructMessage(msg));
+                const messages = (args[1][0].payload.msgList as any[]).map((msg): QQNTim.API.Renderer.NT.Message => constructMessage(msg));
                 this.emit("new-messages", messages);
             },
             {
@@ -71,7 +64,7 @@ class NT extends NTEventEmitter {
                 this.friendsList = [];
                 ((args[1][0].payload?.data || []) as any[]).forEach((category) => {
                     this.friendsList.push(
-                        ...((category?.buddyList || []) as any[]).map((friend): Friend => {
+                        ...((category?.buddyList || []) as any[]).map((friend): QQNTim.API.Renderer.NT.Friend => {
                             return {
                                 uid: friend.uid,
                                 qid: friend.qid,
@@ -96,7 +89,7 @@ class NT extends NTEventEmitter {
         );
         addInterruptIpc(
             (args) => {
-                this.groupsList = ((args[1][0].payload?.groupList || []) as any[]).map((group): Group => {
+                this.groupsList = ((args[1][0].payload?.groupList || []) as any[]).map((group): QQNTim.API.Renderer.NT.Group => {
                     return {
                         uid: group.groupCode,
                         avatarUrl: group.avatarUrl,
@@ -118,7 +111,7 @@ class NT extends NTEventEmitter {
         );
     }
 
-    async revokeMessage(peer: Peer, message: string) {
+    async revokeMessage(peer: QQNTim.API.Renderer.NT.Peer, message: string) {
         await ntCall("ns-ntApi-2", "nodeIKernelMsgService/recallMsg", [
             {
                 peer: destructPeer(peer),
@@ -127,7 +120,7 @@ class NT extends NTEventEmitter {
         ]);
     }
 
-    async sendMessage(peer: Peer, elements: MessageElement[]) {
+    async sendMessage(peer: QQNTim.API.Renderer.NT.Peer, elements: QQNTim.API.Renderer.NT.MessageElement[]) {
         ntCall("ns-ntApi-2", "nodeIKernelMsgService/sendMsg", [
             {
                 msgId: "0",
@@ -145,7 +138,7 @@ class NT extends NTEventEmitter {
             null,
         ]);
         return await new Promise<string>((resolve) => {
-            this.pendingSentMessages[peer.uid] = (args: IPCArgs<any>) => {
+            this.pendingSentMessages[peer.uid] = (args: QQNTim.IPC.Args<any>) => {
                 resolve(args[1][0].payload.msgRecord.msgId);
             };
         });
@@ -153,19 +146,19 @@ class NT extends NTEventEmitter {
 
     async getFriendsList(forced: boolean) {
         ntCall("ns-ntApi-2", "nodeIKernelBuddyService/getBuddyList", [{ force_update: forced }, undefined]);
-        return await new Promise<Friend[]>((resolve) => {
+        return await new Promise<QQNTim.API.Renderer.NT.Friend[]>((resolve) => {
             this.once("friends-list-updated", (list) => resolve(list));
         });
     }
 
     async getGroupsList(forced: boolean) {
         ntCall("ns-ntApi-2", "nodeIKernelGroupService/getGroupList", [{ forceFetch: forced }, undefined]);
-        return await new Promise<Group[]>((resolve) => {
+        return await new Promise<QQNTim.API.Renderer.NT.Group[]>((resolve) => {
             this.once("groups-list-updated", (list) => resolve(list));
         });
     }
 
-    async getPreviousMessages(peer: Peer, count = 20, startMsgId = "0") {
+    async getPreviousMessages(peer: QQNTim.API.Renderer.NT.Peer, count = 20, startMsgId = "0") {
         try {
             const msgs = await ntCall("ns-ntApi-2", "nodeIKernelMsgService/getMsgsIncludeSelf", [
                 {

@@ -1,7 +1,7 @@
 import { downloadMedia } from "./media";
-import { Message, MessageElement, MessageElementFace, MessageElementImage, MessageElementRaw, MessageElementText } from "./nt";
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 
-export function constructTextElement(ele: any): MessageElementText {
+export function constructTextElement(ele: any): QQNTim.API.Renderer.NT.MessageElementText {
     return {
         type: "text",
         content: ele.textElement.content,
@@ -9,7 +9,7 @@ export function constructTextElement(ele: any): MessageElementText {
     };
 }
 
-export function constructImageElement(ele: any, msg: any): MessageElementImage {
+export function constructImageElement(ele: any, msg: any): QQNTim.API.Renderer.NT.MessageElementImage {
     return {
         type: "image",
         file: ele.picElement.sourcePath,
@@ -17,7 +17,7 @@ export function constructImageElement(ele: any, msg: any): MessageElementImage {
         raw: ele,
     };
 }
-export function constructFaceElement(ele: any): MessageElementFace {
+export function constructFaceElement(ele: any): QQNTim.API.Renderer.NT.MessageElementFace {
     return {
         type: "face",
         faceIndex: ele.faceElement.faceIndex,
@@ -26,15 +26,15 @@ export function constructFaceElement(ele: any): MessageElementFace {
         raw: ele,
     };
 }
-export function constructRawElement(ele: any): MessageElementRaw {
+export function constructRawElement(ele: any): QQNTim.API.Renderer.NT.MessageElementRaw {
     return {
         type: "raw",
         raw: ele,
     };
 }
-export function constructMessage(msg: any): Message {
+export function constructMessage(msg: any): QQNTim.API.Renderer.NT.Message {
     const downloadedPromises: Promise<void>[] = [];
-    const elements = (msg.elements as any[]).map((ele): MessageElement => {
+    const elements = (msg.elements as any[]).map((ele): QQNTim.API.Renderer.NT.MessageElement => {
         if (ele.elementType == 1) return constructTextElement(ele);
         else if (ele.elementType == 2) {
             const element = constructImageElement(ele, msg);
