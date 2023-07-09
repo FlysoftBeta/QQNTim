@@ -108,51 +108,38 @@ function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
     );
 }
 
+function addItemToArray<T>(array: T[], item: T) {
+    return [...array, item];
+}
+function removeItemFromArray<T>(array: T[], item: T) {
+    return array.filter((value) => value != item);
+}
+
 function PluginsManagerPanel({ qqntim, config, setConfig }: PanelsProps) {
-    const togglePluginState = (id: string, enabled: boolean) => {
+    const isInWhitelist = (id: string, whitelist?: string[]) => !!(whitelist && !whitelist.includes(id));
+    const isInBlacklist = (id: string, blacklist?: string[]) => !!blacklist?.includes(id);
+    const enablePlugin = (id: string, enable: boolean, inWhitelist: boolean, inBlacklist: boolean) =>
         setConfig((prev) => {
             let _config = prev;
-            if (enabled) {
-                if (_config.plugins.whitelist && !_config.plugins.whitelist.includes(id))
-                    _config = {
-                        ..._config,
-                        plugins: {
-                            ..._config.plugins,
-                            whitelist: [..._config.plugins.whitelist, id],
-                        },
-                    };
-                else if (!_config.plugins.blacklist) _config.plugins.blacklist = [];
-                console.log(_config.plugins.blacklist, id);
-                if (_config.plugins.blacklist?.includes(id))
-                    _config = {
-                        ..._config,
-                        plugins: {
-                            ..._config.plugins,
-                            blacklist: _config.plugins.blacklist.filter((value) => value != id),
-                        },
-                    };
-            } else {
-                if (_config.plugins.whitelist?.includes(id))
-                    _config = {
-                        ..._config,
-                        plugins: {
-                            ..._config.plugins,
-                            whitelist: _config.plugins.whitelist.filter((value) => value != id),
-                        },
-                    };
-                else if (!_config.plugins.blacklist) _config.plugins.blacklist = [];
-                if (_config.plugins.blacklist && !_config.plugins.blacklist.includes(id))
-                    _config = {
-                        ..._config,
-                        plugins: {
-                            ..._config.plugins,
-                            blacklist: [..._config.plugins.blacklist, id],
-                        },
-                    };
-            }
+            if (inWhitelist)
+                _config = {
+                    ..._config,
+                    plugins: {
+                        ..._config.plugins,
+                        whitelist: (enable ? addItemToArray : removeItemFromArray)(_config.plugins.whitelist!, id),
+                    },
+                };
+            else if (!_config.plugins.blacklist) _config.plugins.blacklist = [];
+            if (inBlacklist)
+                _config = {
+                    ..._config,
+                    plugins: {
+                        ..._config.plugins,
+                        blacklist: (!enable ? addItemToArray : removeItemFromArray)(_config.plugins.blacklist!, id),
+                    },
+                };
             return _config;
         });
-    };
 
     return (
         <>
@@ -163,9 +150,11 @@ function PluginsManagerPanel({ qqntim, config, setConfig }: PanelsProps) {
                         <SettingsBox>
                             {Object.keys(plugins).map((id: string) => {
                                 const plugin = plugins[id];
+                                const inWhitelist = isInWhitelist(id, config.plugins.whitelist);
+                                const inBlacklist = isInBlacklist(id, config.plugins.blacklist);
                                 return (
                                     <SettingsBoxItem key={id} title={plugin.manifest.name} description={[!plugin.meetRequirements && "(当前环境不满足需求，未加载)", plugin.manifest.description || "该插件没有提供说明。"].filter(Boolean).join(" ")}>
-                                        <Switch checked={!!(config.plugins.whitelist?.includes(id) || (config.plugins.blacklist && !config.plugins.blacklist.includes(id)) || (!config.plugins.blacklist && !config.plugins.whitelist))} onToggle={(state) => togglePluginState(id, state)} />
+                                        <Switch checked={!!(inWhitelist || (!inWhitelist && !inBlacklist))} onToggle={(state) => enablePlugin(id, state, inWhitelist, inBlacklist)} />
                                     </SettingsBoxItem>
                                 );
                             })}
