@@ -43,7 +43,9 @@ export function Navigation({ qqntim, vueId, onCurrentTabChange }: { qqntim: QQNT
         <Fragment>
             {[{ key: "settings", type: "settings", title: "QQNTim 设置" } as SettingsTab, { key: "plugins-manager", type: "plugins-manager", title: "插件管理" } as PluginsManagerTab].map((item) => (
                 <div key={item.key} className={`nav-item ${cl.nav.item.c} ${currentTab.key == item.key ? " nav-item-active" : ""}`} onClick={() => setCurrentTab(item)} {...{ [vueId]: "" }}>
-                    {item.title}
+                    <div className="name" {...{ [vueId]: "" }}>
+                        {item.title}
+                    </div>
                 </div>
             ))}
         </Fragment>

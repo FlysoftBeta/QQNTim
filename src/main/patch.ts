@@ -76,13 +76,17 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
             let thirdpartyPreloads: string[] = [];
             sess.setPreloads([`${__dirname}${s}qqntim-renderer.js`]);
 
-            Object.defineProperty(sess, "setPreloads", {
-                get() {
-                    return (newPreloads) => {
-                        thirdpartyPreloads = newPreloads;
-                    };
-                },
-            });
+            // Temporary solution to readonly `setPreloads` :(
+            // TODO: Remove this try {} catch {}
+            try {
+                Object.defineProperty(sess, "setPreloads", {
+                    get() {
+                        return (newPreloads) => {
+                            thirdpartyPreloads = newPreloads;
+                        };
+                    },
+                });
+            } catch {}
 
             const send = win.webContents.send;
             win.webContents.send = (channel: string, ...args: QQNTim.IPC.Args<any>) => {
