@@ -59,10 +59,12 @@ ${fs.readFileSync(stylesheet).toString()}`,
 function applyScripts() {
     scripts = scripts.filter(([plugin, script]) => {
         try {
-            if (plugin.manifest.manifestVersion == "2.0") {
-                const entry = new (require(script) as typeof QQNTim.Entry.Renderer)(api);
-                windowLoadPromise.then(() => entry.onWindowLoaded());
-            } else require(script)(api);
+            const mod = require(script);
+            if (mod)
+                if (plugin.manifest.manifestVersion == "2.0") {
+                    const entry = new (mod.default as typeof QQNTim.Entry.Renderer)(api);
+                    windowLoadPromise.then(() => entry.onWindowLoaded());
+                } else mod(api);
 
             return false;
         } catch (reason) {

@@ -16,7 +16,8 @@
         "rules": {
             "recommended": true,
             "suspicious": { "noExplicitAny": "off", "noDoubleEquals": "off" },
-            "style": { "noParameterAssign": "off", "noNonNullAssertion": "off" }
+            "style": { "noParameterAssign": "off", "noNonNullAssertion": "off" },
+            "a11y": { "all": false }
         }
     }
 }

@@ -177,9 +177,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@flysoftbeta/qqntim-typings@workspace:*, @flysoftbeta/qqntim-typings@workspace:typings":
+"@flysoftbeta/qqntim-plugin-settings@workspace:src/builtins/settings":
   version: 0.0.0-use.local
-  resolution: "@flysoftbeta/qqntim-typings@workspace:typings"
+  resolution: "@flysoftbeta/qqntim-plugin-settings@workspace:src/builtins/settings"
+  dependencies:
+    "@flysoftbeta/qqntim-typings": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
+"@flysoftbeta/qqntim-typings@workspace:*, @flysoftbeta/qqntim-typings@workspace:src/typings":
+  version: 0.0.0-use.local
+  resolution: "@flysoftbeta/qqntim-typings@workspace:src/typings"
   dependencies:
     "@types/fs-extra": ^11.0.1
     "@types/node": ^20.4.0

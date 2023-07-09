@@ -91,6 +91,7 @@ function collectPluginsFromDir(baseDir: string, uin = "") {
 }
 
 export function collectPlugins() {
+    collectPluginsFromDir(`${__dirname}${s}builtins`);
     collectPluginsFromDir(pluginDir);
     const folders = fs.readdirSync(pluginPerUserDir);
     folders.forEach((folder) => {

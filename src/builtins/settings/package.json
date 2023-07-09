@@ -1,0 +1,7 @@
+{
+    "name": "@flysoftbeta/qqntim-plugin-settings",
+    "private": true,
+    "devDependencies": {
+        "@flysoftbeta/qqntim-typings": "workspace:*"
+    }
+}

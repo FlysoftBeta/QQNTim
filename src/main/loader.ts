@@ -20,9 +20,11 @@ export function applyPlugins(allPlugins: AllUsersPlugins, uin = "") {
 function applyScripts() {
     scripts = scripts.filter(([plugin, script]) => {
         try {
-            if (plugin.manifest.manifestVersion == "2.0") {
-                new (require(script) as typeof QQNTim.Entry.Main)(api);
-            } else require(script)(api);
+            const mod = require(script);
+            if (mod)
+                if (plugin.manifest.manifestVersion == "2.0") {
+                    new (mod.default as typeof QQNTim.Entry.Main)(api);
+                } else mod(api);
 
             return false;
         } catch (reason) {

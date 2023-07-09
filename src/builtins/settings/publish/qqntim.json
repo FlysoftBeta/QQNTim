@@ -1,4 +1,5 @@
 {
+    "manifestVersion": "2.0",
     "id": "builtin-settings-ui",
     "name": "设置",
     "author": "Flysoft",

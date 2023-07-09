@@ -51,7 +51,7 @@ Stop-Process -Name QQ -ErrorAction SilentlyContinue
 
 Write-Output "正在移除文件……"
 Remove-Item "$QQAppLauncherDir\qqntim.js", "$QQAppLauncherDir\qqntim-renderer.js" -Force
-Remove-Item "$QQAppLauncherDir\node_modules" -Recurse -Force
+Remove-Item "$QQAppLauncherDir\node_modules", "$QQAppLauncherDir\builtins" -Recurse -Force
 
 Write-Output "正在还原 package.json……"
 $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False

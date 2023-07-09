@@ -1,6 +1,6 @@
 import { BuildOptions, build } from "esbuild";
-import { copy, emptyDir, ensureDir } from "fs-extra";
-import { sep as s } from "path";
+import { copy, emptyDir, ensureDir, readdir } from "fs-extra";
+import * as path from "path";
 import { getAllLocators, getPackageInformation } from "pnpapi";
 
 type Package = {
@@ -9,7 +9,8 @@ type Package = {
 };
 type Packages = Record<string, Record<string, Package>>;
 
-const unpackedPackages = ["fs-extra", "chii"];
+const s = path.sep;
+const unpackedPackages = ["fs-extra", "chii", "supports-color"];
 const junkFiles = [
     ".d.ts",
     ".markdown",
@@ -32,10 +33,10 @@ const junkFiles = [
     ".map",
     ".debug.js",
     ".min.js",
-    "/test/",
-    "/bin/",
-    "/tests/",
-    "/.github/",
+    "test",
+    "bin",
+    "tests",
+    ".github",
 ];
 
 const isProduction = process.env["NODE_ENV"] == "production";
@@ -54,14 +55,14 @@ async function buildBundles() {
     const buildPromise = Promise.all([
         build({
             ...commonOptions,
-            entryPoints: ["src/main/main.ts"],
-            outfile: "dist/_/qqntim.js",
+            entryPoints: [`src${s}main${s}main.ts`],
+            outfile: `dist${s}_${s}qqntim.js`,
             external: ["electron", "./index.js", ...unpackedPackages],
         }),
         build({
             ...commonOptions,
-            entryPoints: ["src/renderer/main.ts"],
-            outfile: "dist/_/qqntim-renderer.js",
+            entryPoints: [`src${s}renderer${s}main.ts`],
+            outfile: `dist${s}_${s}qqntim-renderer.js`,
             external: ["electron", ...unpackedPackages],
         }),
     ]);
@@ -69,9 +70,29 @@ async function buildBundles() {
     return await buildPromise;
 }
 
+async function buildBuiltinPlugins() {
+    const rootDir = `src${s}builtins`;
+    const pluginsDir = await readdir(rootDir);
+    await Promise.all(
+        pluginsDir.map(async (dir) => {
+            const pluginDir = `${rootDir}${s}${dir}`;
+            const distDir = `dist${s}_${s}builtins${s}${dir}`;
+            await ensureDir(pluginDir);
+            await build({
+                ...commonOptions,
+                entryPoints: [`${pluginDir}${s}src${s}main.ts`, `${pluginDir}${s}src${s}renderer.ts`],
+                outdir: distDir,
+                external: ["electron", "@flysoftbeta/qqntim-typings"],
+                format: "cjs",
+            });
+            await copy(`${pluginDir}${s}publish`, `${distDir}`);
+        }),
+    );
+}
+
 async function prepareDistDir() {
     await emptyDir("dist");
-    await ensureDir("dist/_");
+    await ensureDir(`dist${s}_`);
     await copy("publish", "dist");
 }
 
@@ -107,4 +128,4 @@ async function unpackPackage(packages: Packages, rootDir: string, name: string, 
 }
 
 const packages = collectDeps();
-prepareDistDir().then(() => Promise.all([buildBundles(), Promise.all(unpackedPackages.map((unpackedPackage) => unpackPackage(packages, "dist/_", unpackedPackage)))]));
+prepareDistDir().then(() => Promise.all([buildBundles(), buildBuiltinPlugins(), Promise.all(unpackedPackages.map((unpackedPackage) => unpackPackage(packages, `dist${s}_`, unpackedPackage)))]));
