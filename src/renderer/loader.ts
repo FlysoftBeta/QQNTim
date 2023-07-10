@@ -61,8 +61,9 @@ function applyScripts() {
             const mod = require(script);
             if (mod)
                 if (plugin.manifest.manifestVersion == "2.0") {
-                    const entry = new (mod.default as typeof QQNTim.Entry.Renderer)(api);
-                    windowLoadPromise.then(() => entry.onWindowLoaded());
+                    const entry = new ((mod.default || mod) as typeof QQNTim.Entry.Renderer)(api);
+
+                    windowLoadPromise.then(() => entry.onWindowLoaded?.());
                 } else mod(api);
 
             return false;

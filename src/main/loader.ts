@@ -22,7 +22,7 @@ function applyScripts() {
             const mod = require(script);
             if (mod)
                 if (plugin.manifest.manifestVersion == "2.0") {
-                    new (mod.default as typeof QQNTim.Entry.Main)(api);
+                    new ((mod.default || mod) as typeof QQNTim.Entry.Main)(api);
                 } else mod(api);
 
             return false;

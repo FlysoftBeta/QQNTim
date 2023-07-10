@@ -1,5 +1,5 @@
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { configFile, dataDir, pluginDir, pluginPerUserDir } from "../files";
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as fs from "fs-extra";
 
 function toBoolean(item: boolean | undefined, env: string, defaultValue: boolean) {

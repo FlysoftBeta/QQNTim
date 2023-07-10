@@ -81,16 +81,13 @@ async function buildBuiltinPlugins() {
             await ensureDir(pluginDir);
             await build({
                 ...commonOptions,
-                entryPoints: [
-                    `${pluginDir}${s}src${s}main.ts`,
-                    `${pluginDir}${s}src${s}renderer.ts`,
-                ],
+                entryPoints: [`${pluginDir}${s}src${s}main.ts`, `${pluginDir}${s}src${s}renderer.ts`],
                 outdir: distDir,
                 external: ["electron", "@flysoftbeta/qqntim-typings"],
                 format: "cjs",
             });
             await copy(`${pluginDir}${s}publish`, `${distDir}`);
-        })
+        }),
     );
 }
 
@@ -109,12 +106,7 @@ function collectDeps() {
     return packages;
 }
 
-async function unpackPackage(
-    packages: Packages,
-    rootDir: string,
-    name: string,
-    reference?: string
-) {
+async function unpackPackage(packages: Packages, rootDir: string, name: string, reference?: string) {
     const item = packages[name];
     if (!item) return;
     const location = item[reference ? reference : Object.keys(item)[0]];
@@ -137,14 +129,4 @@ async function unpackPackage(
 }
 
 const packages = collectDeps();
-prepareDistDir().then(() =>
-    Promise.all([
-        buildBundles(),
-        buildBuiltinPlugins(),
-        Promise.all(
-            unpackedPackages.map((unpackedPackage) =>
-                unpackPackage(packages, `dist${s}_`, unpackedPackage)
-            )
-        ),
-    ])
-);
+prepareDistDir().then(() => Promise.all([buildBundles(), buildBuiltinPlugins(), Promise.all(unpackedPackages.map((unpackedPackage) => unpackPackage(packages, `dist${s}_`, unpackedPackage)))]));

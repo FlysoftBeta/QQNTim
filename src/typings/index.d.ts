@@ -24,20 +24,55 @@ declare namespace QQNTim {
     namespace Configuration {
         type Configuration = {
             plugins?: {
+                /**
+                 * 插件白名单
+                 * 置为 `undefined` 时禁用白名单
+                 */
                 whitelist?: string[];
+                /**
+                 * 插件黑名单
+                 * 置为 `undefined` 时禁用黑名单
+                 */
                 blacklist?: string[];
             };
+            /**
+             * 显示详细日志输出
+             * @description 开启后，可以在控制台内查看到 IPC 通信、部分 Electron 对象的成员访问信息等。
+             */
             verboseLogging?: boolean;
+            /**
+             * 使用原版 DevTools
+             * @description 使用 Chromium DevTools 而不是 chii DevTools (Windows 版 9.8.5 及以上不可用)。
+             */
             useNativeDevTools?: boolean;
+            /**
+             * 禁用兼容性处理
+             * @description 禁用后，LiteLoader 和 BetterQQNT 可能将不能与 QQNTim 一起使用。
+             */
             disableCompatibilityProcessing?: boolean;
         };
 
         interface Environment {
+            /**
+             * 当前使用的配置
+             */
             config: Required<Configuration>;
             path: {
+                /**
+                 * 数据目录
+                 */
                 dataDir: string;
+                /**
+                 * 配置文件
+                 */
                 configFile: string;
+                /**
+                 * 插件目录
+                 */
                 pluginDir: string;
+                /**
+                 * 给每个 QQ 号单独的插件目录
+                 */
                 pluginPerUserDir: string;
             };
         }
@@ -57,7 +92,7 @@ declare namespace QQNTim {
              * @param qqntim QQNTim API
              */
             constructor(qqntim: API.Renderer.API);
-            onWindowLoaded(): void;
+            onWindowLoaded?(): void;
         }
     }
 
@@ -75,12 +110,33 @@ declare namespace QQNTim {
         }
         type Injection = InjectionMain | InjectionRenderer;
         interface Plugin {
+            /**
+             * 是否已被加载
+             */
             loaded: boolean;
+            /**
+             * 是否满足插件加载条件
+             */
             meetRequirements: boolean;
+            /**
+             * 是否已被启用
+             */
             enabled: boolean;
+            /**
+             * 唯一 ID
+             */
             id: string;
+            /**
+             * 插件文件所在的目录
+             */
             dir: string;
+            /**
+             * 脚本和样式注入
+             */
             injections: Injection[];
+            /**
+             * 插件清单内容
+             */
             manifest: Manifest.Manifest;
         }
         type AllUsersPlugins = Record<string, UserPlugins>;
@@ -91,8 +147,17 @@ declare namespace QQNTim {
     namespace API {
         namespace Main {
             interface API {
+                /**
+                 * 环境信息
+                 */
                 env: Configuration.Environment;
+                /**
+                 * QQNTim 版本号
+                 */
                 version: string;
+                /**
+                 * QQ 版本号
+                 */
                 ntVersion: string;
                 interrupt: {
                     /**

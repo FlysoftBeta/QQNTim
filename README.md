@@ -26,7 +26,7 @@ QQNTim 是一个用于管理插件的程序，其功能需要通过[安装插件
 
 ### Windows
 
-安装前请确保电脑上已经安装了 QQNT (Windows 版需要有内测资格)。
+安装前请确保电脑上已经安装了 QQNT。
 请右键使用 PowerShell 运行 `install.ps1` 安装插件管理器，`uninstall.ps1` 卸载插件管理器。
 
 **注意：** 如果遇到脚本无法打开的情况，请在运行 (Win+R) 中输入以下内容并点击“确定”以允许 PowerShell 运行脚本：
@@ -55,21 +55,18 @@ sudo ./uninstall.sh
 
 ### 快捷键
 
-在任意 QQ 的窗口内按 F5 刷新当前页面，F12 打开开发者工具。
+在窗口内按 F5 刷新当前页面，F12 打开开发者工具。
 
 ### 插件
 
-目前，你可以到 [Plugins Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy) 下载插件。
+请到 [Plugins Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy) 下载插件，如果想开发自己的插件，请查看[开发指南](./DEVELOPMENT.md)。
 
 将下载的插件**解压到插件文件夹下并重启 QQ**，插件即可生效。
 
-#### Windows
+在 Windows 下，默认插件文件夹位于 `%UserProfile%\.qqntim`。
+在 Linux 下，默认插件文件夹位于 `$HOME/.local/share/QQNTim`。
 
-插件文件夹位于 `用户文件夹\.qqntim\plugins`
-
-#### Linux
-
-插件文件夹位于 `用户文件夹/.local/share/QQNTim/plugins`
+通过设置 `QQNTIM_HOME` 可以修改数据文件夹的位置。
 
 ### 配置文件
 
@@ -124,67 +121,7 @@ yarn build
 
 ### 插件信息
 
-创建一个 `qqntim.json` 文件，里面应包含插件的基本信息。一个完整的 `qqntim.json` 示例如下：
-
-```json
-{
-    // 此插件的唯一 ID，不能与其他插件重复
-    "id": "my-plugin",
-    // 显示名称
-    "name": "我的插件",
-    // 作者
-    "author": "我",
-    // (可选) 插件加载条件 (需要满足全部条件才会加载)
-    "requirements": {
-        // (可选) 限定插件支持的操作系统版本 (满足其中一个条件即可)
-        "os": [
-            {
-                // 插件支持的操作系统平台，可以是：
-                // win32 (Windows)，linux (Linux)，darwin (macOS)
-                "platform": "win32",
-                // ----------------------------------
-                // 可以使用多个项目来指定一个区间，例如：
-                // {
-                //     "platform": "win32",
-                //     "lte": "10.0.22621",
-                //     "gte": "6.1.0"
-                // }
-                // 代表满足 Windows 7 <= 当前系统版本 <= Windows 11 22H2
-                // (6.1 <= 当前系统版本 <= 10.0.22621) 时加载插件
-                // 注：版本号必须为 x.y.z 的形式
-                "lte": "x", // (可选) 当前版本小于等于 x
-                "lt": "x", // (可选) 当前版本小于 x
-                "gte": "x", // (可选) 当前版本大于等于 x
-                "gt": "x", // (可选) 当前版本大于 x
-                "eq": "x" // (可选) 当前系统版本等于 x
-                // ----------------------------------
-            }
-        ]
-    },
-    "injections": [
-        // 为 QQNT 注入脚本
-        // 为主进程注入脚本
-        {
-            "type": "main",
-            // (可选) 待注入的脚本文件
-            "script": "main.js"
-        },
-        // 为渲染进程注入脚本或 CSS 样式表
-        {
-            "type": "renderer",
-            // (可选) 只有网页 URL 匹配此正则表达式时此注入才生效
-            "pattern": ".*",
-            // (可选) 只有在指定窗口此注入才生效，可以是：
-            // login (登录窗口)，main (主窗口)，chat (独立聊天窗口)，settings (设置窗口)，others (其他)
-            "page": ["main", "chat", "login"],
-            // (可选) 待注入的脚本文件
-            "script": "main.js",
-            // (可选) 待注入的样式文件
-            "stylesheet": "style.css"
-        }
-    ]
-}
-```
+创建一个 `qqntim.json` 文件，里面应包含插件的基本信息。
 
 ### 脚本
 

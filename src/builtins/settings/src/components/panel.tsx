@@ -1,12 +1,18 @@
-import { shell } from "electron";
 import { cl } from "../consts";
 import { Tab } from "./nav";
 import type { QQNTim } from "@flysoftbeta/qqntim-typings";
+import { shell } from "electron";
 import type { ReactNode } from "react";
 const React = window.React;
 const { Fragment, useEffect, useState } = React;
 
-export function Panel({ qqntim, currentTab }: { qqntim: QQNTim.API.Renderer.API; currentTab: Tab }) {
+export function Panel({
+    qqntim,
+    currentTab,
+}: {
+    qqntim: QQNTim.API.Renderer.API;
+    currentTab: Tab;
+}) {
     const fs = qqntim.modules.fs;
 
     const [config, setConfig] = useState<Required<QQNTim.Configuration.Configuration>>(qqntim.env.config);
@@ -82,7 +88,7 @@ function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
                         [
                             [
                                 "显示详细日志输出",
-                                "开启后，可以在控制台内查看到 IPC 通信、部分 Electron 对象的成员访问信息等",
+                                "开启后，可以在控制台内查看到 IPC 通信、部分 Electron 对象的成员访问信息等。",
                                 config.verboseLogging,
                                 (state: boolean) =>
                                     setConfig((prev) => {
@@ -104,7 +110,10 @@ function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
                                 config.disableCompatibilityProcessing,
                                 (state) =>
                                     setConfig((prev) => {
-                                        return { ...prev, disableCompatibilityProcessing: state };
+                                        return {
+                                            ...prev,
+                                            disableCompatibilityProcessing: state,
+                                        };
                                     }),
                             ],
                         ] as [string, string, boolean, (state: boolean) => void][]
@@ -196,7 +205,17 @@ function SettingsBox({ children }: { children: ReactNode }) {
     return <div className={cl.panel.box.c}>{children}</div>;
 }
 
-function SettingsBoxItem({ title, description, children, isLast = false }: { title: string; description?: string[]; children: ReactNode; isLast?: boolean }) {
+function SettingsBoxItem({
+    title,
+    description,
+    children,
+    isLast = false,
+}: {
+    title: string;
+    description?: string[];
+    children: ReactNode;
+    isLast?: boolean;
+}) {
     return (
         <label className={`${cl.panel.box.item.c}${isLast ? ` ${cl.panel.box.item.last.c}` : ""}`}>
             <span>
@@ -220,7 +239,13 @@ function SettingsBoxItem({ title, description, children, isLast = false }: { tit
     );
 }
 
-function Switch({ checked, onToggle }: { checked: boolean; onToggle: (checked: boolean) => void }) {
+function Switch({
+    checked,
+    onToggle,
+}: {
+    checked: boolean;
+    onToggle: (checked: boolean) => void;
+}) {
     return (
         <div className={`q-switch${checked ? " is-active" : ""}`} onClick={() => onToggle(!checked)}>
             <input type="checkbox" checked={checked} onChange={(event) => onToggle(event.target.checked)} />
@@ -229,7 +254,17 @@ function Switch({ checked, onToggle }: { checked: boolean; onToggle: (checked: b
     );
 }
 
-function Button({ onClick, primary, small, children }: { onClick: () => void; primary: boolean; small: boolean; children: ReactNode }) {
+function Button({
+    onClick,
+    primary,
+    small,
+    children,
+}: {
+    onClick: () => void;
+    primary: boolean;
+    small: boolean;
+    children: ReactNode;
+}) {
     return (
         <button className={`q-button q-button--default ${primary ? "q-button--primary" : "q-button--secondary"}${small ? " q-button--small" : ""}`} onClick={() => onClick()}>
             <span className="q-button__slot-warp">{children}</span>
