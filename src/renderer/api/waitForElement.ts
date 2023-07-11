@@ -1,6 +1,8 @@
+import { windowLoadPromise } from "./windowLoadPromise";
+
 let waitForElementSelectors: [string, (element: Element) => void][] = [];
 
-window.addEventListener("load", () =>
+windowLoadPromise.then(() =>
     new MutationObserver(() => refreshStatus()).observe(document.documentElement, {
         childList: true,
         subtree: true,
