@@ -1,12 +1,15 @@
-import { shell } from "electron";
-import { cl } from "../consts";
+import { cl } from "./consts";
+import { installFolderPluginsForAccount, installZipPluginsForAccount, uninstallPlugin } from "./installer";
 import { Tab } from "./nav";
 import type { QQNTim } from "@flysoftbeta/qqntim-typings";
+import { shell } from "electron";
 import type { ReactNode } from "react";
+import { enablePlugin, getPluginDescription, isInBlacklist, isInWhitelist, isPluginsExistent } from "./utils";
+
 const React = window.React;
 const { Fragment, useEffect, useState } = React;
 
-export function Panel({ qqntim, currentTab }: { qqntim: QQNTim.API.Renderer.API; currentTab: Tab }) {
+export function Panel({ qqntim, currentTab, account }: { qqntim: QQNTim.API.Renderer.API; currentTab: Tab; account: QQNTim.API.Renderer.NT.LoginAccount }) {
     const fs = qqntim.modules.fs;
 
     const [config, setConfig] = useState<Required<QQNTim.Configuration.Configuration>>(qqntim.env.config);
@@ -35,9 +38,16 @@ export function Panel({ qqntim, currentTab }: { qqntim: QQNTim.API.Renderer.API;
         });
     }, [currentTab]);
 
+    const panelProps: PanelsProps = {
+        qqntim,
+        account,
+        config,
+        setConfig,
+    };
+
     return (
         <>
-            {currentTab.type == "settings" ? <SettingsPanel qqntim={qqntim} config={config} setConfig={setConfig} /> : currentTab.type == "plugins-manager" ? <PluginsManagerPanel qqntim={qqntim} config={config} setConfig={setConfig} /> : null}
+            {currentTab.type == "settings" ? <SettingsPanel {...panelProps} /> : currentTab.type == "plugins-manager" ? <PluginsManagerPanel {...panelProps} /> : null}
             <div className={cl.panel.save.c}>
                 <Button onClick={() => resetConfigAndRestart()} small={false} primary={false}>
                     重置所有设置并重启
@@ -52,6 +62,7 @@ export function Panel({ qqntim, currentTab }: { qqntim: QQNTim.API.Renderer.API;
 
 interface PanelsProps {
     qqntim: QQNTim.API.Renderer.API;
+    account: QQNTim.API.Renderer.NT.LoginAccount;
     config: Required<QQNTim.Configuration.Configuration>;
     setConfig: React.Dispatch<React.SetStateAction<Required<QQNTim.Configuration.Configuration>>>;
 }
@@ -82,7 +93,7 @@ function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
                         [
                             [
                                 "显示详细日志输出",
-                                "开启后，可以在控制台内查看到 IPC 通信、部分 Electron 对象的成员访问信息等",
+                                "开启后，可以在控制台内查看到 IPC 通信、部分 Electron 对象的成员访问信息等。",
                                 config.verboseLogging,
                                 (state: boolean) =>
                                     setConfig((prev) => {
@@ -109,7 +120,8 @@ function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
                             ],
                         ] as [string, string, boolean, (state: boolean) => void][]
                     ).map(([title, description, value, setValue], idx, array) => (
-                        <SettingsBoxItem title={title} description={[description]} isLast={idx == array.length - 1}>
+                        // rome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                        <SettingsBoxItem key={idx} title={title} description={[description]} isLast={idx == array.length - 1}>
                             <Switch checked={value} onToggle={setValue} />
                         </SettingsBoxItem>
                     ))}
@@ -119,74 +131,70 @@ function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
     );
 }
 
-function addItemToArray<T>(array: T[], item: T) {
-    return [...array, item];
-}
-function removeItemFromArray<T>(array: T[], item: T) {
-    return array.filter((value) => value != item);
-}
+function PluginsManagerPanel({ qqntim, account, config, setConfig }: PanelsProps) {
+    const [existentPlugins, setExistentPlugins] = useState<string[]>(isPluginsExistent(qqntim));
 
-function PluginsManagerPanel({ qqntim, config, setConfig }: PanelsProps) {
-    const isInWhitelist = (id: string, whitelist?: string[]) => !!(whitelist && !whitelist.includes(id));
-    const isInBlacklist = (id: string, blacklist?: string[]) => !!blacklist?.includes(id);
-    const enablePlugin = (id: string, enable: boolean, inWhitelist: boolean, inBlacklist: boolean) =>
-        setConfig((prev) => {
-            let _config = prev;
-            if (_config.plugins.whitelist && enable != inWhitelist)
-                _config = {
-                    ..._config,
-                    plugins: {
-                        ..._config.plugins,
-                        whitelist: (enable ? addItemToArray : removeItemFromArray)(_config.plugins.whitelist!, id),
-                    },
-                };
-            else if (!_config.plugins.blacklist) _config.plugins.blacklist = [];
-            if (_config.plugins.blacklist && enable == inBlacklist)
-                _config = {
-                    ..._config,
-                    plugins: {
-                        ..._config.plugins,
-                        blacklist: (!enable ? addItemToArray : removeItemFromArray)(_config.plugins.blacklist!, id),
-                    },
-                };
-            return _config;
+    return Array.from(new Set([...Object.keys(qqntim.allPlugins), account.uin]))
+        .sort()
+        .map((uin: string) => {
+            const plugins = qqntim.allPlugins[uin] || {};
+            const requiresRestart = uin == account.uin || uin == "";
+            const isEmpty = Object.keys(plugins).length == 0;
+            if (uin != account.uin && isEmpty) return;
+            return (
+                <Section
+                    key={uin}
+                    title={uin == "" ? "对所有账号生效的插件" : `仅对账号 ${uin} 生效的插件`}
+                    buttons={
+                        <>
+                            <Button onClick={() => installZipPluginsForAccount(qqntim, uin, requiresRestart)} primary={false} small={true}>
+                                安装插件压缩包 (.zip)
+                            </Button>
+                            <Button onClick={() => installFolderPluginsForAccount(qqntim, uin, requiresRestart)} primary={false} small={true}>
+                                安装插件文件夹
+                            </Button>
+                        </>
+                    }
+                >
+                    <SettingsBox>
+                        {!isEmpty ? (
+                            Object.keys(plugins)
+                                .sort()
+                                .map((id, idx, array) => {
+                                    const plugin = plugins[id];
+                                    const inWhitelist = isInWhitelist(id, config.plugins.whitelist);
+                                    const inBlacklist = isInBlacklist(id, config.plugins.blacklist);
+                                    const description = getPluginDescription(plugin);
+
+                                    if (!existentPlugins.includes(id)) return;
+                                    return (
+                                        <SettingsBoxItem key={id} title={plugin.manifest.name} description={description} isLast={idx == array.length - 1}>
+                                            <Switch checked={!!(inWhitelist || (!inWhitelist && !inBlacklist))} onToggle={(state) => enablePlugin(setConfig, id, state, inWhitelist, inBlacklist)} />
+                                            <Button onClick={() => shell.openPath(plugin.dir)} small={true} primary={false}>
+                                                文件夹
+                                            </Button>
+                                            <Button onClick={() => uninstallPlugin(qqntim, requiresRestart, plugin.dir).then((success) => success && setExistentPlugins((prev) => prev.filter((pluginId) => pluginId != id)))} small={true} primary={false}>
+                                                删除
+                                            </Button>
+                                        </SettingsBoxItem>
+                                    );
+                                })
+                        ) : (
+                            <SettingsBoxItem title="此处还没有任何插件 :(" isLast={true} />
+                        )}
+                    </SettingsBox>
+                </Section>
+            );
         });
-
-    return (
-        <>
-            {Object.keys(qqntim.allPlugins).map((uin: string) => {
-                const plugins = qqntim.allPlugins[uin];
-                return (
-                    <Section key={uin} title={uin == "" ? "对所有账号生效的插件" : `仅对账号 ${uin} 生效的插件`}>
-                        <SettingsBox>
-                            {Object.keys(plugins).map((id: string) => {
-                                const plugin = plugins[id];
-                                const inWhitelist = isInWhitelist(id, config.plugins.whitelist);
-                                const inBlacklist = isInBlacklist(id, config.plugins.blacklist);
-                                const warnText = [!plugin.meetRequirements && "当前环境不满足需求，未加载", plugin.manifest.manifestVersion != "2.0" && "插件使用了过时的插件标准，请提醒作者更新"].filter(Boolean).join("; ");
-                                const description = plugin.manifest.description || "该插件没有提供说明。";
-                                console.log(inWhitelist, inBlacklist);
-                                return (
-                                    <SettingsBoxItem key={id} title={plugin.manifest.name} description={[warnText && `警告: ${warnText}。`, description].filter(Boolean)}>
-                                        <Switch checked={!!(inWhitelist || (!inWhitelist && !inBlacklist))} onToggle={(state) => enablePlugin(id, state, inWhitelist, inBlacklist)} />
-                                        <Button onClick={() => shell.openPath(plugin.dir)} small={true} primary={false}>
-                                            文件夹
-                                        </Button>
-                                    </SettingsBoxItem>
-                                );
-                            })}
-                        </SettingsBox>
-                    </Section>
-                );
-            })}
-        </>
-    );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, children, buttons }: { title: string; children: ReactNode; buttons?: ReactNode }) {
     return (
         <div className={cl.panel.section.c}>
-            <h2 className={cl.panel.section.title.c}>{title}</h2>
+            <span className={cl.panel.section.header.c}>
+                <h2 className={cl.panel.section.header.title.c}>{title}</h2>
+                {!!buttons && <div className={cl.panel.section.header.buttons.c}>{buttons}</div>}
+            </span>
             <div className={cl.panel.section.content.c}>{children}</div>
         </div>
     );
@@ -196,7 +204,7 @@ function SettingsBox({ children }: { children: ReactNode }) {
     return <div className={cl.panel.box.c}>{children}</div>;
 }
 
-function SettingsBoxItem({ title, description, children, isLast = false }: { title: string; description?: string[]; children: ReactNode; isLast?: boolean }) {
+function SettingsBoxItem({ title, description, children, isLast = false }: { title: string; description?: string[]; children?: ReactNode; isLast?: boolean }) {
     return (
         <label className={`${cl.panel.box.item.c}${isLast ? ` ${cl.panel.box.item.last.c}` : ""}`}>
             <span>

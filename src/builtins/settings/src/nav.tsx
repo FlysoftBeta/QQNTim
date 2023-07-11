@@ -1,5 +1,6 @@
-import { cl } from "../consts";
+import { cl } from "./consts";
 import type { QQNTim } from "@flysoftbeta/qqntim-typings";
+
 const React = window.React;
 const { Fragment, useEffect, useState } = React;
 

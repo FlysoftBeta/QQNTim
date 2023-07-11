@@ -1,6 +1,7 @@
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { ipcRenderer } from "electron";
 
-class BrowserWindowAPI {
+class BrowserWindowAPI implements QQNTim.API.Renderer.BrowserWindowAPI {
     setSize(width: number, height: number) {
         ipcRenderer.sendSync(
             "___!browserwindow_api",

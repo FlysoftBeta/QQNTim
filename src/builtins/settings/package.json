@@ -3,6 +3,10 @@
     "private": true,
     "devDependencies": {
         "@flysoftbeta/qqntim-typings": "workspace:*",
-        "@types/react": "^18.2.14"
+        "@types/react": "^18.2.14",
+        "@types/unzipper": "^0.10.6"
+    },
+    "dependencies": {
+        "unzipper": "^0.10.14"
     }
 }

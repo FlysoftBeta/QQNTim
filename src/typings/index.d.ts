@@ -4,11 +4,12 @@ import TypedEmitter from "typed-emitter";
 declare namespace QQNTim {
     namespace IPC {
         type Direction = "in" | "out";
+        type Type = "request" | "response";
         type Response = { errMsg: string; result: number };
         type Request = any[];
         type Args<T> = [{ type: string; eventName: string; callbackId: string }, T];
         interface InterruptIPCOptions {
-            type?: "request" | "response";
+            type?: Type;
             eventName?: string;
             cmdName?: string;
             direction?: Direction | undefined;
@@ -138,12 +139,14 @@ declare namespace QQNTim {
                 nt: NT.NT;
                 browserWindow: BrowserWindowAPI;
                 app: AppAPI;
+                dialog: DialogAPI;
                 modules: {
                     fs: typeof import("fs-extra");
                 };
                 utils: {
                     waitForElement<T extends Element>(selector: string): Promise<T>;
                     ntCall(eventName: string, cmd: string, args: any[]): Promise<IPC.Response>;
+                    ntInterrupt(callback: QQNTim.IPC.InterruptFunction, eventName: string, cmdName: string, direction?: QQNTim.IPC.Direction, type?: QQNTim.IPC.Type): void;
                     getVueId(element: HTMLElement): string | undefined;
                 };
                 windowLoadPromise: WindowLoadPromise;
@@ -221,7 +224,7 @@ declare namespace QQNTim {
                 };
                 type EventEmitter = TypedEmitter<Events>;
                 interface NT extends EventEmitter {
-                    getAccountInfo(): Promise<LoginAccount>;
+                    getAccountInfo(): Promise<LoginAccount | undefined>;
                     revokeMessage(peer: Peer, message: string): Promise<void>;
                     sendMessage(peer: Peer, elements: MessageElement[]): Promise<string>;
                     getFriendsList(forced: boolean): Promise<Friend[]>;
@@ -238,6 +241,13 @@ declare namespace QQNTim {
                 relaunch(): void;
                 quit(): void;
                 exit(): void;
+            }
+            interface DialogAPI {
+                confirm(message?: string): Promise<boolean>;
+                alert(message?: string): Promise<void>;
+                messageBox(options: Electron.MessageBoxOptions): Promise<Electron.MessageBoxReturnValue>;
+                openDialog(options: Electron.OpenDialogOptions): Promise<Electron.OpenDialogReturnValue>;
+                saveDialog(options: Electron.SaveDialogOptions): Promise<Electron.SaveDialogReturnValue>;
             }
         }
     }

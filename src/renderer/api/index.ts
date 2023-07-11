@@ -4,9 +4,11 @@ import { addInterruptIpc } from "../../ipc";
 import { getCurrentNTVersion } from "../../ntVersion";
 import { appApi } from "./app";
 import { browserWindowApi } from "./browserWindow";
+import { dialogApi } from "./dialog";
 import { getVueId } from "./getVueId";
 import { nt } from "./nt";
 import { ntCall } from "./nt/call";
+import { ntInterrupt } from "./nt/interrupt";
 import { startWatchingElement, waitForElement } from "./waitForElement";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as fs from "fs-extra";
@@ -25,6 +27,7 @@ export function getAPI(windowLoadPromise: Promise<void>) {
         nt: nt,
         browserWindow: browserWindowApi,
         app: appApi,
+        dialog: dialogApi,
         modules: {
             fs: fs,
         },
@@ -32,6 +35,7 @@ export function getAPI(windowLoadPromise: Promise<void>) {
             waitForElement: waitForElement,
             getVueId: getVueId,
             ntCall: ntCall,
+            ntInterrupt: ntInterrupt,
         },
         windowLoadPromise: windowLoadPromise,
     };

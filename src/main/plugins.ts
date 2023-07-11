@@ -1,5 +1,5 @@
-import { env } from "../globalVar";
 import { pluginDir, pluginPerUserDir } from "../files";
+import { env } from "../globalVar";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as fs from "fs-extra";
 import * as os from "os";

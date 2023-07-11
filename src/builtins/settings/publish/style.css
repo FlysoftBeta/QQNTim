@@ -13,6 +13,10 @@
     z-index: 10;
 }
 
+.q-button {
+    margin: 0 !important;
+}
+
 .qqntim-settings-panel-open
     .setting-main
     .setting-main__content:not(.qqntim-settings-panel),
@@ -26,9 +30,23 @@ body:not(.qqntim-settings-panel-open)
     padding: 20px 16px 70px !important;
 }
 
-.qqntim-settings-panel-section-title {
+.qqntim-settings-panel-section-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     padding: 8px;
+}
+
+.qqntim-settings-panel-section-header-title {
     font-size: min(var(--font_size_2), 18px) !important;
+}
+
+.qqntim-settings-panel-section-header-buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
 }
 
 .qqntim-settings-panel-section-content {
