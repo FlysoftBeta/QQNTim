@@ -34,13 +34,14 @@ export function applyPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin = ""
 
     window.addEventListener("load", () => applyStylesheets());
 
-    ipcRenderer.send(
-        "___!apply_plugins",
-        {
-            eventName: "QQNTIM_APPLY_PLUGINS",
-        },
-        uin,
-    );
+    if (uin != "")
+        ipcRenderer.send(
+            "___!apply_plugins",
+            {
+                eventName: "QQNTIM_APPLY_PLUGINS",
+            },
+            uin,
+        );
 
     return true;
 }

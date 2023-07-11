@@ -1,25 +1,13 @@
 import { ntCall } from "./call";
 import { ntInterrupt } from "./interrupt";
 import { exists } from "fs-extra";
+import { NTWatcher } from "./watcher";
 
 class NTMedia {
-    private pendingMediaDownloads: Record<string, Function> = {};
+    private mediaDownloadWatcher: NTWatcher<string>;
     private registerEventsPromise: Promise<void>;
     public init() {
-        ntInterrupt(
-            (args) => {
-                const id = args[1][0].payload?.notifyInfo?.msgElementId;
-                if (this.pendingMediaDownloads[id]) {
-                    this.pendingMediaDownloads[id](args);
-                    delete this.pendingMediaDownloads[id];
-                    return false;
-                }
-            },
-            "ns-ntApi",
-            "nodeIKernelMsgListener/onRichMediaDownloadComplete",
-            "in",
-            "request",
-        );
+        this.mediaDownloadWatcher = new NTWatcher((args) => args[1][0].payload?.notifyInfo?.msgElementId, "ns-ntApi", "nodeIKernelMsgListener/onRichMediaDownloadComplete", "in", "request");
         this.registerEventsPromise = ntCall("ns-ntApi", "nodeIKernelMsgListener/onRichMediaDownloadComplete", [], true);
     }
     public async prepareImageElement(file: string) {
@@ -73,9 +61,7 @@ class NTMedia {
             },
             undefined,
         ]);
-        return await new Promise<void>((resolve) => {
-            this.pendingMediaDownloads[elementId] = () => resolve();
-        });
+        return await this.mediaDownloadWatcher.wait(elementId).then(() => undefined);
     }
 }
 

@@ -5,35 +5,19 @@ import { ntInterrupt } from "./interrupt";
 import { ntMedia } from "./media";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { EventEmitter } from "events";
+import { NTWatcher } from "./watcher";
 
 const NTEventEmitter = EventEmitter as new () => QQNTim.API.Renderer.NT.EventEmitter;
 class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
-    private pendingSentMessages: Record<string, Function> = {};
+    private sentMessageWatcher: NTWatcher<string>;
     private friendsList: QQNTim.API.Renderer.NT.User[] = [];
     private groupsList: QQNTim.API.Renderer.NT.Group[] = [];
 
     public init() {
-        this.listenSentMessages();
         this.listenNewMessages();
         this.listenContactListChange();
         ntMedia.init();
-    }
-
-    private listenSentMessages() {
-        ntInterrupt(
-            (args) => {
-                const id = args?.[1]?.[0]?.payload?.msgRecord?.peerUid;
-                if (this.pendingSentMessages[id]) {
-                    this.pendingSentMessages[id](args);
-                    delete this.pendingSentMessages[id];
-                    return false;
-                }
-            },
-            "ns-ntApi",
-            "nodeIKernelMsgListener/onAddSendMsg",
-            "in",
-            "request",
-        );
+        this.sentMessageWatcher = new NTWatcher((args) => args?.[1]?.[0]?.payload?.msgRecord?.peerUid, "ns-ntApi", "nodeIKernelMsgListener/onAddSendMsg", "in", "request");
     }
 
     private listenNewMessages() {
@@ -106,11 +90,7 @@ class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
             },
             null,
         ]);
-        return await new Promise<string>((resolve) => {
-            this.pendingSentMessages[peer.uid] = (args: QQNTim.IPC.Args<any>) => {
-                resolve(args?.[1]?.[0]?.payload?.msgRecord?.msgId);
-            };
-        });
+        return await this.sentMessageWatcher.wait(peer.uid).then((args) => args?.[1]?.[0]?.payload?.msgRecord?.msgId);
     }
 
     async getFriendsList(forced: boolean) {

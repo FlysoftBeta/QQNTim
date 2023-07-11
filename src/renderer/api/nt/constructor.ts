@@ -67,7 +67,7 @@ export function constructUser(user: any): QQNTim.API.Renderer.NT.User {
         avatarUrl: user.avatarUrl,
         nickName: user.nick,
         bio: user.longNick,
-        sex: user.sex == 1 ? "male" : user.sex == 2 ? "female" : user.sex == 255 || user.sex == 0 ? "unset" : "others",
+        sex: { 1: "male", 2: "female", 255: "unset", 0: "unset" }[user.sex] || "others",
         raw: user,
     };
 }
@@ -76,7 +76,7 @@ export function constructGroup(group: any): QQNTim.API.Renderer.NT.Group {
         uid: group.groupCode,
         avatarUrl: group.avatarUrl,
         name: group.groupName,
-        role: group.memberRole == 4 ? "master" : group.memberRole == 3 ? "moderator" : group.memberRole == 2 ? "member" : "others",
+        role: { 4: "master", 3: "moderator", 2: "member" }[group.memberRole] || "others",
         maxMembers: group.maxMember,
         members: group.memberCount,
         raw: group,
