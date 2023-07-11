@@ -58,7 +58,7 @@ declare namespace QQNTim {
              * @param qqntim QQNTim API
              */
             constructor(qqntim: API.Renderer.API);
-            onWindowLoaded(): void;
+            onWindowLoaded?(): void;
         }
     }
 
@@ -193,7 +193,7 @@ declare namespace QQNTim {
                     uid: string;
                     name?: string;
                 }
-                interface Friend {
+                interface User {
                     uid: string;
                     uin: string;
                     qid: string;
@@ -219,7 +219,7 @@ declare namespace QQNTim {
 
                 type Events = {
                     "new-messages": (messages: Message[]) => void;
-                    "friends-list-updated": (list: Friend[]) => void;
+                    "friends-list-updated": (list: User[]) => void;
                     "groups-list-updated": (list: Group[]) => void;
                 };
                 type EventEmitter = TypedEmitter<Events>;
@@ -227,7 +227,7 @@ declare namespace QQNTim {
                     getAccountInfo(): Promise<LoginAccount | undefined>;
                     revokeMessage(peer: Peer, message: string): Promise<void>;
                     sendMessage(peer: Peer, elements: MessageElement[]): Promise<string>;
-                    getFriendsList(forced: boolean): Promise<Friend[]>;
+                    getFriendsList(forced: boolean): Promise<User[]>;
                     getGroupsList(forced: boolean): Promise<Group[]>;
                     getPreviousMessages(peer: Peer, count?: number, startMsgId?: string): Promise<Message[]>;
                 }

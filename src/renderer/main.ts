@@ -21,6 +21,8 @@ if (enabled) {
     watchIpc();
     hookVue3();
     attachDebugger(id, debuggerOrigin);
+    nt.init();
+
     (window as any).React = React;
     (window as any).ReactDOMClient = ReactDOMClient;
 
@@ -32,13 +34,6 @@ if (enabled) {
             if (!account) return;
             const uin = account.uin;
             applyPlugins(plugins, uin);
-            ipcRenderer.send(
-                "___!apply_plugins",
-                {
-                    eventName: "QQNTIM_APPLY_PLUGINS",
-                },
-                uin,
-            );
         });
         console.log("[!Main] QQNTim 加载成功");
     }, 1);

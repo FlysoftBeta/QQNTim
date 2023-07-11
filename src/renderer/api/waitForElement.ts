@@ -1,11 +1,11 @@
 let waitForElementSelectors: [string, (element: Element) => void][] = [];
 
-export function startWatchingElement() {
+window.addEventListener("load", () =>
     new MutationObserver(() => refreshStatus()).observe(document.documentElement, {
         childList: true,
         subtree: true,
-    });
-}
+    }),
+);
 
 export function refreshStatus() {
     waitForElementSelectors = waitForElementSelectors.filter(([selector, callback]) => {

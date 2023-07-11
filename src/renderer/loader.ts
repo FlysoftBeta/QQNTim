@@ -1,10 +1,9 @@
 import { loadPlugins } from "../loader";
-import { getAPI } from "./api";
+import { api } from "./api";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
+import { ipcRenderer } from "electron";
 import * as fs from "fs-extra";
 
-const windowLoadPromise = new Promise<void>((resolve) => window.addEventListener("load", () => resolve()));
-const api = getAPI(windowLoadPromise);
 let scripts: [QQNTim.Plugin.Plugin, string][] = [];
 const stylesheets: [QQNTim.Plugin.Plugin, string][] = [];
 
@@ -33,7 +32,15 @@ export function applyPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin = ""
     loadPlugins(allPlugins, uin, (injection) => shouldInject(injection, page), scripts, stylesheets);
     applyScripts();
 
-    windowLoadPromise.then(() => applyStylesheets());
+    window.addEventListener("load", () => applyStylesheets());
+
+    ipcRenderer.send(
+        "___!apply_plugins",
+        {
+            eventName: "QQNTIM_APPLY_PLUGINS",
+        },
+        uin,
+    );
 
     return true;
 }
@@ -46,12 +53,7 @@ function applyStylesheets() {
 
     element = document.createElement("style");
     element.id = "qqntim_injected_styles";
-    element.innerHTML = stylesheets
-        .map(
-            ([plugin, stylesheet]) => `/* ${plugin.manifest.id.replaceAll("/", "-")} - ${stylesheet.replaceAll("/", "-")} */
-${fs.readFileSync(stylesheet).toString()}`,
-        )
-        .join("\n");
+    element.innerHTML = stylesheets.map(([plugin, stylesheet]) => `/* ${plugin.manifest.id.replaceAll("/", "-")} - ${stylesheet.replaceAll("/", "-")} */\n${fs.readFileSync(stylesheet).toString()}`).join("\n");
     document.body.appendChild(element);
 }
 
@@ -62,9 +64,8 @@ function applyScripts() {
             if (mod)
                 if (plugin.manifest.manifestVersion == "2.0") {
                     const entry = new (mod.default as typeof QQNTim.Entry.Renderer)(api);
-                    windowLoadPromise.then(() => entry.onWindowLoaded());
+                    window.addEventListener("load", () => entry.onWindowLoaded?.());
                 } else mod(api);
-
             return false;
         } catch (reason) {
             console.error(`[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者 (${plugin.manifest.author}) 解决`);
