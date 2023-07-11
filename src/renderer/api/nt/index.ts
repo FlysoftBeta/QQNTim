@@ -1,10 +1,10 @@
 import { ntCall } from "./call";
 import { constructMessage } from "./constructor";
 import { destructFaceElement, destructImageElement, destructPeer, destructRawElement, destructTextElement } from "./destructor";
+import { ntInterrupt } from "./interrupt";
 import { prepareImageElement } from "./media";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { EventEmitter } from "events";
-import { ntInterrupt } from "./interrupt";
 
 const NTEventEmitter = EventEmitter as new () => QQNTim.API.Renderer.NT.EventEmitter;
 class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
