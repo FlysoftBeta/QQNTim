@@ -1,10 +1,10 @@
 import { cl } from "./consts";
 import { installFolderPluginsForAccount, installZipPluginsForAccount, uninstallPlugin } from "./installer";
 import { Tab } from "./nav";
+import { enablePlugin, getPluginDescription, isInBlacklist, isInWhitelist, isPluginsExistent } from "./utils";
 import type { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { shell } from "electron";
 import type { ReactNode } from "react";
-import { enablePlugin, getPluginDescription, isInBlacklist, isInWhitelist, isPluginsExistent } from "./utils";
 
 const React = window.React;
 const { Fragment, useEffect, useState } = React;
