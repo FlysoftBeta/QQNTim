@@ -1,4 +1,5 @@
 {
+    "manifestVersion": "2.0",
     "id": "example-nt-api",
     "name": "示例插件：NT API",
     "author": "Flysoft",
