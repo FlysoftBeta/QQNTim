@@ -10,6 +10,7 @@ import { NTWatcher } from "./watcher";
 const NTEventEmitter = EventEmitter as new () => QQNTim.API.Renderer.NT.EventEmitter;
 class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
     private sentMessageWatcher: NTWatcher<string>;
+    private profileChangeWatcher: NTWatcher<string>;
     private friendsList: QQNTim.API.Renderer.NT.User[] = [];
     private groupsList: QQNTim.API.Renderer.NT.Group[] = [];
 
@@ -18,6 +19,7 @@ class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
         this.listenContactListChange();
         ntMedia.init();
         this.sentMessageWatcher = new NTWatcher((args) => args?.[1]?.[0]?.payload?.msgRecord?.peerUid, "ns-ntApi", "nodeIKernelMsgListener/onAddSendMsg", "in", "request");
+        this.profileChangeWatcher = new NTWatcher((args) => args?.[1]?.[0]?.payload?.profiles?.keys()?.next()?.value, "ns-ntApi", "nodeIKernelProfileListener/onProfileSimpleChanged", "in", "request");
     }
 
     private listenNewMessages() {
@@ -62,6 +64,11 @@ class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
             if (!data) return;
             return { uid: data.uid, uin: data.uin } as QQNTim.API.Renderer.NT.LoginAccount;
         });
+    }
+
+    async getUserInfo(uid: string): Promise<QQNTim.API.Renderer.NT.User> {
+        ntCall("ns-ntApi", "nodeIKernelProfileService/getUserDetailInfo", [{ uid: uid }, undefined]);
+        return await this.sentMessageWatcher.wait(uid).then((args) => constructUser(args?.[1]?.[0]?.payload?.profiles?.get(uid)));
     }
 
     async revokeMessage(peer: QQNTim.API.Renderer.NT.Peer, message: string) {
