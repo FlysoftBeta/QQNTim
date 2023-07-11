@@ -3,6 +3,7 @@ import { api } from "./api";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { ipcRenderer } from "electron";
 import * as fs from "fs-extra";
+import { windowLoadPromise } from "./api/windowLoadPromise";
 
 let scripts: [QQNTim.Plugin.Plugin, string][] = [];
 const stylesheets: [QQNTim.Plugin.Plugin, string][] = [];
@@ -32,7 +33,7 @@ export function applyPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin = ""
     loadPlugins(allPlugins, uin, (injection) => shouldInject(injection, page), scripts, stylesheets);
     applyScripts();
 
-    window.addEventListener("load", () => applyStylesheets());
+    windowLoadPromise.then(() => applyStylesheets());
 
     if (uin != "")
         ipcRenderer.send(
