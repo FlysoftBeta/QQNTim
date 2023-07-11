@@ -1,9 +1,8 @@
 import { loadPlugins } from "../loader";
-import { getAPI } from "./api";
+import { api } from "./api";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 
 let scripts: [QQNTim.Plugin.Plugin, string][] = [];
-const api = getAPI();
 
 function shouldInject(injection: QQNTim.Plugin.Injection) {
     return injection.type == "main";

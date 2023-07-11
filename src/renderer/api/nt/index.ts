@@ -1,52 +1,29 @@
 import { ntCall } from "./call";
-import { constructMessage } from "./constructor";
+import { constructGroup, constructMessage, constructUser } from "./constructor";
 import { destructFaceElement, destructImageElement, destructPeer, destructRawElement, destructTextElement } from "./destructor";
 import { ntInterrupt } from "./interrupt";
-import { prepareImageElement } from "./media";
+import { ntMedia } from "./media";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { EventEmitter } from "events";
+import { NTWatcher } from "./watcher";
 
 const NTEventEmitter = EventEmitter as new () => QQNTim.API.Renderer.NT.EventEmitter;
 class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
-    private pendingSentMessages: Record<string, Function> = {};
-    private friendsList: QQNTim.API.Renderer.NT.Friend[] = [];
+    private sentMessageWatcher: NTWatcher<string>;
+    private friendsList: QQNTim.API.Renderer.NT.User[] = [];
     private groupsList: QQNTim.API.Renderer.NT.Group[] = [];
 
-    constructor() {
-        super();
-        this.listenSentMessages();
+    public init() {
         this.listenNewMessages();
         this.listenContactListChange();
-    }
-
-    public async getAccountInfo(): Promise<QQNTim.API.Renderer.NT.LoginAccount | undefined> {
-        return await ntCall("ns-BusinessApi", "fetchAuthData", []).then((data) => {
-            if (!data) return;
-            return { uid: data.uid, uin: data.uin } as QQNTim.API.Renderer.NT.LoginAccount;
-        });
-    }
-
-    private listenSentMessages() {
-        ntInterrupt(
-            (args) => {
-                const id = args[1][0].payload.msgRecord.peerUid;
-                if (this.pendingSentMessages[id]) {
-                    this.pendingSentMessages[id](args);
-                    delete this.pendingSentMessages[id];
-                    return false;
-                }
-            },
-            "ns-ntApi",
-            "nodeIKernelMsgListener/onAddSendMsg",
-            "in",
-            "request",
-        );
+        ntMedia.init();
+        this.sentMessageWatcher = new NTWatcher((args) => args?.[1]?.[0]?.payload?.msgRecord?.peerUid, "ns-ntApi", "nodeIKernelMsgListener/onAddSendMsg", "in", "request");
     }
 
     private listenNewMessages() {
         ntInterrupt(
             (args) => {
-                const messages = (args[1][0].payload.msgList as any[]).map((msg): QQNTim.API.Renderer.NT.Message => constructMessage(msg));
+                const messages = (args?.[1]?.[0]?.payload?.msgList as any[]).map((msg): QQNTim.API.Renderer.NT.Message => constructMessage(msg));
                 this.emit("new-messages", messages);
             },
             "ns-ntApi",
@@ -60,22 +37,7 @@ class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
         ntInterrupt(
             (args) => {
                 this.friendsList = [];
-                ((args[1][0].payload?.data || []) as any[]).forEach((category) => {
-                    this.friendsList.push(
-                        ...((category?.buddyList || []) as any[]).map((friend): QQNTim.API.Renderer.NT.Friend => {
-                            return {
-                                uid: friend.uid,
-                                qid: friend.qid,
-                                uin: friend.uin,
-                                avatarUrl: friend.avatarUrl,
-                                nickName: friend.nick,
-                                bio: friend.longNick,
-                                sex: friend.sex == 1 ? "male" : friend.sex == 2 ? "female" : friend.sex == 255 || friend.sex == 0 ? "unset" : "others",
-                                raw: friend,
-                            };
-                        }),
-                    );
-                });
+                ((args?.[1]?.[0]?.payload?.data || []) as any[]).forEach((category) => this.friendsList.push(...((category?.buddyList || []) as any[]).map((friend) => constructUser(friend))));
                 this.emit("friends-list-updated", this.friendsList);
             },
             "ns-ntApi",
@@ -85,17 +47,7 @@ class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
         );
         ntInterrupt(
             (args) => {
-                this.groupsList = ((args[1][0].payload?.groupList || []) as any[]).map((group): QQNTim.API.Renderer.NT.Group => {
-                    return {
-                        uid: group.groupCode,
-                        avatarUrl: group.avatarUrl,
-                        name: group.groupName,
-                        role: group.memberRole == 4 ? "master" : group.memberRole == 3 ? "moderator" : group.memberRole == 2 ? "member" : "others",
-                        maxMembers: group.maxMember,
-                        members: group.memberCount,
-                        raw: group,
-                    };
-                });
+                this.groupsList = ((args[1]?.[0]?.payload?.groupList || []) as any[]).map((group) => constructGroup(group));
                 this.emit("groups-list-updated", this.groupsList);
             },
             "ns-ntApi",
@@ -103,6 +55,13 @@ class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
             "in",
             "request",
         );
+    }
+
+    async getAccountInfo(): Promise<QQNTim.API.Renderer.NT.LoginAccount | undefined> {
+        return await ntCall("ns-BusinessApi", "fetchAuthData", []).then((data) => {
+            if (!data) return;
+            return { uid: data.uid, uin: data.uin } as QQNTim.API.Renderer.NT.LoginAccount;
+        });
     }
 
     async revokeMessage(peer: QQNTim.API.Renderer.NT.Peer, message: string) {
@@ -122,7 +81,7 @@ class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
                 msgElements: await Promise.all(
                     elements.map(async (element) => {
                         if (element.type == "text") return destructTextElement(element);
-                        else if (element.type == "image") return destructImageElement(element, await prepareImageElement(element.file));
+                        else if (element.type == "image") return destructImageElement(element, await ntMedia.prepareImageElement(element.file));
                         else if (element.type == "face") return destructFaceElement(element);
                         else if (element.type == "raw") return destructRawElement(element);
                         else return null;
@@ -131,16 +90,12 @@ class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
             },
             null,
         ]);
-        return await new Promise<string>((resolve) => {
-            this.pendingSentMessages[peer.uid] = (args: QQNTim.IPC.Args<any>) => {
-                resolve(args[1][0].payload.msgRecord.msgId);
-            };
-        });
+        return await this.sentMessageWatcher.wait(peer.uid).then((args) => args?.[1]?.[0]?.payload?.msgRecord?.msgId);
     }
 
     async getFriendsList(forced: boolean) {
         ntCall("ns-ntApi", "nodeIKernelBuddyService/getBuddyList", [{ force_update: forced }, undefined]);
-        return await new Promise<QQNTim.API.Renderer.NT.Friend[]>((resolve) => {
+        return await new Promise<QQNTim.API.Renderer.NT.User[]>((resolve) => {
             this.once("friends-list-updated", (list) => resolve(list));
         });
     }

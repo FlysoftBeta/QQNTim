@@ -1,4 +1,4 @@
-import { downloadMedia } from "./media";
+import { ntMedia } from "./media";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 
 export function constructTextElement(ele: any): QQNTim.API.Renderer.NT.MessageElementText {
@@ -13,7 +13,7 @@ export function constructImageElement(ele: any, msg: any): QQNTim.API.Renderer.N
     return {
         type: "image",
         file: ele.picElement.sourcePath,
-        downloadedPromise: downloadMedia(msg.msgId, ele.elementId, msg.peerUid, msg.chatType, ele.picElement.thumbPath.get(0), ele.picElement.sourcePath),
+        downloadedPromise: ntMedia.downloadMedia(msg.msgId, ele.elementId, msg.peerUid, msg.chatType, ele.picElement.thumbPath.get(0), ele.picElement.sourcePath),
         raw: ele,
     };
 }
@@ -57,5 +57,28 @@ export function constructMessage(msg: any): QQNTim.API.Renderer.NT.Message {
         },
         elements: elements,
         raw: msg,
+    };
+}
+export function constructUser(user: any): QQNTim.API.Renderer.NT.User {
+    return {
+        uid: user.uid,
+        qid: user.qid,
+        uin: user.uin,
+        avatarUrl: user.avatarUrl,
+        nickName: user.nick,
+        bio: user.longNick,
+        sex: { 1: "male", 2: "female", 255: "unset", 0: "unset" }[user.sex] || "others",
+        raw: user,
+    };
+}
+export function constructGroup(group: any): QQNTim.API.Renderer.NT.Group {
+    return {
+        uid: group.groupCode,
+        avatarUrl: group.avatarUrl,
+        name: group.groupName,
+        role: { 4: "master", 3: "moderator", 2: "member" }[group.memberRole] || "others",
+        maxMembers: group.maxMember,
+        members: group.memberCount,
+        raw: group,
     };
 }

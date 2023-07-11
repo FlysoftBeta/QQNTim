@@ -9,36 +9,30 @@ import { getVueId } from "./getVueId";
 import { nt } from "./nt";
 import { ntCall } from "./nt/call";
 import { ntInterrupt } from "./nt/interrupt";
-import { startWatchingElement, waitForElement } from "./waitForElement";
+import { waitForElement } from "./waitForElement";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as fs from "fs-extra";
 
-export function getAPI(windowLoadPromise: Promise<void>) {
-    windowLoadPromise.then(() => startWatchingElement());
-
-    const api: QQNTim.API.Renderer.API = {
-        allPlugins: allPlugins,
-        env: env,
-        version: version,
-        ntVersion: getCurrentNTVersion(),
-        interrupt: {
-            ipc: addInterruptIpc,
-        },
-        nt: nt,
-        browserWindow: browserWindowApi,
-        app: appApi,
-        dialog: dialogApi,
-        modules: {
-            fs: fs,
-        },
-        utils: {
-            waitForElement: waitForElement,
-            getVueId: getVueId,
-            ntCall: ntCall,
-            ntInterrupt: ntInterrupt,
-        },
-        windowLoadPromise: windowLoadPromise,
-    };
-
-    return api;
-}
+export const api: QQNTim.API.Renderer.API = {
+    allPlugins: allPlugins,
+    env: env,
+    version: version,
+    ntVersion: getCurrentNTVersion(),
+    interrupt: {
+        ipc: addInterruptIpc,
+    },
+    nt: nt,
+    browserWindow: browserWindowApi,
+    app: appApi,
+    dialog: dialogApi,
+    modules: {
+        fs: fs,
+    },
+    utils: {
+        waitForElement: waitForElement,
+        getVueId: getVueId,
+        ntCall: ntCall,
+        ntInterrupt: ntInterrupt,
+    },
+    windowLoadPromise: new Promise<void>((resolve) => window.addEventListener("load", () => resolve())),
+};
