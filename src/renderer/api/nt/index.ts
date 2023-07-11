@@ -68,7 +68,7 @@ class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
 
     async getUserInfo(uid: string): Promise<QQNTim.API.Renderer.NT.User> {
         ntCall("ns-ntApi", "nodeIKernelProfileService/getUserDetailInfo", [{ uid: uid }, undefined]);
-        return await this.sentMessageWatcher.wait(uid).then((args) => constructUser(args?.[1]?.[0]?.payload?.profiles?.get(uid)));
+        return await this.profileChangeWatcher.wait(uid).then((args) => constructUser(args?.[1]?.[0]?.payload?.profiles?.get(uid)));
     }
 
     async revokeMessage(peer: QQNTim.API.Renderer.NT.Peer, message: string) {
