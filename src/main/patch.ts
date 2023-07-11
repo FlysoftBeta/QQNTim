@@ -5,7 +5,7 @@ import { createDebuggerWindow, debuggerOrigin } from "./debugger";
 import { applyPlugins } from "./loader";
 import { plugins } from "./plugins";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
-import { BrowserWindow, Menu, MenuItem, ipcMain, app } from "electron";
+import { BrowserWindow, Menu, MenuItem, app, dialog, ipcMain } from "electron";
 import { Module } from "module";
 import * as path from "path";
 
@@ -16,6 +16,8 @@ const interruptWindowCreation: QQNTim.WindowCreation.InterruptFunction[] = [];
 ipcMain.on("___!boot", (event) => {
     if (!event.returnValue) event.returnValue = { enabled: false };
 });
+
+ipcMain.handle("___!dialog", (event, _, method: string, options: object) => dialog[method](BrowserWindow.fromWebContents(event.sender), options));
 
 function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
     const windowMenu: Electron.MenuItem[] = [
@@ -94,9 +96,7 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
                 return send.call(win.webContents, channel, ...args);
             };
             win.webContents.on("ipc-message", (_, channel, ...args: QQNTim.IPC.Args<any>) => {
-                if (!handleIpc(args, "in", channel, win.webContents)) {
-                    throw new Error("forcibly stopped IPC propagation (Note that this is not a bug)");
-                }
+                if (!handleIpc(args, "in", channel, win.webContents)) throw new Error("QQNTim 已强行中断了一条 IPC 消息");
                 if (channel == "___!apply_plugins") applyPlugins(plugins, args[1] as string);
             });
             win.webContents.on("ipc-message-sync", (event, channel, ...args: QQNTim.IPC.Args<any>) => {
@@ -106,7 +106,7 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
                         enabled: true,
                         preload: [...preloads, ...thirdpartyPreloads],
                         debuggerOrigin: !env.config.useNativeDevTools && debuggerOrigin,
-                        debuggerId: id,
+                        id: id,
                         plugins: plugins,
                         env: env,
                     };

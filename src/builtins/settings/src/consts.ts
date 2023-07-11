@@ -20,8 +20,14 @@ export const cl = {
         },
         section: {
             c: "qqntim-settings-panel-section",
-            title: {
-                c: "qqntim-settings-panel-section-title",
+            header: {
+                c: "qqntim-settings-panel-section-header",
+                title: {
+                    c: "qqntim-settings-panel-section-header-title",
+                },
+                buttons: {
+                    c: "qqntim-settings-panel-section-header-buttons",
+                },
             },
             content: {
                 c: "qqntim-settings-panel-section-content",

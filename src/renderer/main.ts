@@ -9,26 +9,27 @@ import { ipcRenderer } from "electron";
 import * as React from "react";
 import * as ReactDOMClient from "react-dom/client";
 
-const { enabled, preload, debuggerOrigin, debuggerId, plugins, env } = ipcRenderer.sendSync("___!boot", {
+const { enabled, preload, debuggerOrigin, id, plugins, env } = ipcRenderer.sendSync("___!boot", {
     eventName: "QQNTIM_BOOT",
 });
+
+export const webContentsId = id;
 
 if (enabled) {
     setEnv(env);
     setAllPlugins(plugins);
     watchIpc();
     hookVue3();
-    attachDebugger(debuggerId, debuggerOrigin);
+    attachDebugger(id, debuggerOrigin);
     (window as any).React = React;
     (window as any).ReactDOMClient = ReactDOMClient;
-
-    attachDebugger(debuggerId, debuggerOrigin);
 
     const timer = setInterval(() => {
         if (window.location.href.includes("blank")) return;
         clearInterval(timer);
         applyPlugins(plugins);
         nt.getAccountInfo().then((account) => {
+            if (!account) return;
             const uin = account.uin;
             applyPlugins(plugins, uin);
             ipcRenderer.send(

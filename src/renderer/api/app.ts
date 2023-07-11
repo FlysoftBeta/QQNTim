@@ -1,6 +1,7 @@
+import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { ipcRenderer } from "electron";
 
-class AppAPI {
+class AppAPI implements QQNTim.API.Renderer.AppAPI {
     relaunch() {
         ipcRenderer.sendSync(
             "___!app_api",

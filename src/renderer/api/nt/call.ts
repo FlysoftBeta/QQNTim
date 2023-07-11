@@ -1,4 +1,5 @@
 import { addInterruptIpc } from "../../../ipc";
+import { webContentsId } from "../../main";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { randomUUID } from "crypto";
 import { ipcRenderer } from "electron";
@@ -29,7 +30,7 @@ addInterruptIpc(
     },
 );
 
-export function ntCall(eventName: string, cmd: string, args: any[]) {
+export function ntCall(eventName: string, cmdName: string, args: any[], isRegister = false) {
     return new Promise<any>((resolve, reject) => {
         const uuid = randomUUID();
         pendingCallbacks[uuid] = (args: QQNTim.IPC.Args<QQNTim.IPC.Response>) => {
@@ -37,13 +38,13 @@ export function ntCall(eventName: string, cmd: string, args: any[]) {
             else resolve(args[1]);
         };
         ipcRenderer.send(
-            "IPC_UP_2",
+            `IPC_UP_${webContentsId}`,
             {
                 type: "request",
                 callbackId: uuid,
-                eventName: eventName,
+                eventName: `${eventName}-${webContentsId}${isRegister ? "-register" : ""}`,
             },
-            [cmd, ...args],
+            [cmdName, ...args],
         );
     });
 }
