@@ -47,6 +47,10 @@ declare namespace QQNTim {
                 blacklist?: string[];
             };
             /**
+             * 自定义插件加载器路径
+             */
+            pluginLoaders: string[];
+            /**
              * 显示详细日志输出
              * @description 开启后，可以在控制台内查看到 IPC 通信、部分 Electron 对象的成员访问信息等。
              */

@@ -14,7 +14,7 @@ Telegram 群组：<https://t.me/qqntim>，欢迎加入。
 
 > QQNTim 可以与 **[LiteLoaderQQNT](https://github.com/mo-jinran/LiteLoaderQQNT)** 并存，快去试试吧！
 >
-> **注意：** 请先 [安装 LiteLoaderQQNT](https://github.com/mo-jinran/LiteLoaderQQNT#%E5%AE%89%E8%A3%85%E6%96%B9%E6%B3%95) 再 [安装 QQNTim](#安装和卸载)
+> 请阅读 [使用手册-安装](MANUAL.md#安装) 查看如何安装。
 
 ## 安装与使用
 
