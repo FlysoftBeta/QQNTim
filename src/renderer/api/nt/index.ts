@@ -3,9 +3,9 @@ import { constructGroup, constructMessage, constructUser } from "./constructor";
 import { destructFaceElement, destructImageElement, destructPeer, destructRawElement, destructTextElement } from "./destructor";
 import { ntInterrupt } from "./interrupt";
 import { ntMedia } from "./media";
+import { NTWatcher } from "./watcher";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { EventEmitter } from "events";
-import { NTWatcher } from "./watcher";
 
 const NTEventEmitter = EventEmitter as new () => QQNTim.API.Renderer.NT.EventEmitter;
 class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {

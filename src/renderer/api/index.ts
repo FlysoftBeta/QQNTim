@@ -10,9 +10,9 @@ import { nt } from "./nt";
 import { ntCall } from "./nt/call";
 import { ntInterrupt } from "./nt/interrupt";
 import { waitForElement } from "./waitForElement";
+import { windowLoadPromise } from "./windowLoadPromise";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import * as fs from "fs-extra";
-import { windowLoadPromise } from "./windowLoadPromise";
 
 export const api: QQNTim.API.Renderer.API = {
     allPlugins: allPlugins,
