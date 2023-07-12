@@ -7,9 +7,9 @@ function toBoolean(item: boolean | undefined, env: string, defaultValue: boolean
     return envValue ? !!parseInt(envValue) : typeof item == "boolean" ? item : defaultValue;
 }
 
-function toStringArray(item: string[] | undefined, env: string, defaultValue: string[] | undefined) {
+function toStringArray<T extends string[], R extends T | undefined>(item: R, env: string, defaultValue: R) {
     const envValue = process.env[env];
-    return envValue ? envValue.split(";") : item instanceof Array ? item : defaultValue;
+    return envValue ? envValue.split(";") : item && item instanceof Array ? item : defaultValue;
 }
 
 // function toNumberArray(
@@ -35,6 +35,7 @@ export function getEnvironment(config: QQNTim.Configuration.Configuration): QQNT
                 whitelist: toStringArray(config.plugins?.whitelist, "QQNTIM_PLUGINS_WHITELIST", undefined),
                 blacklist: toStringArray(config.plugins?.blacklist, "QQNTIM_PLUGINS_BLACKLIST", undefined),
             },
+            pluginLoaders: toStringArray(config.pluginLoaders, "QQNTIM_PLUGIN_LOADER", []),
             verboseLogging: toBoolean(config.verboseLogging, "QQNTIM_VERBOSE_LOGGING", false),
             useNativeDevTools: toBoolean(config.useNativeDevTools, "QQNTIM_USE_NATIVE_DEVTOOLS", false),
             disableCompatibilityProcessing: toBoolean(config.disableCompatibilityProcessing, "QQNTIM_NO_COMPATIBILITY_PROCESSING", false),
