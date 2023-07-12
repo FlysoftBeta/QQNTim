@@ -8,7 +8,7 @@ if [ ! "$(whoami)" == "root" ]; then
     exit -2
 fi
 
-qq_installation_dir=$( dirname $( readlink $( which qq ) ) )
+qq_installation_dir=$( dirname $( readlink $( which qq || which linuxqq ) ) )
 if [ ! -d "$qq_installation_dir" ]; then
     echo "未找到 QQNT 安装目录。"
 fi
