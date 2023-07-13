@@ -1,6 +1,11 @@
 {
     "name": "@flysoftbeta/qqntim-typings",
-    "version": "1.0.0",
+    "private": false,
+    "version": "2.0.0",
+    "license": "LGPL-3.0-or-later",
+    "publishConfig": {
+        "access": "public"
+    },
     "devDependencies": {
         "@types/fs-extra": "^11.0.1",
         "@types/node": "^20.4.1",
