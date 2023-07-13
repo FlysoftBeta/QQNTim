@@ -2,6 +2,8 @@
 
 此文档包含了插件开发文档（插件清单规范 v2.0）。
 
+**在开始之前，强烈建议你使用我们的[插件模板仓库](https://github.com/Flysoft-Studio/QQNTim-Plugin-Template)进行开发。** 模板仓库已经包含了 TypeScript 类型定义、自动构建及发布等内容，无需手动配置。
+
 ## 文件结构
 
 ### 数据文件夹
@@ -141,7 +143,7 @@ export default class Entry implements QQNTim.Entry.Main {
 
 #### 渲染进程脚本
 
-该脚本必须使用 CommonJS 标准默认导出一个实现 [`QQNTim.Entry.Renderer`](src/typings/index.d.ts) 的类。
+该脚本必须使用 CommonJS 标准默认导出一个实现 `QQNTim.Entry.Renderer` 的类。
 
 一个示例如下：
 
@@ -158,4 +160,4 @@ export default class Entry implements QQNTim.Entry.Renderer {
 
 ## 类型定义
 
-请查看 QQNTim 的 [TypeScript 类型定义文件](src/typings/index.d.ts)。
+请查看 QQNTim 的 [TypeScript 类型定义文件](src/typings/index.d.ts)。此类型定义可通过安装 NPM 包 `@flysoftbeta/qqntim-typings` 添加到你的项目中。

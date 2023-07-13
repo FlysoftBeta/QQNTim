@@ -4,17 +4,27 @@
 
 ## 安装
 
-> 致 LiteLoader 用户：
+**请务必仔细阅读本章节内容以避免不必要的麻烦！**
+
+> ### LiteLoader 相关安装教程：
 >
-> 如果你希望同时使用 LiteLoader 和 QQNTim，
-> 请先遵循 LiteLoader 的 [安装步骤](https://github.com/mo-jinran/LiteLoaderQQNT/tree/main#%E5%AE%89%E8%A3%85%E6%96%B9%E6%B3%95) 进行安装，
-> **LiteLoader 文件夹名称必须为 `LiteLoader`，并*跳过*第二步**：
+> #### 如果你已经安装了 LiteLoader，想安装 QQNTim：
 >
-> > _2. 编辑安装位置/package.json 文件，将 main 键值改为 LiteLoader（根据文件夹名字而修改）_
+> 1. **确保 LiteLoader 文件夹名称为 `LiteLoader` 或 `LiteLoaderQQNT`。否则 LiteLoader 将不会被加载！**
 >
-> 之后再运行 QQNTim 的安装脚本即可。
+> 2. 到 `QQNT 根目录/resources/app` 下修改 `package.json`，将 `"LiteLoader"` 修改为 `"./app_launcher/index.js"`，之后再运行 QQNTim 的安装脚本即可。
+>
+> #### 如果你已经安装了 QQNTim，想安装 LiteLoader：
+>
+> 请遵循 [LiteLoader 官方安装教程](https://github.com/mo-jinran/LiteLoaderQQNT/blob/main/README.md#安装方法) 进行安装即可，但请注意以下两点：
+>
+> 1. **确保 LiteLoader 文件夹名称为 `LiteLoader` 或 `LiteLoaderQQNT`。否则 LiteLoader 将不会被加载！**
+>
+> 2. **不要按照教程中的方法修改 `package.json`！否则 QQNTim 将不会加载。你只需保持它原样即可。**
 
 安装前请确保电脑上已经安装了 QQNT。
+
+请先从 [Releases](https://github.com/Flysoft-Studio/QQNTim/releases) 中下载最新的版本（对于一般用户，建议下载 `qqntim-build.zip`），下载后，请确保你**解压了所有文件（必须包含 `_` 文件夹）**！
 
 在 Windows 下，请运行 `install.cmd` 安装或运行 `uninstall.cmd` 卸载。
 
