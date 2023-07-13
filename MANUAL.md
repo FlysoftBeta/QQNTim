@@ -47,9 +47,10 @@ chmod +x ./uninstall.sh
 
 还有一些其他的插件：
 
-| 名称                                                                   | 说明                                          | 作者                                |
-| ---------------------------------------------------------------------- | --------------------------------------------- | ----------------------------------- |
-| [QQNTim-Plugin-NTHttp](https://github.com/Rei1mu/QQNTim-Plugin-NTHttp) | 基于 QQNTim 的插件，WebSocket+Http 的通信实现 | [Rei1mu](https://github.com/Rei1mu) |
+| 名称                                                                       | 说明                       | 作者                                |
+| -------------------------------------------------------------------------- | -------------------------- | ----------------------------------- |
+| [QQNTim-Plugin-NTHttp](https://github.com/Rei1mu/QQNTim-Plugin-NTHttp)     | WebSocket+Http 的通信实现  | [Rei1mu](https://github.com/Rei1mu) |
+| [QQNTim-Plugin-NoUpdate](https://github.com/Rei1mu/QQNTim-Plugin-NoUpdate) | 取消提示自动更新的烦人弹窗 | [Rei1mu](https://github.com/Rei1mu) |
 
 ### 安装插件
 
