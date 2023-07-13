@@ -16,7 +16,6 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version: 18.x
-                  registry-url: https://registry.npmjs.org
 
             - name: Setup Corepack
               run: corepack enable
@@ -65,8 +64,14 @@ jobs:
                   draft: false
                   name: ${{ github.ref_name }}
 
+            - name: Setup .yarnrc.yml
+              run: |
+                  yarn config set npmRegistryServer https://registry.npmjs.org
+                  yarn config set npmAlwaysAuth true
+                  yarn config set npmAuthToken $NPM_AUTH_TOKEN
+              env:
+                  NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
             - name: Publish NPM Package
               if: github.ref_type == 'tag'
               run: yarn workspace @flysoftbeta/qqntim-typings npm publish
-              env:
-                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
