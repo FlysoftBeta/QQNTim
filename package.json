@@ -1,13 +1,10 @@
 {
     "name": "qqnt-improved",
     "private": true,
-    "version": "2.0.0",
+    "version": "2.0.1",
     "license": "LGPL-3.0-or-later",
     "packageManager": "yarn@3.6.1",
-    "workspaces": [
-        "src/typings",
-        "src/builtins/*"
-    ],
+    "workspaces": ["src/typings", "src/builtins/*"],
     "scripts": {
         "dev": "NODE_ENV=development tsc & TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=development ts-node ./build.ts && chmod +x ./scripts/dev.sh && ./scripts/dev.sh",
         "build": "NODE_ENV=production tsc && TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=production ts-node ./build.ts",
@@ -32,7 +29,7 @@
         "@types/fs-extra": "^11.0.1",
         "@types/node": "^20.4.1",
         "@types/react": "^18.2.14",
-        "@types/react-dom": "^18.2.6",
+        "@types/react-dom": "^18.2.7",
         "@types/semver": "^7.5.0",
         "@yarnpkg/sdks": "^3.0.0-rc.48",
         "esbuild": "^0.18.11",

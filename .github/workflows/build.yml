@@ -16,6 +16,7 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version: 18.x
+                  registry-url: https://registry.npmjs.org
 
             - name: Setup Corepack
               run: corepack enable
@@ -39,28 +40,33 @@ jobs:
             - name: Build
               run: yarn build
 
+            - name: Compress files
+              run: |
+                  mkdir upload
+                  pushd dist
+                  tar -zcvf ../upload/qqntim-build.tar.gz .
+                  zip -r9 ../upload/qqntim-build.zip .
+                  popd
+
             - name: Upload artifact
               uses: actions/upload-artifact@v3
               with:
                   name: build
-                  path: dist/*
-
-            - name: Compress release
-              run: |
-                  pushd dist
-                  tar -zcvf ../qqntim-build.tar.gz .
-                  zip -r9 ../qqntim-build.zip .
-                  popd
+                  path: upload/*
 
             - name: Create release
               if: github.ref_type == 'tag'
               uses: softprops/action-gh-release@v1
               with:
-                  files: |
-                      qqntim-build.tar.gz
-                      qqntim-build.zip
+                  files: upload/*
                   generate_release_notes: true
                   tag_name: ${{ github.ref_name }}
                   prerelease: ${{ endsWith(github.ref_name, 'alpha') }}
                   draft: false
                   name: ${{ github.ref_name }}
+
+            - name: Publish NPM Package
+              if: github.ref_type == 'tag'
+              run: yarn workspace @flysoftbeta/qqntim-typings npm publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
