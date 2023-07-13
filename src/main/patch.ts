@@ -4,6 +4,7 @@ import { apply, construct, getter, setter } from "../watch";
 import { createDebuggerWindow, debuggerOrigin } from "./debugger";
 import { applyPlugins } from "./loader";
 import { plugins } from "./plugins";
+import { enable, initialize } from "@electron/remote/main";
 import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { BrowserWindow, Menu, MenuItem, app, dialog, ipcMain } from "electron";
 import { Module } from "module";
@@ -55,7 +56,7 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
                 ...options,
                 webPreferences: {
                     ...options.webPreferences,
-                    preload: undefined,
+                    preload: `${__dirname}${s}qqntim-renderer.js`,
                     webSecurity: false,
                     allowRunningInsecureContent: true,
                     nodeIntegration: true,
@@ -70,25 +71,35 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
             });
             const win = construct("BrowserWindow", target, [patchedArgs]) as BrowserWindow;
 
-            const id = win.webContents.id.toString();
+            const webContentsId = win.webContents.id.toString();
 
-            const sess = win.webContents.session;
+            let thirdpartyPreloads: string[] = win.webContents.session.getPreloads();
+            win.webContents.session.setPreloads([]);
+            enable(win.webContents);
 
-            const preloads = [options.webPreferences?.preload, ...sess.getPreloads()];
-            let thirdpartyPreloads: string[] = [];
-            sess.setPreloads([`${__dirname}${s}qqntim-renderer.js`]);
-
-            // Temporary solution to readonly `setPreloads` :(
-            // TODO: Remove this try {} catch {}
-            try {
-                Object.defineProperty(sess, "setPreloads", {
-                    get() {
-                        return (newPreloads) => {
+            const session = new Proxy(win.webContents.session, {
+                get(target, p) {
+                    const res = getter(`session?${webContentsId}`, target, p as any);
+                    if (p == "setPreloads")
+                        return (newPreloads: string[]) => {
                             thirdpartyPreloads = newPreloads;
                         };
-                    },
-                });
-            } catch {}
+                    return res;
+                },
+                set(target, p, newValue) {
+                    return setter(`session?${webContentsId}`, target, p as any, newValue);
+                },
+            });
+            const webContents = new Proxy(win.webContents, {
+                get(target, p) {
+                    const res = getter(`webContents?${webContentsId}`, target, p as any);
+                    if (p == "session") return session;
+                    return res;
+                },
+                set(target, p, newValue) {
+                    return setter(`webContents?${webContentsId}`, target, p as any, newValue);
+                },
+            });
 
             const send = win.webContents.send;
             win.webContents.send = (channel: string, ...args: QQNTim.IPC.Args<any>) => {
@@ -104,9 +115,9 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
                 if (channel == "___!boot") {
                     event.returnValue = {
                         enabled: true,
-                        preload: [...preloads, ...thirdpartyPreloads],
+                        preload: Array.from(new Set([...thirdpartyPreloads, options.webPreferences?.preload].filter(Boolean))),
                         debuggerOrigin: !env.config.useNativeDevTools && debuggerOrigin,
-                        id: id,
+                        webContentsId: webContentsId,
                         plugins: plugins,
                         env: env,
                     };
@@ -118,7 +129,7 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
             });
             if (!env.config.useNativeDevTools)
                 win.webContents.on("console-message", (_, level, message) => {
-                    message = `[!Renderer:${id}] ${message}`;
+                    message = `[!Renderer:${webContentsId}] ${message}`;
                     if (level == 0) console.debug(message);
                     else if (level == 1) console.log(message);
                     else if (level == 2) console.warn(message);
@@ -134,10 +145,12 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
 
             return new Proxy(win, {
                 get(target, p) {
-                    return getter(`BrowserWindow?${id}`, target, p as any);
+                    const res = getter(`BrowserWindow?${webContentsId}`, target, p as any);
+                    if (p == "webContents") return webContents;
+                    return res;
                 },
                 set(target, p, newValue) {
-                    return setter(`BrowserWindow?${id}`, target, p as any, newValue);
+                    return setter(`BrowserWindow?${webContentsId}`, target, p as any, newValue);
                 },
             });
         },
@@ -155,6 +168,7 @@ export function addInterruptWindowArgs(func: QQNTim.WindowCreation.InterruptArgs
 export function patchElectron() {
     // Prevent Electron from generating default menu (which will take a lot system resources).
     Menu.setApplicationMenu(null);
+    initialize();
 
     let patchedElectron: typeof Electron.CrossProcessExports;
     const loadBackend = (Module as any)._load;

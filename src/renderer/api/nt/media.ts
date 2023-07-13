@@ -1,7 +1,7 @@
 import { ntCall } from "./call";
 import { ntInterrupt } from "./interrupt";
-import { exists } from "fs-extra";
 import { NTWatcher } from "./watcher";
+import { exists } from "fs-extra";
 
 class NTMedia {
     private mediaDownloadWatcher: NTWatcher<string>;

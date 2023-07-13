@@ -23,6 +23,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@electron/remote@npm:^2.0.10":
+  version: 2.0.10
+  resolution: "@electron/remote@npm:2.0.10"
+  peerDependencies:
+    electron: ">= 13.0.0"
+  checksum: 74ab6fca7973f43d45e3372dc3bbd35552f63ba10f5673d08ec9d9fd06e74d5b2da696a9b297dae5baeaf5cd991fc65c4ee25582991f8c18316bd18ae1bed6a9
+  languageName: node
+  linkType: hard
+
 "@esbuild/android-arm64@npm:0.18.11":
   version: 0.18.11
   resolution: "@esbuild/android-arm64@npm:0.18.11"
@@ -2317,6 +2326,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "qqnt-improved@workspace:."
   dependencies:
+    "@electron/remote": ^2.0.10
     "@flysoftbeta/qqntim-typings": "workspace:*"
     "@types/fs-extra": ^11.0.1
     "@types/node": ^20.4.1

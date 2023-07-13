@@ -9,18 +9,16 @@ import { ipcRenderer } from "electron";
 import * as React from "react";
 import * as ReactDOMClient from "react-dom/client";
 
-const { enabled, preload, debuggerOrigin, id, plugins, env } = ipcRenderer.sendSync("___!boot", {
+export const { enabled, preload, debuggerOrigin, webContentsId, plugins, env } = ipcRenderer.sendSync("___!boot", {
     eventName: "QQNTIM_BOOT",
 });
-
-export const webContentsId = id;
 
 if (enabled) {
     setEnv(env);
     setAllPlugins(plugins);
     watchIpc();
     hookVue3();
-    attachDebugger(id, debuggerOrigin);
+    attachDebugger(webContentsId, debuggerOrigin);
     nt.init();
 
     (window as any).React = React;
@@ -37,10 +35,8 @@ if (enabled) {
         });
         console.log("[!Main] QQNTim 加载成功");
     }, 1);
-
-    patchElectron();
 }
 
-preload.forEach((item: string) => {
-    if (item) require(item);
-});
+patchElectron();
+
+preload.forEach((item: string) => require(item));
