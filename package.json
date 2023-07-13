@@ -1,7 +1,7 @@
 {
     "name": "qqnt-improved",
     "private": true,
-    "version": "2.0.3",
+    "version": "2.0.4",
     "license": "LGPL-3.0-or-later",
     "packageManager": "yarn@3.6.1",
     "workspaces": ["src/typings", "src/builtins/*"],
