@@ -715,6 +715,10 @@ declare namespace QQNTim {
              */
             name: string;
             /**
+             * 插件自身版本
+             */
+            ver: string;
+            /**
              * 说明
              */
             description: string;

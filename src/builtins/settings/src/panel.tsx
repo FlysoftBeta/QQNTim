@@ -168,7 +168,7 @@ function PluginsManagerPanel({ qqntim, account, config, setConfig }: PanelsProps
 
                                     if (!existentPlugins.includes(id)) return;
                                     return (
-                                        <SettingsBoxItem key={id} title={plugin.manifest.name} description={description} isLast={idx == array.length - 1}>
+                                        <SettingsBoxItem key={id} title={plugin.manifest.name} ver={plugin.manifest.ver} description={description} isLast={idx == array.length - 1}>
                                             <Switch checked={!!(inWhitelist || (!inWhitelist && !inBlacklist))} onToggle={(state) => enablePlugin(setConfig, id, state, inWhitelist, inBlacklist)} />
                                             <Button onClick={() => shell.openPath(plugin.dir)} small={true} primary={false}>
                                                 文件夹
@@ -204,11 +204,11 @@ function SettingsBox({ children }: { children: ReactNode }) {
     return <div className={cl.panel.box.c}>{children}</div>;
 }
 
-function SettingsBoxItem({ title, description, children, isLast = false }: { title: string; description?: string[]; children?: ReactNode; isLast?: boolean }) {
+function SettingsBoxItem({ title, ver, description, children, isLast = false }: { title: string; ver?: string; description?: string[]; children?: ReactNode; isLast?: boolean }) {
     return (
         <label className={`${cl.panel.box.item.c}${isLast ? ` ${cl.panel.box.item.last.c}` : ""}`}>
             <span>
-                <span className={cl.panel.box.item.title.c}>{title}</span>
+                <span className={cl.panel.box.item.title.c}>{title}{ver ? "　　v" + ver : null}</span>
                 {description ? (
                     <span className={cl.panel.box.item.description.c}>
                         {description.map((text, idx, array) => {
