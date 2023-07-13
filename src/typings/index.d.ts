@@ -717,15 +717,15 @@ declare namespace QQNTim {
             /**
              * 插件自身版本
              */
-            ver: string;
+            version?: string;
             /**
              * 说明
              */
-            description: string;
+            description:? string;
             /**
              * 作者
              */
-            author: string;
+            author?: string;
             /**
              * 脚本和样式注入
              */
