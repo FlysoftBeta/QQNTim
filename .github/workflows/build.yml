@@ -65,6 +65,7 @@ jobs:
                   name: ${{ github.ref_name }}
 
             - name: Setup .yarnrc.yml
+              if: github.ref_type == 'tag'
               run: |
                   yarn config set npmRegistryServer https://registry.npmjs.org
                   yarn config set npmAlwaysAuth true
