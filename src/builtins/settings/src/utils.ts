@@ -50,7 +50,8 @@ export function isPluginsExistent(qqntim: QQNTim.API.Renderer.API) {
 }
 
 export function getPluginDescription(plugin: QQNTim.Plugin.Plugin) {
+    const versionText = [plugin.manifest.version, plugin.manifest.author].filter(Boolean).join(" - ");
     const warnText = [!plugin.meetRequirements && "当前环境不满足需求，未加载", plugin.manifest.manifestVersion != "2.0" && "插件使用了过时的插件标准，请提醒作者更新"].filter(Boolean).join("; ");
     const description = plugin.manifest.description || "该插件没有提供说明。";
-    return [warnText && `警告: ${warnText}。`, description].filter(Boolean);
+    return [versionText, warnText && `警告: ${warnText}。`, description].filter(Boolean);
 }
