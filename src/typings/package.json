@@ -1,7 +1,7 @@
 {
     "name": "@flysoftbeta/qqntim-typings",
     "private": false,
-    "version": "2.0.1",
+    "version": "2.1.1",
     "license": "LGPL-3.0-or-later",
     "publishConfig": {
         "access": "public"
