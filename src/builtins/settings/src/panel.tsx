@@ -204,11 +204,11 @@ function SettingsBox({ children }: { children: ReactNode }) {
     return <div className={cl.panel.box.c}>{children}</div>;
 }
 
-function SettingsBoxItem({ title, ver, description, children, isLast = false }: { title: string; ver?: string; description?: string[]; children?: ReactNode; isLast?: boolean }) {
+function SettingsBoxItem({ title, description, children, isLast = false }: { title: string; description?: string[]; children?: ReactNode; isLast?: boolean }) {
     return (
         <label className={`${cl.panel.box.item.c}${isLast ? ` ${cl.panel.box.item.last.c}` : ""}`}>
             <span>
-                <span className={cl.panel.box.item.title.c}>{title}{ver ? "　　v" + ver : null}</span>
+                <span className={cl.panel.box.item.title.c}>{title}</span>
                 {description ? (
                     <span className={cl.panel.box.item.description.c}>
                         {description.map((text, idx, array) => {
