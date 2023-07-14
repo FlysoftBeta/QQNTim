@@ -6,7 +6,7 @@
     "packageManager": "yarn@3.6.1",
     "workspaces": ["src/typings", "src/builtins/*"],
     "scripts": {
-        "dev": "NODE_ENV=development tsc & TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=development ts-node ./build.ts && chmod +x ./scripts/dev.sh && ./scripts/dev.sh",
+        "dev": "NODE_ENV=development tsc & TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=development ts-node ./build.ts",
         "build": "NODE_ENV=production tsc && TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=production ts-node ./build.ts",
         "start:win": "powershell -ExecutionPolicy Unrestricted -File ./scripts/start.ps1",
         "start:linux": "chmod +x ./scripts/start.sh && ./scripts/start.sh",
