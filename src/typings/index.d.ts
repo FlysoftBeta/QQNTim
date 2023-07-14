@@ -721,7 +721,7 @@ declare namespace QQNTim {
             /**
              * 说明
              */
-            description:? string;
+            description?: string;
             /**
              * 作者
              */
