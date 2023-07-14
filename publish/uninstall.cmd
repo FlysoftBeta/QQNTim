@@ -1,8 +1,6 @@
 @setlocal enableextensions
 @echo off
 cd /d %~dp0_
-chcp 65001 >nul 2>nul
-title QQNTim 卸载程序
 color F0
 mode con cols=65 lines=16
 
@@ -27,8 +25,7 @@ if exist "%SUCCESS_FLAG%" (
 )
 %PS_PREFIX% -File .\uninstall.ps1
 if not exist "%SUCCESS_FLAG%" (
-    echo 卸载时出现错误。如果你认为这是 QQNTim 的问题，请向我们报告此问题。
-    echo 你也可以尝试手动卸载。
+    echo Uninstallation error. If you believe this is an issue of QQNTim, please report it to us.
     pause >nul 2>nul
 )
 goto:eof

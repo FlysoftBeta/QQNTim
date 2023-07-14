@@ -1,8 +1,6 @@
 @setlocal enableextensions
 @echo off
 cd /d %~dp0_
-chcp 65001 >nul 2>nul
-title QQNTim 安装程序
 color F0
 mode con cols=65 lines=16
 
@@ -27,8 +25,7 @@ if exist "%SUCCESS_FLAG%" (
 )
 %PS_PREFIX% -File .\install.ps1
 if not exist "%SUCCESS_FLAG%" (
-    echo 安装时出现错误。如果你认为这是 QQNTim 的问题，请向我们报告此问题。
-    echo 你也可以尝试手动安装。
+    echo Installation error. If you believe this is an issue of QQNTim, please report it to us.
     pause >nul 2>nul
 )
 goto:eof

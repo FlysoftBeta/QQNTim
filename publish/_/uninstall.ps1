@@ -1,4 +1,5 @@
 ﻿$ErrorActionPreference = "Stop"
+
 $Host.UI.RawUI.WindowTitle = "QQNTim 卸载程序 (PowerShell)"
 Set-Location (Split-Path -Parent $MyInvocation.MyCommand.Definition)
 
@@ -23,6 +24,9 @@ foreach ($RegistryPath in @("HKLM:\Software\WOW6432Node\Microsoft\Windows\Curren
 if (($null -eq $QQInstallDir) -or ((Test-Path $QQInstallDir) -eq $false)) {
     throw "未找到 QQNT 安装目录。"
 }
+$QQExecutableFile = "$QQInstallDir\QQ.exe"
+$QQExecutableBackupFile = "$QQInstallDir\QQ.exe.bak"
+$QQExecutableHashFile = "$QQInstallDir\QQ.exe.md5"
 $QQAppDir = "$QQInstallDir\resources\app"
 $QQAppLauncherDir = "$QQAppDir\app_launcher"
 $EntryFile = "$QQAppLauncherDir\index.js"
@@ -59,6 +63,15 @@ Remove-Item "$QQAppLauncherDir\node_modules", "$QQAppLauncherDir\builtins" -Recu
 Write-Output "正在还原 package.json……"
 $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
 [System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/qqntim.js", "./app_launcher/index.js"), $Utf8NoBomEncoding)
+
+Write-Output "正在还原 QQ.exe……"
+if ((Test-Path $QQExecutableHashFile) -eq $true) {
+    Remove-Item $QQExecutableHashFile -Force
+}
+if ((Test-Path $QQExecutableBackupFile) -eq $true) {
+    Remove-Item $QQExecutableFile -Force
+    Move-Item $QQExecutableBackupFile $QQExecutableFile -Force
+}
 
 Remove-Item $QQNTimFlagFile -Force
 
