@@ -168,7 +168,7 @@ function PluginsManagerPanel({ qqntim, account, config, setConfig }: PanelsProps
 
                                     if (!existentPlugins.includes(id)) return;
                                     return (
-                                        <SettingsBoxItem key={id} title={plugin.manifest.name} ver={plugin.manifest.ver} description={description} isLast={idx == array.length - 1}>
+                                        <SettingsBoxItem key={id} title={plugin.manifest.name} description={description} isLast={idx == array.length - 1}>
                                             <Switch checked={!!(inWhitelist || (!inWhitelist && !inBlacklist))} onToggle={(state) => enablePlugin(setConfig, id, state, inWhitelist, inBlacklist)} />
                                             <Button onClick={() => shell.openPath(plugin.dir)} small={true} primary={false}>
                                                 文件夹
