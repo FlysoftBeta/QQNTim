@@ -4,7 +4,11 @@
     "version": "2.2.0",
     "license": "LGPL-3.0-or-later",
     "packageManager": "yarn@3.6.1",
-    "workspaces": ["src/electron", "src/typings", "src/builtins/*"],
+    "workspaces": [
+        "src/electron",
+        "src/typings",
+        "src/builtins/*"
+    ],
     "scripts": {
         "dev": "TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=development ts-node ./build.ts",
         "build": "TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=production ts-node ./build.ts",
