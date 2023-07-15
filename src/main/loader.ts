@@ -1,8 +1,6 @@
-import { loadPlugins } from "../loader";
-import { api } from "./api";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
+import { loadPlugins } from "../common/loader";
 
-let scripts: [QQNTim.Plugin.Plugin, string][] = [];
+let scripts: [QQNTim.Plugin, string][] = [];
 
 function shouldInject(injection: QQNTim.Plugin.Injection) {
     return injection.type == "main";
@@ -19,11 +17,7 @@ function applyScripts() {
     scripts = scripts.filter(([plugin, script]) => {
         try {
             const mod = require(script);
-            if (mod)
-                if (plugin.manifest.manifestVersion == "2.0") {
-                    new (mod.default as typeof QQNTim.Entry.Main)(api);
-                } else mod(api);
-
+            if (mod) new ((mod.default || mod) as typeof QQNTim.Entry.Main)();
             return false;
         } catch (reason) {
             console.error(`[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者 (${plugin.manifest.author}) 解决`);

@@ -1,5 +1,3 @@
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
-
 export function destructTextElement(element: QQNTim.API.Renderer.NT.MessageElementText) {
     return {
         elementType: 1,

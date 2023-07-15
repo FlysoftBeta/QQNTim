@@ -50,8 +50,10 @@ else {
     Write-Output "检测到已有安装，正在更新……"
 }
 
-Write-Output "正在关闭 QQ……"
-Stop-Process -Name QQ -ErrorAction SilentlyContinue
+if ($env:QQNTIM_INSTALLER_NO_KILL_QQ -ne "1") {
+    Write-Output "正在关闭 QQ……"
+    Stop-Process -Name QQ -ErrorAction SilentlyContinue
+}
 
 Write-Output "正在复制文件……"
 Copy-Item ".\qqntim.js", ".\qqntim-renderer.js" $QQAppLauncherDir -Force
@@ -59,10 +61,10 @@ Copy-Item ".\node_modules", ".\builtins" $QQAppLauncherDir -Recurse -Force
 
 Write-Output "正在修补 package.json……"
 $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
-[System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/index.js", "./app_launcher/qqntim.js"), $Utf8NoBomEncoding)
+[System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Encoding UTF8 -Force) -replace "./app_launcher/index.js", "./app_launcher/qqntim.js"), $Utf8NoBomEncoding)
 
 $QQFileHash = (Get-FileHash $QQExecutableFile -Algorithm MD5).Hash
-if ((Test-Path $QQExecutableHashFile) -eq $false -or -not ( (Get-Content $QQExecutableHashFile -Raw -Encoding UTF8 -Force) -replace "`r`n", "" -eq $QQFileHash)) {
+if ((Test-Path $QQExecutableHashFile) -eq $false -or (Get-Content $QQExecutableHashFile -Encoding UTF8 -Force) -replace "`r`n", "" -ne $QQFileHash) {
     Write-Output "正在修补 QQ.exe，这可能需要一些时间……"
     Copy-Item $QQExecutableFile $QQExecutableBackupFile -Force
     $Crypt32Def = @"
@@ -93,12 +95,12 @@ public static extern bool CryptBinaryToString(
     if ([PKI.Crypt32]::CryptBinaryToString($QQBin, $QQBin.Length, $HexRawEncoding, $null, [ref]$pcchString)) {
         $QQHex = New-Object Text.StringBuilder $pcchString
         [void][PKI.Crypt32]::CryptBinaryToString($QQBin, $QQBin.Length, $HexRawEncoding, $QQHex, [ref]$pcchString)
-        # 替换 package.json\0index.js\0launcher.js\0launcher.node 为 index.js\0\0\0\0\0index.js\0launcher.js\0launcher.node
-        $PatchedQQHex = $QQHex.ToString() -replace "7061636b6167652e6a736f6e00696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500", "696e6465782e6a730000000000696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500"
+        # 替换 package.json\0index.js\0launcher.js\0launcher.node 为 \0
+        $PatchedQQHex = $QQHex.ToString() -replace "7061636b6167652e6a736f6e00696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500", "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
         # Hex String 转 Byte[]
         $pcbBinary = 0
         $pdwFlags = 0
-        if ([PKI.Crypt32]::CryptStringToBinary( $PatchedQQHex, $PatchedQQHex.Length, $HexRawEncoding, $null, [ref]$pcbBinary, 0, [ref]$pdwFlags)) {
+        if ([PKI.Crypt32]::CryptStringToBinary($PatchedQQHex, $PatchedQQHex.Length, $HexRawEncoding, $null, [ref]$pcbBinary, 0, [ref]$pdwFlags)) {
             $PatchedQQBin = New-Object byte[] -ArgumentList $pcbBinary
             [void][PKI.Crypt32]::CryptStringToBinary($PatchedQQHex, $PatchedQQHex.Length, $HexRawEncoding, $PatchedQQBin, [ref]$pcbBinary, 0, [ref]$pdwFlags)
 
@@ -130,6 +132,4 @@ if ((Test-Path $SuccessFlagFile) -eq $false) {
     "" | Out-File $SuccessFlagFile -Encoding UTF8 -Force
 }
 
-Write-Output "安装成功。安装程序将在 5 秒后退出。"
-Start-Sleep 5
-
+Write-Output "安装成功。"

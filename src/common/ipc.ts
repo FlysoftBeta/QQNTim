@@ -1,6 +1,5 @@
 import { printObject } from "./console";
-import { env } from "./globalVar";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
+import { env } from "./global";
 
 const interruptIpcs: [QQNTim.IPC.InterruptFunction, QQNTim.IPC.InterruptIPCOptions | undefined][] = [];
 

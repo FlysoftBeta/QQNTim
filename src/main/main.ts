@@ -3,22 +3,24 @@
  * Copyright (c) Flysoft.
  */
 
-import { setAllPlugins, setEnv } from "../globalVar";
-import { watchIpc } from "../ipc";
-import { hookAfterPatchElectron } from "./compatibility";
+import { setAllPlugins, setEnv } from "../common/global";
+import { watchIpc } from "../common/ipc";
+import { initAPI } from "./api";
+import { loadCustomLoaders } from "./compatibility";
 import { loadConfig } from "./config";
 import { initDebugger } from "./debugger";
 import { applyPlugins } from "./loader";
-import { patchElectron } from "./patch";
+import { patchModuleLoader } from "./patch";
 import { collectPlugins, plugins } from "./plugins";
 
 setEnv(loadConfig());
-watchIpc();
 initDebugger();
-patchElectron();
-hookAfterPatchElectron();
+patchModuleLoader();
+watchIpc();
+loadCustomLoaders();
 collectPlugins();
 setAllPlugins(plugins);
+initAPI();
 applyPlugins(plugins);
 console.log("[!Main] QQNTim 加载成功");
 require("./index.js");

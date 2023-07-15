@@ -1,6 +1,6 @@
 import { BuildOptions, build } from "esbuild";
-import { copy, emptyDir, ensureDir, readdir } from "fs-extra";
-import * as path from "path";
+import { copy, emptyDir, ensureDir, readdir, writeFile } from "fs-extra";
+import { dirname, sep as s } from "path";
 import { getAllLocators, getPackageInformation } from "pnpapi";
 
 type Package = {
@@ -9,8 +9,7 @@ type Package = {
 };
 type Packages = Record<string, Record<string, Package>>;
 
-const s = path.sep;
-const unpackedPackages = ["fs-extra", "chii", "supports-color"];
+const unpackedPackages = ["chii"];
 const junkFiles = [
     ".d.ts",
     ".markdown",
@@ -83,7 +82,7 @@ async function buildBuiltinPlugins() {
                 ...commonOptions,
                 entryPoints: [`${pluginDir}${s}src${s}main.ts`, `${pluginDir}${s}src${s}renderer.ts`],
                 outdir: distDir,
-                external: ["electron", "@flysoftbeta/qqntim-typings"],
+                external: ["electron", "react", "react/jsx-runtime", "react-dom", "react-dom/client", "qqntim/main", "qqntim/renderer"],
                 format: "cjs",
             });
             await copy(`${pluginDir}${s}publish`, `${distDir}`);
@@ -128,5 +127,24 @@ async function unpackPackage(packages: Packages, rootDir: string, name: string, 
     await Promise.all(promises);
 }
 
+async function packChii() {
+    // TODO: https://github.com/evanw/esbuild/issues/3234
+    //
+    // const chiiDir = `${__dirname}${s}dist${s}_${s}node_modules${s}chii`;
+    // const chiiJSFile = `${chiiDir}${s}server${s}index.js`;
+    // const bundleContent = await build({
+    //     ...commonOptions,
+    //     entryPoints: [chiiJSFile],
+    //     external: [],
+    //     absWorkingDir: chiiDir,
+    //     write: false,
+    // }).then((res) => {
+    //     return res.outputFiles[0].contents;
+    // });
+    // await emptyDir(dirname(chiiJSFile));
+    // await emptyDir(`${chiiDir}${s}node_modules${s}chii${s}node_modules`);
+    // await writeFile(chiiJSFile, bundleContent);
+}
+
 const packages = collectDeps();
-prepareDistDir().then(() => Promise.all([buildBundles(), buildBuiltinPlugins(), Promise.all(unpackedPackages.map((unpackedPackage) => unpackPackage(packages, `dist${s}_`, unpackedPackage)))]));
+prepareDistDir().then(() => Promise.all([buildBundles(), buildBuiltinPlugins(), Promise.all(unpackedPackages.map((unpackedPackage) => unpackPackage(packages, `dist${s}_`, unpackedPackage)))]).then(() => packChii()));

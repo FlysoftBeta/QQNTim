@@ -1,4 +1,3 @@
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { ipcRenderer } from "electron";
 
 class AppAPI implements QQNTim.API.Renderer.AppAPI {

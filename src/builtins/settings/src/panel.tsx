@@ -1,33 +1,29 @@
-import { cl } from "./consts";
 import { installFolderPluginsForAccount, installZipPluginsForAccount, uninstallPlugin } from "./installer";
 import { Tab } from "./nav";
-import { enablePlugin, getPluginDescription, isInBlacklist, isInWhitelist, isPluginsExistent } from "./utils";
-import type { QQNTim } from "@flysoftbeta/qqntim-typings";
+import { cl } from "./utils/consts";
+import { enablePlugin, getPluginDescription, isInBlacklist, isInWhitelist, isPluginsExistent } from "./utils/utils";
 import { shell } from "electron";
-import type { ReactNode } from "react";
+import { allPlugins, app, env, modules, utils } from "qqntim/renderer";
+import { Fragment, ReactNode, useEffect, useState } from "react";
+const { fs } = modules;
 
-const React = window.React;
-const { Fragment, useEffect, useState } = React;
-
-export function Panel({ qqntim, currentTab, account }: { qqntim: QQNTim.API.Renderer.API; currentTab: Tab; account: QQNTim.API.Renderer.NT.LoginAccount }) {
-    const fs = qqntim.modules.fs;
-
-    const [config, setConfig] = useState<Required<QQNTim.Configuration.Configuration>>(qqntim.env.config);
+export function Panel({ currentTab, account }: { currentTab: Tab; account: QQNTim.API.Renderer.NT.LoginAccount }) {
+    const [config, setConfig] = useState<Required<QQNTim.Configuration>>(env.config);
     const [savedTitle, setSavedTitle] = useState<string>();
 
     const saveConfigAndRestart = () => {
-        fs.writeJSONSync(qqntim.env.path.configFile, config);
-        qqntim.app.relaunch();
+        fs.writeJSONSync(env.path.configFile, config);
+        app.relaunch();
     };
 
     const resetConfigAndRestart = () => {
-        fs.writeJSONSync(qqntim.env.path.configFile, {});
-        qqntim.app.relaunch();
+        fs.writeJSONSync(env.path.configFile, {});
+        app.relaunch();
     };
 
     useEffect(() => {
         document.body.classList.toggle(cl.panel.open.c, !!currentTab.type);
-        qqntim.utils.waitForElement<HTMLElement>(".setting-title").then((element) => {
+        utils.waitForElement<HTMLElement>(".setting-title").then((element) => {
             if (currentTab.type) {
                 setSavedTitle(element.innerText);
                 element.innerText = currentTab.title;
@@ -39,7 +35,6 @@ export function Panel({ qqntim, currentTab, account }: { qqntim: QQNTim.API.Rend
     }, [currentTab]);
 
     const panelProps: PanelsProps = {
-        qqntim,
         account,
         config,
         setConfig,
@@ -61,20 +56,19 @@ export function Panel({ qqntim, currentTab, account }: { qqntim: QQNTim.API.Rend
 }
 
 interface PanelsProps {
-    qqntim: QQNTim.API.Renderer.API;
     account: QQNTim.API.Renderer.NT.LoginAccount;
-    config: Required<QQNTim.Configuration.Configuration>;
-    setConfig: React.Dispatch<React.SetStateAction<Required<QQNTim.Configuration.Configuration>>>;
+    config: Required<QQNTim.Configuration>;
+    setConfig: React.Dispatch<React.SetStateAction<Required<QQNTim.Configuration>>>;
 }
 
-function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
+function SettingsPanel({ config, setConfig }: PanelsProps) {
     return (
         <>
             <Section title="版本信息">
                 <div className={cl.panel.settings.versions.c}>
                     {[
-                        ["QQNTim", qqntim.version],
-                        ["QQNT", qqntim.ntVersion],
+                        ["QQNTim", process.versions.qqntim],
+                        ["QQNT", process.versions.qqnt],
                         ["Electron", process.versions.electron],
                         ["Node.js", process.versions.node],
                         ["Chromium", process.versions.chrome],
@@ -131,13 +125,13 @@ function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
     );
 }
 
-function PluginsManagerPanel({ qqntim, account, config, setConfig }: PanelsProps) {
-    const [existentPlugins, setExistentPlugins] = useState<string[]>(isPluginsExistent(qqntim));
+function PluginsManagerPanel({ account, config, setConfig }: PanelsProps) {
+    const [existentPlugins, setExistentPlugins] = useState<string[]>(isPluginsExistent());
 
-    return Array.from(new Set([...Object.keys(qqntim.allPlugins), account.uin]))
+    return Array.from(new Set([...Object.keys(allPlugins), account.uin]))
         .sort()
         .map((uin: string) => {
-            const plugins = qqntim.allPlugins[uin] || {};
+            const plugins = allPlugins[uin] || {};
             const requiresRestart = uin == account.uin || uin == "";
             const isEmpty = Object.keys(plugins).length == 0;
             if (uin != account.uin && isEmpty) return;
@@ -147,10 +141,10 @@ function PluginsManagerPanel({ qqntim, account, config, setConfig }: PanelsProps
                     title={uin == "" ? "对所有账号生效的插件" : `仅对账号 ${uin} 生效的插件`}
                     buttons={
                         <>
-                            <Button onClick={() => installZipPluginsForAccount(qqntim, uin, requiresRestart)} primary={false} small={true}>
+                            <Button onClick={() => installZipPluginsForAccount(uin, requiresRestart)} primary={false} small={true}>
                                 安装插件压缩包 (.zip)
                             </Button>
-                            <Button onClick={() => installFolderPluginsForAccount(qqntim, uin, requiresRestart)} primary={false} small={true}>
+                            <Button onClick={() => installFolderPluginsForAccount(uin, requiresRestart)} primary={false} small={true}>
                                 安装插件文件夹
                             </Button>
                         </>
@@ -173,7 +167,7 @@ function PluginsManagerPanel({ qqntim, account, config, setConfig }: PanelsProps
                                             <Button onClick={() => shell.openPath(plugin.dir)} small={true} primary={false}>
                                                 文件夹
                                             </Button>
-                                            <Button onClick={() => uninstallPlugin(qqntim, requiresRestart, plugin.dir).then((success) => success && setExistentPlugins((prev) => prev.filter((pluginId) => pluginId != id)))} small={true} primary={false}>
+                                            <Button onClick={() => uninstallPlugin(requiresRestart, plugin.dir).then((success) => success && setExistentPlugins((prev) => prev.filter((pluginId) => pluginId != id)))} small={true} primary={false}>
                                                 删除
                                             </Button>
                                         </SettingsBoxItem>

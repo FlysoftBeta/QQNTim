@@ -1,6 +1,5 @@
-import { addInterruptIpc } from "../../../ipc";
+import { addInterruptIpc } from "../../../common/ipc";
 import { webContentsId } from "../../main";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
 
 export class NTWatcher<T extends string | number> {
     private pendingList = {} as Record<T, Function>;

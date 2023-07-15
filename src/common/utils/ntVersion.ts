@@ -1,14 +1,12 @@
-import * as fs from "fs-extra";
-import * as path from "path";
-
-const s = path.sep;
+import { s } from "../sep";
+import { readJSONSync } from "fs-extra";
 
 export function getCurrentNTVersion() {
     let version: string;
     if (process.platform == "win32") {
-        version = fs.readJSONSync(`${__dirname}${s}..${s}versions${s}config.json`)?.curVersion;
+        version = readJSONSync(`${__dirname}${s}..${s}versions${s}config.json`)?.curVersion;
     } else if (process.platform == "linux") {
-        version = fs.readJSONSync(`${__dirname}${s}..${s}package.json`)?.version;
+        version = readJSONSync(`${__dirname}${s}..${s}package.json`)?.version;
     } else throw new Error(`unsupported platform: ${process.platform}`);
     if (!version) throw new Error("cannot determine QQNT version");
     return version;

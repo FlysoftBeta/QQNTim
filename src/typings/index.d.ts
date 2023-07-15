@@ -1,5 +1,13 @@
-import "./electron";
-import TypedEmitter from "typed-emitter";
+/// <reference types="node" />
+/// <reference types="./electron" />
+
+declare module "qqntim/main" {
+    export = QQNTim.API.Main;
+}
+
+declare module "qqntim/renderer" {
+    export = QQNTim.API.Renderer;
+}
 
 declare namespace QQNTim {
     namespace IPC {
@@ -34,76 +42,72 @@ declare namespace QQNTim {
         type InterruptFunction = (window: Electron.BrowserWindow) => void;
     }
 
-    namespace Configuration {
-        type Configuration = {
-            plugins?: {
-                /**
-                 * 插件白名单
-                 */
-                whitelist?: string[];
-                /**
-                 * 插件黑名单
-                 */
-                blacklist?: string[];
-            };
+    interface Configuration {
+        plugins?: {
             /**
-             * 自定义插件加载器路径
+             * 插件白名单
              */
-            pluginLoaders: string[];
+            whitelist?: string[];
             /**
-             * 显示详细日志输出
-             * @description 开启后，可以在控制台内查看到 IPC 通信、部分 Electron 对象的成员访问信息等。
+             * 插件黑名单
              */
-            verboseLogging?: boolean;
-            /**
-             * 使用原版 DevTools
-             * @description 使用 Chromium DevTools 而不是 chii DevTools (Windows 版 9.8.5 及以上不可用)。
-             */
-            useNativeDevTools?: boolean;
-            /**
-             * 禁用兼容性处理
-             * @description 禁用后，LiteLoader 和 BetterQQNT 可能将不能与 QQNTim 一起使用。
-             */
-            disableCompatibilityProcessing?: boolean;
+            blacklist?: string[];
         };
+        /**
+         * 自定义插件加载器路径
+         */
+        pluginLoaders: string[];
+        /**
+         * 显示详细日志输出
+         * @description 开启后，可以在控制台内查看到 IPC 通信、部分 Electron 对象的成员访问信息等。
+         */
+        verboseLogging?: boolean;
+        /**
+         * 使用原版 DevTools
+         * @description 使用 Chromium DevTools 而不是 chii DevTools (Windows 版 9.8.5 及以上不可用)。
+         */
+        useNativeDevTools?: boolean;
+        /**
+         * 禁用兼容性处理
+         * @description 禁用后，LiteLoader 和 BetterQQNT 可能将不能与 QQNTim 一起使用。
+         */
+        disableCompatibilityProcessing?: boolean;
+    }
 
-        interface Environment {
-            config: Required<Configuration>;
-            path: {
-                /**
-                 * 数据目录
-                 */
-                dataDir: string;
-                /**
-                 * 配置文件 (`qqntim.json`)
-                 */
-                configFile: string;
-                /**
-                 * 插件目录 (`plugins`)
-                 */
-                pluginDir: string;
-                /**
-                 * 用户插件目录 (`plugins-user`)
-                 */
-                pluginPerUserDir: string;
-            };
-        }
+    interface Environment {
+        config: Required<Configuration>;
+        path: {
+            /**
+             * 数据目录
+             */
+            dataDir: string;
+            /**
+             * 配置文件 (`qqntim.json`)
+             */
+            configFile: string;
+            /**
+             * 插件目录 (`plugins`)
+             */
+            pluginDir: string;
+            /**
+             * 用户插件目录 (`plugins-user`)
+             */
+            pluginPerUserDir: string;
+        };
     }
 
     namespace Entry {
         class Main {
             /**
              * 当插件加载时触发
-             * @param qqntim QQNTim API
              */
-            constructor(qqntim: API.Main.API);
+            constructor();
         }
         class Renderer {
             /**
              * 当插件加载时触发
-             * @param qqntim QQNTim API
              */
-            constructor(qqntim: API.Renderer.API);
+            constructor();
             /**
              * 当页面加载完毕时触发
              */
@@ -111,6 +115,36 @@ declare namespace QQNTim {
         }
     }
 
+    interface Plugin {
+        /**
+         * 是否已经加载
+         */
+        loaded: boolean;
+        /**
+         * 当前环境是否满足条件
+         */
+        meetRequirements: boolean;
+        /**
+         * 是否启用
+         */
+        enabled: boolean;
+        /**
+         * 唯一 ID
+         */
+        id: string;
+        /**
+         * 插件所在目录
+         */
+        dir: string;
+        /**
+         * 脚本和样式注入
+         */
+        injections: Plugin.Injection[];
+        /**
+         * 插件清单
+         */
+        manifest: Manifest;
+    }
     namespace Plugin {
         interface InjectionMain {
             type: "main";
@@ -124,36 +158,6 @@ declare namespace QQNTim {
             script: string | undefined;
         }
         type Injection = InjectionMain | InjectionRenderer;
-        interface Plugin {
-            /**
-             * 是否已经加载
-             */
-            loaded: boolean;
-            /**
-             * 当前环境是否满足条件
-             */
-            meetRequirements: boolean;
-            /**
-             * 是否启用
-             */
-            enabled: boolean;
-            /**
-             * 唯一 ID
-             */
-            id: string;
-            /**
-             * 插件所在目录
-             */
-            dir: string;
-            /**
-             * 脚本和样式注入
-             */
-            injections: Injection[];
-            /**
-             * 插件清单
-             */
-            manifest: Manifest.Manifest;
-        }
         type AllUsersPlugins = Record<string, UserPlugins>;
         type UserPlugins = Record<string, Plugin>;
         type LoadedPlugins = Record<string, Plugin>;
@@ -161,131 +165,117 @@ declare namespace QQNTim {
 
     namespace API {
         namespace Main {
-            interface API {
+            /**
+             * 所有已经扫描到的插件列表
+             */
+            const allPlugins: Plugin.AllUsersPlugins;
+            /**
+             * 当前的配置数据和配置文件路径
+             */
+            const env: Environment;
+            const interrupt: {
                 /**
-                 * 当前的配置数据和配置文件路径
+                 * 拦截 IPC 通讯
+                 * @param func 处理函数
+                 * @param options 过滤选项
+                 * @returns
                  */
-                env: Configuration.Environment;
+                ipc: (func: IPC.InterruptFunction, options: IPC.InterruptIPCOptions) => void;
                 /**
-                 * QQNTim 版本号
+                 * 拦截窗口创建并修改 `BrowserWindow` 参数 (在窗口创建前)
+                 * @param func 处理函数
+                 * @returns
                  */
-                version: string;
+                windowArgs: (func: WindowCreation.InterruptArgsFunction) => void;
                 /**
-                 * QQNT 版本号
+                 * 拦截 `BrowserWindow` 创建 (在窗口创建后)
+                 * @param func 处理函数
+                 * @returns
                  */
-                ntVersion: string;
-                interrupt: {
-                    /**
-                     * 拦截 IPC 通讯
-                     * @param func 处理函数
-                     * @param options 过滤选项
-                     * @returns
-                     */
-                    ipc: (func: IPC.InterruptFunction, options: IPC.InterruptIPCOptions) => void;
-                    /**
-                     * 拦截窗口创建并修改 `BrowserWindow` 参数 (在窗口创建前)
-                     * @param func 处理函数
-                     * @returns
-                     */
-                    windowArgs: (func: WindowCreation.InterruptArgsFunction) => void;
-                    /**
-                     * 拦截 `BrowserWindow` 创建 (在窗口创建后)
-                     * @param func 处理函数
-                     * @returns
-                     */
-                    windowCreation: (func: WindowCreation.InterruptFunction) => void;
-                };
-                modules: {
-                    fs: typeof import("fs-extra");
-                };
-            }
+                windowCreation: (func: WindowCreation.InterruptFunction) => void;
+            };
+            const modules: {
+                fs: typeof import("fs-extra");
+            };
         }
         namespace Renderer {
-            interface API {
+            /**
+             * 所有已经扫描到的插件列表
+             */
+            const allPlugins: Plugin.AllUsersPlugins;
+            /**
+             * 当前的配置数据和配置文件路径
+             */
+            const env: Environment;
+            const interrupt: {
                 /**
-                 * 所有已经扫描到的插件列表
+                 * 拦截 IPC 通讯
+                 * @param func 处理函数
+                 * @param options 过滤选项
+                 * @returns
                  */
-                allPlugins: Plugin.AllUsersPlugins;
+                ipc(func: IPC.InterruptFunction, options: IPC.InterruptIPCOptions): void;
+            };
+            /**
+             * NT API
+             */
+            const nt: NT;
+            /**
+             * 窗口 API
+             */
+            const browserWindow: BrowserWindowAPI;
+            /**
+             * 应用程序生命周期 API
+             */
+            const app: AppAPI;
+            /**
+             * 对话框 API
+             */
+            const dialog: DialogAPI;
+            const modules: {
+                fs: typeof import("fs-extra");
+            };
+            const utils: {
                 /**
-                 * 当前的配置数据和配置文件路径
+                 * 等待 DOM 元素出现
+                 * @description 当元素出现时，此函数返回的 Promise 会 resolve 一个元素。
+                 * @param selector CSS 选择器
                  */
-                env: Configuration.Environment;
+                waitForElement<T extends Element>(selector: string): Promise<T>;
                 /**
-                 * QQNTim 版本号
+                 * 调用 NT API
+                 * @param eventName 事件名称 (如 `ns-ntApi` 或 `ns-fsApi` 等)
+                 * @param cmd 命令名称
+                 * @param args 参数
                  */
-                version: string;
+                ntCall(eventName: string, cmd: string, args: any[]): Promise<IPC.Response>;
                 /**
-                 * QQNT 版本号
+                 * 拦截 NT API 调用
+                 * @param callback 回调函数
+                 * @param eventName 事件名称 (如 `ns-ntApi` 或 `ns-fsApi` 等)
+                 * @param cmdName 命令名称
+                 * @param direction 方向 (接收或发送)
+                 * @param type 类型 (`request` 或 `response`)
                  */
-                ntVersion: string;
-                interrupt: {
-                    /**
-                     * 拦截 IPC 通讯
-                     * @param func 处理函数
-                     * @param options 过滤选项
-                     * @returns
-                     */
-                    ipc(func: IPC.InterruptFunction, options: IPC.InterruptIPCOptions): void;
-                };
+                ntInterrupt(callback: QQNTim.IPC.InterruptFunction, eventName: string, cmdName: string, direction?: QQNTim.IPC.Direction, type?: QQNTim.IPC.Type): void;
                 /**
-                 * NT API
+                 * 获取与 DOM 元素相关联的 Vue 组件 ID
+                 * @param element 元素
+                 * @example
+                 * ```html
+                 * <div class="xxxxx" data-vxxxxxx>xxxxx</div>
+                 * ```
+                 * 将会返回 `data-vxxxxxx`。
                  */
-                nt: NT.NT;
-                /**
-                 * 窗口 API
-                 */
-                browserWindow: BrowserWindowAPI;
-                /**
-                 * 应用程序生命周期 API
-                 */
-                app: AppAPI;
-                /**
-                 * 对话框 API
-                 */
-                dialog: DialogAPI;
-                modules: {
-                    fs: typeof import("fs-extra");
-                };
-                utils: {
-                    /**
-                     * 等待 DOM 元素出现
-                     * @description 当元素出现时，此函数返回的 Promise 会 resolve 一个元素。
-                     * @param selector CSS 选择器
-                     */
-                    waitForElement<T extends Element>(selector: string): Promise<T>;
-                    /**
-                     * 调用 NT API
-                     * @param eventName 事件名称 (如 `ns-ntApi` 或 `ns-fsApi` 等)
-                     * @param cmd 命令名称
-                     * @param args 参数
-                     */
-                    ntCall(eventName: string, cmd: string, args: any[]): Promise<IPC.Response>;
-                    /**
-                     * 拦截 NT API 调用
-                     * @param callback 回调函数
-                     * @param eventName 事件名称 (如 `ns-ntApi` 或 `ns-fsApi` 等)
-                     * @param cmdName 命令名称
-                     * @param direction 方向 (接收或发送)
-                     * @param type 类型 (`request` 或 `response`)
-                     */
-                    ntInterrupt(callback: QQNTim.IPC.InterruptFunction, eventName: string, cmdName: string, direction?: QQNTim.IPC.Direction, type?: QQNTim.IPC.Type): void;
-                    /**
-                     * 获取与 DOM 元素相关联的 Vue 组件 ID
-                     * @param element 元素
-                     * @example
-                     * ```html
-                     * <div class="xxxxx" data-vxxxxxx>xxxxx</div>
-                     * ```
-                     * 将会返回 `data-vxxxxxx`。
-                     */
-                    getVueId(element: HTMLElement): string | undefined;
-                };
-                /**
-                 * @description 当页面加载完毕时，此 Promise 会 resolve。
-                 */
-                windowLoadPromise: WindowLoadPromise;
-            }
+                getVueId(element: HTMLElement): string | undefined;
+            };
+            /**
+             * @description 当页面加载完毕时，此 Promise 会 resolve。
+             */
+            const windowLoadPromise: WindowLoadPromise;
+
             type WindowLoadPromise = Promise<void>;
+
             namespace NT {
                 interface MessageElementBase {
                     /**
@@ -479,54 +469,54 @@ declare namespace QQNTim {
                      */
                     "groups-list-updated": (list: Group[]) => void;
                 };
-                type EventEmitter = TypedEmitter<Events>;
-                interface NT extends EventEmitter {
-                    /**
-                     * 获取当前登录的账号
-                     * @returns 当前登录的账号
-                     */
-                    getAccountInfo(): Promise<LoginAccount | undefined>;
-                    /**
-                     * 获取用户信息
-                     * @param uid 用户 ID
-                     * @returns 用户信息
-                     */
-                    getUserInfo(uid: string): Promise<User>;
-                    /**
-                     * 撤回一条消息
-                     * @param peer 聊天会话
-                     * @param message 消息 ID
-                     * @returns
-                     */
-                    revokeMessage(peer: Peer, message: string): Promise<void>;
-                    /**
-                     * 发送一条消息
-                     * @param peer 聊天会话
-                     * @param elements 消息元素
-                     * @returns 消息 ID
-                     */
-                    sendMessage(peer: Peer, elements: MessageElement[]): Promise<string>;
-                    /**
-                     * 获取好友列表
-                     * @param forced 忽略缓存强制获取
-                     * @returns 用户信息列表
-                     */
-                    getFriendsList(forced: boolean): Promise<User[]>;
-                    /**
-                     * 获取群列表
-                     * @param forced 忽略缓存强制获取
-                     * @returns 群列表
-                     */
-                    getGroupsList(forced: boolean): Promise<Group[]>;
-                    /**
-                     * 获取历史聊天记录
-                     * @param peer 聊天会话
-                     * @param count 消息数量
-                     * @param startMsgId 开始位置 (消息 ID)
-                     * @returns 历史消息列表
-                     */
-                    getPreviousMessages(peer: Peer, count?: number, startMsgId?: string): Promise<Message[]>;
-                }
+                type EventEmitter = import("typed-emitter").default<Events>;
+            }
+            interface NT extends NT.EventEmitter {
+                /**
+                 * 获取当前登录的账号
+                 * @returns 当前登录的账号
+                 */
+                getAccountInfo(): Promise<NT.LoginAccount | undefined>;
+                /**
+                 * 获取用户信息
+                 * @param uid 用户 ID
+                 * @returns 用户信息
+                 */
+                getUserInfo(uid: string): Promise<NT.User>;
+                /**
+                 * 撤回一条消息
+                 * @param peer 聊天会话
+                 * @param message 消息 ID
+                 * @returns
+                 */
+                revokeMessage(peer: NT.Peer, message: string): Promise<void>;
+                /**
+                 * 发送一条消息
+                 * @param peer 聊天会话
+                 * @param elements 消息元素
+                 * @returns 消息 ID
+                 */
+                sendMessage(peer: NT.Peer, elements: NT.MessageElement[]): Promise<string>;
+                /**
+                 * 获取好友列表
+                 * @param forced 忽略缓存强制获取
+                 * @returns 用户信息列表
+                 */
+                getFriendsList(forced: boolean): Promise<NT.User[]>;
+                /**
+                 * 获取群列表
+                 * @param forced 忽略缓存强制获取
+                 * @returns 群列表
+                 */
+                getGroupsList(forced: boolean): Promise<NT.Group[]>;
+                /**
+                 * 获取历史聊天记录
+                 * @param peer 聊天会话
+                 * @param count 消息数量
+                 * @param startMsgId 开始位置 (消息 ID)
+                 * @returns 历史消息列表
+                 */
+                getPreviousMessages(peer: NT.Peer, count?: number, startMsgId?: string): Promise<NT.Message[]>;
             }
 
             interface BrowserWindowAPI {
@@ -582,6 +572,70 @@ declare namespace QQNTim {
         }
     }
 
+    /**
+     * @example
+     * {
+     *    "manifestVersion": "2.0",
+     *    "id": "my-plugin",
+     *    "name": "我的插件",
+     *    "author": "Flysoft",
+     *    "requirements": {
+     *        "os": [
+     *            {
+     *                "platform": "win32",
+     *                "lte": "10.0.22621",
+     *                "gte": "6.1.0"
+     *            }
+     *        ]
+     *    },
+     *    "injections": [
+     *        {
+     *            "type": "main",
+     *            "script": "main.js"
+     *        },
+     *        {
+     *            "type": "renderer",
+     *            "page": ["main", "chat"],
+     *            "script": "main.js",
+     *            "stylesheet": "style.css"
+     *        }
+     *    ]
+     *}
+     */
+    interface Manifest {
+        /**
+         * 插件规范版本
+         */
+        manifestVersion: Manifest.ManifestVersion;
+        /**
+         * 唯一 ID
+         */
+        id: string;
+        /**
+         * 显示名称
+         */
+        name: string;
+        /**
+         * 插件自身版本
+         */
+        version?: string;
+        /**
+         * 说明
+         */
+        description?: string;
+        /**
+         * 作者
+         */
+        author?: string;
+        /**
+         * 脚本和样式注入
+         */
+        injections: Manifest.Injection[];
+        /**
+         * 加载条件
+         */
+        requirements?: Manifest.Requirements;
+    }
     namespace Manifest {
         /**
          * 分别表示登录页面、主界面、独立聊天窗口、设置界面和其他
@@ -630,7 +684,7 @@ declare namespace QQNTim {
             /**
              * 支持的操作系统类型
              */
-            platform: NodeJS.Platform;
+            platform: "win32" | "linux" | "darwin";
             /**
              * `x` 须小于等于当前的操作系统版本
              */
@@ -670,70 +724,13 @@ declare namespace QQNTim {
         /**
          * 插件规范版本
          */
-        type ManifestVersion = "1.0" | "2.0";
-        /**
-         * @example
-         * {
-         *    "manifestVersion": "2.0",
-         *    "id": "my-plugin",
-         *    "name": "我的插件",
-         *    "author": "Flysoft",
-         *    "requirements": {
-         *        "os": [
-         *            {
-         *                "platform": "win32",
-         *                "lte": "10.0.22621",
-         *                "gte": "6.1.0"
-         *            }
-         *        ]
-         *    },
-         *    "injections": [
-         *        {
-         *            "type": "main",
-         *            "script": "main.js"
-         *        },
-         *        {
-         *            "type": "renderer",
-         *            "page": ["main", "chat"],
-         *            "script": "main.js",
-         *            "stylesheet": "style.css"
-         *        }
-         *    ]
-         *}
-         */
-        interface Manifest {
-            /**
-             * 插件规范版本
-             */
-            manifestVersion: ManifestVersion;
-            /**
-             * 唯一 ID
-             */
-            id: string;
-            /**
-             * 显示名称
-             */
-            name: string;
-            /**
-             * 插件自身版本
-             */
-            version?: string;
-            /**
-             * 说明
-             */
-            description?: string;
-            /**
-             * 作者
-             */
-            author?: string;
-            /**
-             * 脚本和样式注入
-             */
-            injections: Injection[];
-            /**
-             * 加载条件
-             */
-            requirements?: Requirements;
-        }
+        type ManifestVersion = "1.0" | "2.0" | "3.0";
+    }
+}
+
+declare namespace NodeJS {
+    interface ProcessVersions {
+        readonly qqntim: string;
+        readonly qqnt: string;
     }
 }
