@@ -54,7 +54,7 @@ function applyScripts() {
     scripts = scripts.filter(([plugin, script]) => {
         try {
             const mod = require(script);
-            if (mod) new ((mod.default || mod) as typeof QQNTim.Entry.Main)();
+            if (mod) new ((mod.default || mod) as typeof QQNTim.Entry.Renderer)();
             return false;
         } catch (reason) {
             console.error(`[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者 (${plugin.manifest.author}) 解决`);
