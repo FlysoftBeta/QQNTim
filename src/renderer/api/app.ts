@@ -3,34 +3,16 @@ import { ipcRenderer } from "electron";
 
 class AppAPI implements QQNTim.API.Renderer.AppAPI {
     relaunch() {
-        ipcRenderer.sendSync(
-            "___!app_api",
-            {
-                eventName: "QQNTIM_APP_API",
-            },
-            ["relaunch", []],
-        );
+        ipcRenderer.sendSync("___!app_api", ["relaunch", []]);
         this.quit();
     }
 
     quit() {
-        ipcRenderer.sendSync(
-            "___!app_api",
-            {
-                eventName: "QQNTIM_APP_API",
-            },
-            ["quit", []],
-        );
+        ipcRenderer.sendSync("___!app_api", ["quit", []]);
     }
 
     exit() {
-        ipcRenderer.sendSync(
-            "___!app_api",
-            {
-                eventName: "QQNTIM_APP_API",
-            },
-            ["exit", []],
-        );
+        ipcRenderer.sendSync("___!app_api", ["exit", []]);
     }
 }
 

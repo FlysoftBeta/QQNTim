@@ -35,14 +35,7 @@ export function applyPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin = ""
 
     windowLoadPromise.then(() => applyStylesheets());
 
-    if (uin != "")
-        ipcRenderer.send(
-            "___!apply_plugins",
-            {
-                eventName: "QQNTIM_APPLY_PLUGINS",
-            },
-            uin,
-        );
+    if (uin != "") ipcRenderer.send("___!apply_plugins", uin);
 
     return true;
 }

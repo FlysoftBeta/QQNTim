@@ -9,10 +9,9 @@ import { ipcRenderer } from "electron";
 import * as React from "react";
 import * as ReactDOMClient from "react-dom/client";
 
-export const { enabled, preload, debuggerOrigin, webContentsId, plugins, env } = ipcRenderer.sendSync("___!boot", {
-    eventName: "QQNTIM_BOOT",
-});
+export const { enabled, preload, debuggerOrigin, webContentsId, plugins, env } = ipcRenderer.sendSync("___!boot");
 
+patchElectron();
 if (enabled) {
     setEnv(env);
     setAllPlugins(plugins);
@@ -36,7 +35,5 @@ if (enabled) {
         console.log("[!Main] QQNTim 加载成功");
     }, 1);
 }
-
-patchElectron();
 
 preload.forEach((item: string) => require(item));

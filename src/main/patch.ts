@@ -18,7 +18,7 @@ ipcMain.on("___!boot", (event) => {
     if (!event.returnValue) event.returnValue = { enabled: false };
 });
 
-ipcMain.handle("___!dialog", (event, _, method: string, options: object) => dialog[method](BrowserWindow.fromWebContents(event.sender), options));
+ipcMain.handle("___!dialog", (event, method: string, options: object) => dialog[method](BrowserWindow.fromWebContents(event.sender), options));
 
 function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
     const windowMenu: Electron.MenuItem[] = [
@@ -106,12 +106,12 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
                 handleIpc(args, "out", channel);
                 return send.call(win.webContents, channel, ...args);
             };
-            win.webContents.on("ipc-message", (_, channel, ...args: QQNTim.IPC.Args<any>) => {
-                if (!handleIpc(args, "in", channel, win.webContents)) throw new Error("QQNTim 已强行中断了一条 IPC 消息");
-                if (channel == "___!apply_plugins") applyPlugins(plugins, args[1] as string);
+            win.webContents.on("ipc-message", (_, channel, ...args) => {
+                if (!handleIpc(args as any, "in", channel, win.webContents)) throw new Error("QQNTim 已强行中断了一条 IPC 消息");
+                if (channel == "___!apply_plugins") applyPlugins(plugins, args[0] as string);
             });
-            win.webContents.on("ipc-message-sync", (event, channel, ...args: QQNTim.IPC.Args<any>) => {
-                handleIpc(args, "in", channel, win.webContents);
+            win.webContents.on("ipc-message-sync", (event, channel, ...args) => {
+                handleIpc(args as any, "in", channel, win.webContents);
                 if (channel == "___!boot") {
                     event.returnValue = {
                         enabled: true,
@@ -122,9 +122,9 @@ function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
                         env: env,
                     };
                 } else if (channel == "___!browserwindow_api") {
-                    event.returnValue = win[args[1][0]](...args[1][1]);
+                    event.returnValue = win[args[0][0]](...args[0][1]);
                 } else if (channel == "___!app_api") {
-                    event.returnValue = app[args[1][0]](...args[1][1]);
+                    event.returnValue = app[args[0][0]](...args[0][1]);
                 }
             });
             if (!env.config.useNativeDevTools)

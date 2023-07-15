@@ -14,6 +14,8 @@
 
 **请务必仔细阅读本章节内容以避免不必要的麻烦！**
 
+QQNTim 支持 LiteLoader，但**不支持 BetterQQNT**。
+
 > ### LiteLoader 相关安装教程：
 >
 > #### 如果你已经安装了 LiteLoader，想安装 QQNTim：
