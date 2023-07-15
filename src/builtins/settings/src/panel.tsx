@@ -111,7 +111,7 @@ function SettingsPanel({ qqntim, config, setConfig }: PanelsProps) {
                             ],
                             [
                                 "禁用兼容性处理",
-                                "禁用后，LiteLoader 和 BetterQQNT 可能将不能与 QQNTim 一起使用。",
+                                "禁用后，LiteLoader 可能将不能与 QQNTim 一起使用。",
                                 config.disableCompatibilityProcessing,
                                 (state) =>
                                     setConfig((prev) => {

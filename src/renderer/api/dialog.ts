@@ -2,17 +2,6 @@ import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { ipcRenderer } from "electron";
 
 class DialogAPI implements QQNTim.API.Renderer.DialogAPI {
-    private api<R, T>(method: string, options: T): Promise<R> {
-        return ipcRenderer.invoke(
-            "___!dialog",
-            {
-                eventName: "QQNTIM_DIALOG_API",
-            },
-            method,
-            options,
-        ) as Promise<R>;
-    }
-
     async confirm(message = "") {
         const res = await this.messageBox({ message, buttons: ["确定", "取消"], defaultId: 0, type: "question" });
         return res.response == 0;
@@ -24,15 +13,15 @@ class DialogAPI implements QQNTim.API.Renderer.DialogAPI {
     }
 
     messageBox(options: Electron.MessageBoxOptions): Promise<Electron.MessageBoxReturnValue> {
-        return this.api("showMessageBox", options);
+        return ipcRenderer.invoke("___!dialog", "showMessageBox", options);
     }
 
     openDialog(options: Electron.OpenDialogOptions): Promise<Electron.OpenDialogReturnValue> {
-        return this.api("showOpenDialog", options);
+        return ipcRenderer.invoke("___!dialog", "showOpenDialog", options);
     }
 
     saveDialog(options: Electron.SaveDialogOptions): Promise<Electron.SaveDialogReturnValue> {
-        return this.api("showSaveDialog", options);
+        return ipcRenderer.invoke("___!dialog", "showSaveDialog", options);
     }
 }
 

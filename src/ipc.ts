@@ -4,12 +4,6 @@ import { QQNTim } from "@flysoftbeta/qqntim-typings";
 
 const interruptIpcs: [QQNTim.IPC.InterruptFunction, QQNTim.IPC.InterruptIPCOptions | undefined][] = [];
 
-function wrapIpc(args: QQNTim.IPC.Args<any>, direction: QQNTim.IPC.Direction) {
-    if (direction == "out" && (!args[0] || !args[0]?.eventName)) return [{ eventName: "QQNTIM_WRAPPER", type: "request" }, args];
-    else if (direction == "in" && args[0]?.eventName == "QQNTIM_WRAPPER") return args[1];
-    return args;
-}
-
 function interruptIpc(args: QQNTim.IPC.Args<any>, direction: QQNTim.IPC.Direction, channel: string, sender?: Electron.WebContents) {
     for (const [func, options] of interruptIpcs) {
         if (options?.cmdName && (!args[1] || (args[1][0]?.cmdName != options?.cmdName && args[1][0] != options?.cmdName))) continue;
@@ -26,7 +20,6 @@ function interruptIpc(args: QQNTim.IPC.Args<any>, direction: QQNTim.IPC.Directio
 
 export function handleIpc(args: QQNTim.IPC.Args<any>, direction: QQNTim.IPC.Direction, channel: string, sender?: Electron.WebContents) {
     if (args[0]?.eventName?.startsWith("ns-LoggerApi-")) return false;
-    wrapIpc(args, direction);
     return interruptIpc(args, direction, channel, sender);
 }
 
