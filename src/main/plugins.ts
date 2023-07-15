@@ -1,22 +1,19 @@
-import { pluginDir, pluginPerUserDir } from "../files";
-import { env } from "../globalVar";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
+import { env } from "../common/global";
+import { s } from "../common/sep";
 import * as fs from "fs-extra";
 import * as os from "os";
-import * as path from "path";
 import * as semver from "semver";
 
-const supportedManifestVersions: QQNTim.Manifest.ManifestVersion[] = ["1.0", "2.0"];
+const supportedManifestVersions: QQNTim.Manifest.ManifestVersion[] = ["3.0"];
 export const plugins: QQNTim.Plugin.AllUsersPlugins = {};
-const s = path.sep;
 
-function isPluginEnabled(manifest: QQNTim.Manifest.Manifest) {
+function isPluginEnabled(manifest: QQNTim.Manifest) {
     if (env.config.plugins.whitelist) return env.config.plugins.whitelist.includes(manifest.id);
     else if (env.config.plugins.blacklist) return !env.config.plugins.blacklist.includes(manifest.id);
     else return true;
 }
 
-function isPluginRequirementsMet(manifest: QQNTim.Manifest.Manifest) {
+function isPluginRequirementsMet(manifest: QQNTim.Manifest) {
     if (manifest.requirements?.os) {
         let meetRequirements = false;
         const osRelease = os.release();
@@ -42,7 +39,7 @@ export function parsePlugin(dir: string) {
     try {
         const manifestFile = `${dir}${s}qqntim.json`;
         if (!fs.existsSync(manifestFile)) return null;
-        const manifest = fs.readJSONSync(manifestFile) as QQNTim.Manifest.Manifest;
+        const manifest = fs.readJSONSync(manifestFile) as QQNTim.Manifest;
         if (!manifest.manifestVersion) manifest.manifestVersion = supportedManifestVersions[0];
         else if (!supportedManifestVersions.includes(manifest.manifestVersion)) throw new TypeError(`此插件包含一个无效的清单版本：${manifest.manifestVersion}，支持的版本有：${supportedManifestVersions.join(", ")}`);
 
@@ -67,7 +64,7 @@ export function parsePlugin(dir: string) {
                       };
             }),
             manifest: manifest,
-        } as QQNTim.Plugin.Plugin;
+        } as QQNTim.Plugin;
     } catch (reason) {
         console.error("[!Plugins] 解析插件时出现意外错误：", dir);
         console.error(reason);
@@ -91,10 +88,10 @@ function collectPluginsFromDir(baseDir: string, uin = "") {
 
 export function collectPlugins() {
     collectPluginsFromDir(`${__dirname}${s}builtins`);
-    collectPluginsFromDir(pluginDir);
-    const folders = fs.readdirSync(pluginPerUserDir);
+    collectPluginsFromDir(env.path.pluginDir);
+    const folders = fs.readdirSync(env.path.pluginPerUserDir);
     folders.forEach((folder) => {
-        const folderPath = `${pluginPerUserDir}${s}${folder}`;
+        const folderPath = `${env.path.pluginPerUserDir}${s}${folder}`;
         if (fs.statSync(folderPath).isDirectory()) {
             collectPluginsFromDir(folderPath, folder);
         }

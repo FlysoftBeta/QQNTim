@@ -1,8 +1,6 @@
-import { cl } from "./consts";
-import type { QQNTim } from "@flysoftbeta/qqntim-typings";
-
-const React = window.React;
-const { Fragment, useEffect, useState } = React;
+import { cl } from "./utils/consts";
+import { utils } from "qqntim/renderer";
+import { Fragment, useEffect, useState } from "react";
 
 interface OtherTab {
     key?: undefined;
@@ -23,10 +21,10 @@ interface SettingsTab {
 
 export type Tab = OtherTab | SettingsTab | PluginsManagerTab;
 
-export function Navigation({ qqntim, vueId, onCurrentTabChange }: { qqntim: QQNTim.API.Renderer.API; vueId: string; onCurrentTabChange: (tab: Tab) => void }) {
+export function Navigation({ vueId, onCurrentTabChange }: { vueId: string; onCurrentTabChange: (tab: Tab) => void }) {
     const [currentTab, setCurrentTab] = useState<Tab>({});
     useEffect(() => {
-        qqntim.utils.waitForElement<HTMLElement>(".nav-bar").then((element) =>
+        utils.waitForElement<HTMLElement>(".nav-bar").then((element) =>
             element.addEventListener("click", (event) => {
                 const item = (event.target as HTMLElement).closest(".nav-item");
                 if (!item) return;
@@ -36,7 +34,7 @@ export function Navigation({ qqntim, vueId, onCurrentTabChange }: { qqntim: QQNT
         );
     }, []);
     useEffect(() => {
-        if (currentTab.type) qqntim.utils.waitForElement<HTMLElement>(`.nav-item.nav-item-active:not(.${cl.nav.item.c})`).then((element) => element.classList.remove("nav-item-active"));
+        if (currentTab.type) utils.waitForElement<HTMLElement>(`.nav-item.nav-item-active:not(.${cl.nav.item.c})`).then((element) => element.classList.remove("nav-item-active"));
         onCurrentTabChange(currentTab);
     }, [currentTab]);
 

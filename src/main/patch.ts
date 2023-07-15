@@ -1,16 +1,15 @@
-import { env } from "../globalVar";
-import { handleIpc } from "../ipc";
-import { apply, construct, getter, setter } from "../watch";
+import { env } from "../common/global";
+import { handleIpc } from "../common/ipc";
+import { s } from "../common/sep";
+import { apply, construct, getter, setter } from "../common/watch";
+import { api } from "./api";
 import { createDebuggerWindow, debuggerOrigin } from "./debugger";
 import { applyPlugins } from "./loader";
 import { plugins } from "./plugins";
 import { enable, initialize } from "@electron/remote/main";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { BrowserWindow, Menu, MenuItem, app, dialog, ipcMain } from "electron";
 import { Module } from "module";
-import * as path from "path";
 
-const s = path.sep;
 const interruptWindowArgs: QQNTim.WindowCreation.InterruptArgsFunction[] = [];
 const interruptWindowCreation: QQNTim.WindowCreation.InterruptFunction[] = [];
 
@@ -20,7 +19,7 @@ ipcMain.on("___!boot", (event) => {
 
 ipcMain.handle("___!dialog", (event, method: string, options: object) => dialog[method](BrowserWindow.fromWebContents(event.sender), options));
 
-function patchBrowserWindow(BrowserWindow: typeof Electron.BrowserWindow) {
+function patchBrowserWindow() {
     const windowMenu: Electron.MenuItem[] = [
         new MenuItem({
             label: "刷新",
@@ -165,23 +164,22 @@ export function addInterruptWindowArgs(func: QQNTim.WindowCreation.InterruptArgs
     interruptWindowArgs.push(func);
 }
 
-export function patchElectron() {
-    // Prevent Electron from generating default menu (which will take a lot system resources).
+export function patchModuleLoader() {
+    // 阻止 Electron 默认菜单生成
     Menu.setApplicationMenu(null);
     initialize();
 
-    let patchedElectron: typeof Electron.CrossProcessExports;
+    const patchedElectron: typeof Electron.CrossProcessExports = {
+        ...require("electron"),
+        BrowserWindow: patchBrowserWindow(),
+    };
     const loadBackend = (Module as any)._load;
     (Module as any)._load = (request: string, parent: NodeModule, isMain: boolean) => {
-        const loadedModule = loadBackend(request, parent, isMain) as typeof Electron.CrossProcessExports;
-        if (request == "electron") {
-            if (!patchedElectron)
-                patchedElectron = {
-                    ...loadedModule,
-                    BrowserWindow: patchBrowserWindow(loadedModule.BrowserWindow),
-                };
-            return patchedElectron;
-        }
-        return loadedModule;
+        return (
+            {
+                electron: patchedElectron,
+                "qqntim/main": api,
+            }[request] || loadBackend(request, parent, isMain)
+        );
     };
 }

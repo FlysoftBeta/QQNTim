@@ -1,7 +1,6 @@
-import { version } from "../../../package.json";
-import { allPlugins, env } from "../../globalVar";
-import { addInterruptIpc } from "../../ipc";
-import { getCurrentNTVersion } from "../../ntVersion";
+import { allPlugins, env } from "../../common/global";
+import { addInterruptIpc } from "../../common/ipc";
+import { mountVersion } from "../../common/version";
 import { appApi } from "./app";
 import { browserWindowApi } from "./browserWindow";
 import { dialogApi } from "./dialog";
@@ -11,29 +10,32 @@ import { ntCall } from "./nt/call";
 import { ntInterrupt } from "./nt/interrupt";
 import { waitForElement } from "./waitForElement";
 import { windowLoadPromise } from "./windowLoadPromise";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
-import * as fs from "fs-extra";
 
-export const api: QQNTim.API.Renderer.API = {
-    allPlugins: allPlugins,
-    env: env,
-    version: version,
-    ntVersion: getCurrentNTVersion(),
-    interrupt: {
-        ipc: addInterruptIpc,
-    },
-    nt: nt,
-    browserWindow: browserWindowApi,
-    app: appApi,
-    dialog: dialogApi,
-    modules: {
-        fs: fs,
-    },
-    utils: {
-        waitForElement: waitForElement,
-        getVueId: getVueId,
-        ntCall: ntCall,
-        ntInterrupt: ntInterrupt,
-    },
-    windowLoadPromise: windowLoadPromise,
-};
+export let api: typeof QQNTim.API.Renderer;
+
+export function initAPI() {
+    mountVersion();
+    nt.init();
+
+    api = {
+        allPlugins: allPlugins,
+        env: env,
+        interrupt: {
+            ipc: addInterruptIpc,
+        },
+        nt: nt,
+        browserWindow: browserWindowApi,
+        app: appApi,
+        dialog: dialogApi,
+        modules: {
+            fs: require("fs"),
+        },
+        utils: {
+            waitForElement: waitForElement,
+            getVueId: getVueId,
+            ntCall: ntCall,
+            ntInterrupt: ntInterrupt,
+        },
+        windowLoadPromise: windowLoadPromise,
+    };
+}

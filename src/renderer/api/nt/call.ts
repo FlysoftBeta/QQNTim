@@ -1,6 +1,5 @@
-import { addInterruptIpc } from "../../../ipc";
+import { addInterruptIpc } from "../../../common/ipc";
 import { webContentsId } from "../../main";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { randomUUID } from "crypto";
 import { ipcRenderer } from "electron";
 

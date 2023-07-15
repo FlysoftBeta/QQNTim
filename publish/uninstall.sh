@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
-cd "$( dirname "${BASH_SOURCE[0]}" )/_"
+pushd "$( dirname "${BASH_SOURCE[0]}" )/_" > /dev/null
 
 if [ ! "$(whoami)" == "root" ]; then
     echo "正在提升权限……"
+    popd > /dev/null
     sudo "${BASH_SOURCE[0]}"
-    exit -2
+    exit 0
 fi
 
 qq_installation_dir=$( dirname $( readlink $( which qq || which linuxqq ) ) )
@@ -21,7 +22,7 @@ qqntim_flag_file="$qq_applauncher_dir/qqntim-flag.txt"
 
 if [ -f "$entry_backup_file" ]; then
     echo "正在清理旧版 QQNTim……"
-    mv -vf "$entry_backup_file" "$entry_file"
+    mv -f "$entry_backup_file" "$entry_file"
     touch "$qqntim_flag_file"
 fi
 
@@ -42,17 +43,19 @@ case $choice in
   *) ;;
 esac
 
-echo "正在关闭 QQ……"
-killall -vw qq
+if [ "$QQNTIM_UNINSTALLER_NO_KILL_QQ" != 1 ]; then
+    echo "正在关闭 QQ……"
+    killall -w qq
+fi
 
 echo "正在移除文件……"
-rm -vf "$qq_applauncher_dir/qqntim.js" "$qq_applauncher_dir/qqntim-renderer.js"
-rm -vrf "$qq_applauncher_dir/node_modules" "$qq_applauncher_dir/builtins"
+rm -f "$qq_applauncher_dir/qqntim.js" "$qq_applauncher_dir/qqntim-renderer.js"
+rm -rf "$qq_applauncher_dir/node_modules" "$qq_applauncher_dir/builtins"
 
 echo "正在还原 package.json……"
 sed -i "s#\.\/app_launcher\/qqntim\.js#\.\/app_launcher\/index\.js#g" "$package_json_file"
 
 rm -f "$qqntim_flag_file"
 
-echo "卸载成功。卸载程序将在 5 秒后退出。"
-sleep 5s
+echo "卸载成功。"
+exit 0

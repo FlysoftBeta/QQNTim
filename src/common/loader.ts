@@ -1,7 +1,4 @@
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
-import * as path from "path";
-
-const s = path.sep;
+import { s } from "./sep";
 
 const loadedPlugins: QQNTim.Plugin.LoadedPlugins = {};
 
@@ -16,7 +13,7 @@ function getUserPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin: string) 
     return userPlugins;
 }
 
-export function loadPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin: string, shouldInject: (injection: QQNTim.Plugin.Injection) => boolean, scripts: [QQNTim.Plugin.Plugin, string][], stylesheets?: [QQNTim.Plugin.Plugin, string][]) {
+export function loadPlugins(allPlugins: QQNTim.Plugin.AllUsersPlugins, uin: string, shouldInject: (injection: QQNTim.Plugin.Injection) => boolean, scripts: [QQNTim.Plugin, string][], stylesheets?: [QQNTim.Plugin, string][]) {
     const userPlugins = getUserPlugins(allPlugins, uin);
     if (!userPlugins) return false;
 

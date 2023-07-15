@@ -15,7 +15,7 @@ if "%ERRORLEVEL%" neq "0" (
 goto:eof
 
 :try_run_as
-start "" /wait /b %PS_PREFIX% -WindowStyle Hidden -Command Start-Process -FilePath """%COMSPEC%""" -Verb RunAs -ArgumentList """/c""","""`"""%~0`""""""
+%PS_PREFIX% -WindowStyle Hidden -Command Start-Process -Wait -FilePath """%COMSPEC%""" -Verb RunAs -ArgumentList """/c""","""`"""%~f0`""""""
 goto:eof
 
 :main

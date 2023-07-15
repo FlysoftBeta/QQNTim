@@ -1,6 +1,5 @@
 {
     "name": "@flysoftbeta/qqntim-typings",
-    "private": false,
     "version": "2.1.1",
     "license": "LGPL-3.0-or-later",
     "publishConfig": {
@@ -9,6 +8,8 @@
     "dependencies": {
         "@types/fs-extra": "^11.0.1",
         "@types/node": "^20.4.2",
+        "@types/react": "^18.2.15",
+        "@types/react-dom": "^18.2.7",
         "typed-emitter": "^2.1.0"
     },
     "devDependencies": {

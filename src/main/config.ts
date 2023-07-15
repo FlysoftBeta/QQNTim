@@ -1,5 +1,4 @@
-import { configFile, dataDir, pluginDir, pluginPerUserDir } from "../files";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
+import { configFile, dataDir, pluginDir, pluginPerUserDir } from "../common/paths";
 import * as fs from "fs-extra";
 
 function toBoolean(item: boolean | undefined, env: string, defaultValue: boolean) {
@@ -28,14 +27,14 @@ function toStringArray<T extends string[], R extends T | undefined>(item: R, env
 //         : defaultValue;
 // }
 
-export function getEnvironment(config: QQNTim.Configuration.Configuration): QQNTim.Configuration.Environment {
+export function getEnvironment(config: QQNTim.Configuration): QQNTim.Environment {
     return {
         config: {
             plugins: {
                 whitelist: toStringArray(config.plugins?.whitelist, "QQNTIM_PLUGINS_WHITELIST", undefined),
                 blacklist: toStringArray(config.plugins?.blacklist, "QQNTIM_PLUGINS_BLACKLIST", undefined),
             },
-            pluginLoaders: toStringArray(config.pluginLoaders, "QQNTIM_PLUGIN_LOADER", []),
+            pluginLoaders: toStringArray(config.pluginLoaders, "QQNTIM_PLUGIN_LOADER", ["LiteLoader", "LiteLoaderQQNT"]),
             verboseLogging: toBoolean(config.verboseLogging, "QQNTIM_VERBOSE_LOGGING", false),
             useNativeDevTools: toBoolean(config.useNativeDevTools, "QQNTIM_USE_NATIVE_DEVTOOLS", false),
             disableCompatibilityProcessing: toBoolean(config.disableCompatibilityProcessing, "QQNTIM_NO_COMPATIBILITY_PROCESSING", false),

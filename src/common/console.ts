@@ -1,7 +1,7 @@
 import supportsColor from "supports-color";
 import { inspect } from "util";
 
-const termSupportsColor = !!supportsColor.stdout;
+const hasColorSupport = !!supportsColor.stdout;
 
 export function printObject(object: any) {
     return global.window
@@ -10,6 +10,6 @@ export function printObject(object: any) {
               compact: true,
               depth: null,
               showHidden: true,
-              colors: termSupportsColor,
+              colors: hasColorSupport,
           });
 }

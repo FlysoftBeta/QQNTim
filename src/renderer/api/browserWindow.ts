@@ -1,4 +1,3 @@
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { ipcRenderer } from "electron";
 
 class BrowserWindowAPI implements QQNTim.API.Renderer.BrowserWindowAPI {

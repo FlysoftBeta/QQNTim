@@ -4,11 +4,10 @@ import { destructFaceElement, destructImageElement, destructPeer, destructRawEle
 import { ntInterrupt } from "./interrupt";
 import { ntMedia } from "./media";
 import { NTWatcher } from "./watcher";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { EventEmitter } from "events";
 
 const NTEventEmitter = EventEmitter as new () => QQNTim.API.Renderer.NT.EventEmitter;
-class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT.NT {
+class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT {
     private sentMessageWatcher: NTWatcher<string>;
     private profileChangeWatcher: NTWatcher<string>;
     private friendsList: QQNTim.API.Renderer.NT.User[] = [];

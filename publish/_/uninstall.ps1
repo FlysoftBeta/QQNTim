@@ -53,8 +53,10 @@ if ((Read-Host "是否需要同时移除所有数据 (y/n)？") -contains "y") {
     Remove-Item "${env:UserProfile}\.qqntim" -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-Write-Output "正在关闭 QQ……"
-Stop-Process -Name QQ -ErrorAction SilentlyContinue
+if ($env:QQNTIM_UNINSTALLER_NO_KILL_QQ -ne "1") {
+    Write-Output "正在关闭 QQ……"
+    Stop-Process -Name QQ -ErrorAction SilentlyContinue
+}
 
 Write-Output "正在移除文件……"
 Remove-Item "$QQAppLauncherDir\qqntim.js", "$QQAppLauncherDir\qqntim-renderer.js" -Force
@@ -62,7 +64,7 @@ Remove-Item "$QQAppLauncherDir\node_modules", "$QQAppLauncherDir\builtins" -Recu
 
 Write-Output "正在还原 package.json……"
 $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
-[System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Raw -Encoding UTF8 -Force) -replace "./app_launcher/qqntim.js", "./app_launcher/index.js"), $Utf8NoBomEncoding)
+[System.IO.File]::WriteAllLines($PackageJSONFile, ((Get-Content $PackageJSONFile -Encoding UTF8 -Force) -replace "./app_launcher/qqntim.js", "./app_launcher/index.js"), $Utf8NoBomEncoding)
 
 Write-Output "正在还原 QQ.exe……"
 if ((Test-Path $QQExecutableHashFile) -eq $true) {
@@ -79,5 +81,4 @@ if ((Test-Path $SuccessFlagFile) -eq $false) {
     "" | Out-File $SuccessFlagFile -Encoding UTF8 -Force
 }
 
-Write-Output "卸载成功。卸载程序将在 5 秒后退出。"
-Start-Sleep 5
+Write-Output "卸载成功。"

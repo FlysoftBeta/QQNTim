@@ -1,7 +1,8 @@
 const path = require("path");
+const qqntim = require("qqntim/renderer");
 
 module.exports.default = class Entry {
-    constructor(qqntim) {
+    constructor() {
         //#region 示例：获取当前账号
         qqntim.nt.getAccountInfo().then((account) => {
             console.log("[Example-NT-API] 当前账号信息", account);

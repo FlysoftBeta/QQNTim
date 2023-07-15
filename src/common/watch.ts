@@ -1,5 +1,5 @@
 import { printObject } from "./console";
-import { env } from "./globalVar";
+import { env } from "./global";
 
 type Constructor<T> = new (...args: any[]) => T;
 

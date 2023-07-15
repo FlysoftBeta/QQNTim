@@ -1,12 +1,10 @@
-import { loadPlugins } from "../loader";
-import { api } from "./api";
+import { loadPlugins } from "../common/loader";
 import { windowLoadPromise } from "./api/windowLoadPromise";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { ipcRenderer } from "electron";
 import * as fs from "fs-extra";
 
-let scripts: [QQNTim.Plugin.Plugin, string][] = [];
-const stylesheets: [QQNTim.Plugin.Plugin, string][] = [];
+let scripts: [QQNTim.Plugin, string][] = [];
+const stylesheets: [QQNTim.Plugin, string][] = [];
 
 function detectCurrentPage(): QQNTim.Manifest.PageWithAbout {
     const url = window.location.href;
@@ -56,11 +54,7 @@ function applyScripts() {
     scripts = scripts.filter(([plugin, script]) => {
         try {
             const mod = require(script);
-            if (mod)
-                if (plugin.manifest.manifestVersion == "2.0") {
-                    const entry = new (mod.default as typeof QQNTim.Entry.Renderer)(api);
-                    window.addEventListener("load", () => entry.onWindowLoaded?.());
-                } else mod(api);
+            if (mod) new ((mod.default || mod) as typeof QQNTim.Entry.Renderer)();
             return false;
         } catch (reason) {
             console.error(`[!Loader] 运行此插件脚本时出现意外错误：${script}，请联系插件作者 (${plugin.manifest.author}) 解决`);

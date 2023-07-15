@@ -1,4 +1,3 @@
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
 import { ipcRenderer } from "electron";
 
 class DialogAPI implements QQNTim.API.Renderer.DialogAPI {

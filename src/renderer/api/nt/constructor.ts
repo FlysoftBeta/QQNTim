@@ -1,5 +1,4 @@
 import { ntMedia } from "./media";
-import { QQNTim } from "@flysoftbeta/qqntim-typings";
 
 export function constructTextElement(ele: any): QQNTim.API.Renderer.NT.MessageElementText {
     return {
