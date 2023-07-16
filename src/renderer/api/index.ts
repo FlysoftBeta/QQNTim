@@ -1,5 +1,6 @@
 import { allPlugins, env } from "../../common/global";
 import { addInterruptIpc } from "../../common/ipc";
+import { defineModules } from "../../common/patch";
 import { mountVersion } from "../../common/version";
 import { appApi } from "./app";
 import { browserWindowApi } from "./browserWindow";
@@ -10,6 +11,7 @@ import { ntCall } from "./nt/call";
 import { ntInterrupt } from "./nt/interrupt";
 import { waitForElement } from "./waitForElement";
 import { windowLoadPromise } from "./windowLoadPromise";
+import * as fs from "fs-extra";
 
 export let api: typeof QQNTim.API.Renderer;
 
@@ -28,8 +30,9 @@ export function initAPI() {
         app: appApi,
         dialog: dialogApi,
         modules: {
-            fs: require("fs"),
+            fs: fs,
         },
+        defineModules: defineModules,
         utils: {
             waitForElement: waitForElement,
             getVueId: getVueId,
@@ -38,4 +41,6 @@ export function initAPI() {
         },
         windowLoadPromise: windowLoadPromise,
     };
+
+    defineModules({ "qqntim/renderer": api });
 }
