@@ -6,6 +6,7 @@ import { enablePlugin, getPluginDescription, isInBlacklist, isInWhitelist, isPlu
 import { shell } from "electron";
 import { allPlugins, app, env, modules, utils } from "qqntim/renderer";
 import { useEffect, useState } from "react";
+import { usePrevious } from "./utils/hooks";
 const { fs } = modules;
 
 interface PanelProps {
@@ -17,7 +18,6 @@ interface PanelProps {
 export function Panel({ currentTab, account }: { currentTab: TabWithOtherTab; account: QQNTim.API.Renderer.NT.LoginAccount }) {
     const [config, setConfig] = useState<Required<QQNTim.Configuration>>(env.config);
     const [pluginsConfig, setPluginsConfig] = useState<Record<string, object>>(config.plugins.config || {});
-    const [savedTitle, setSavedTitle] = useState<string>();
 
     const saveConfigAndRestart = () => {
         fs.writeJSONSync(env.path.configFile, config);
@@ -40,13 +40,7 @@ export function Panel({ currentTab, account }: { currentTab: TabWithOtherTab; ac
     useEffect(() => {
         document.body.classList.toggle(cl.panel.open.c, !!currentTab.type);
         utils.waitForElement<HTMLElement>(".setting-title").then((element) => {
-            if (currentTab.type) {
-                setSavedTitle(element.innerText);
-                element.innerText = currentTab.title;
-            } else if (savedTitle) {
-                element.innerText = savedTitle;
-                setSavedTitle(undefined);
-            }
+            if (element.__VUE__?.[0]?.props?.title && currentTab.title) element.__VUE__[0].props.title = currentTab.title;
         });
     }, [currentTab]);
 
