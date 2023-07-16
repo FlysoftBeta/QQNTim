@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="react" />
 /// <reference types="./electron" />
 
 declare module "qqntim/main" {
@@ -7,6 +8,14 @@ declare module "qqntim/main" {
 
 declare module "qqntim/renderer" {
     export = QQNTim.API.Renderer;
+}
+
+declare module "qqntim-settings" {
+    export = QQNTim.Settings;
+}
+
+declare module "qqntim-settings/components" {
+    export = QQNTim.SettingsComponents;
 }
 
 declare namespace QQNTim {
@@ -52,6 +61,10 @@ declare namespace QQNTim {
              * 插件黑名单
              */
             blacklist?: string[];
+            /**
+             * 插件配置
+             */
+            config?: Record<string, object>;
         };
         /**
          * 自定义插件加载器路径
@@ -164,6 +177,7 @@ declare namespace QQNTim {
     }
 
     namespace API {
+        type DefineModulesFunction = (newModules: Record<string, any>) => void;
         namespace Main {
             /**
              * 所有已经扫描到的插件列表
@@ -194,6 +208,11 @@ declare namespace QQNTim {
                  */
                 windowCreation: (func: WindowCreation.InterruptFunction) => void;
             };
+            /**
+             * 定义新模块
+             * @description 定义后，其他插件可通过 require 引入。
+             */
+            const defineModules: DefineModulesFunction;
             const modules: {
                 fs: typeof import("fs-extra");
             };
@@ -235,6 +254,11 @@ declare namespace QQNTim {
             const modules: {
                 fs: typeof import("fs-extra");
             };
+            /**
+             * 定义新模块
+             * @description 定义后，其他插件可通过 require 引入。
+             */
+            const defineModules: DefineModulesFunction;
             const utils: {
                 /**
                  * 等待 DOM 元素出现
@@ -725,6 +749,28 @@ declare namespace QQNTim {
          * 插件规范版本
          */
         type ManifestVersion = "1.0" | "2.0" | "3.0";
+    }
+
+    namespace Settings {
+        type Panel = (props: PanelProps) => React.JSX.Element;
+
+        interface PanelProps {
+            config: Record<string, object>;
+            setConfig: React.Dispatch<React.SetStateAction<Record<string, object>>>;
+        }
+
+        const defineSettingsPanels: (...newSettingsPanels: [string, Panel, string | undefined][]) => void;
+    }
+    namespace SettingsComponents {
+        const SettingsSection: (props: { title: string; children: React.ReactNode; buttons?: React.ReactNode }) => React.JSX.Element;
+        const SettingsBox: (props: {
+            children: React.ReactNode;
+        }) => React.JSX.Element;
+        const SettingsBoxItem: (props: { title: string; description?: string[]; children?: React.ReactNode; isLast?: boolean }) => React.JSX.Element;
+        const Switch: (props: { checked: boolean; onToggle: (checked: boolean) => void }) => React.JSX.Element;
+        const Input: (props: { value: string; onChange: (value: string) => void }) => React.JSX.Element;
+        const Dropdown: <T>(props: { items: [T, string][]; selected: T; onChange: (id: T) => void; width: string }) => React.JSX.Element;
+        const Button: (props: { onClick: () => void; primary: boolean; small: boolean; children: React.ReactNode }) => React.JSX.Element;
     }
 }
 

@@ -1,14 +1,22 @@
+import { Button, SettingsBox, SettingsBoxItem, SettingsSection, Switch } from "./exports/components";
 import { installFolderPluginsForAccount, installZipPluginsForAccount, uninstallPlugin } from "./installer";
-import { Tab } from "./nav";
+import { TabWithOtherTab } from "./nav";
 import { cl } from "./utils/consts";
 import { enablePlugin, getPluginDescription, isInBlacklist, isInWhitelist, isPluginsExistent } from "./utils/utils";
 import { shell } from "electron";
 import { allPlugins, app, env, modules, utils } from "qqntim/renderer";
-import { Fragment, ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 const { fs } = modules;
 
-export function Panel({ currentTab, account }: { currentTab: Tab; account: QQNTim.API.Renderer.NT.LoginAccount }) {
+interface PanelProps {
+    account: QQNTim.API.Renderer.NT.LoginAccount;
+    config: Required<QQNTim.Configuration>;
+    setConfig: React.Dispatch<React.SetStateAction<Required<QQNTim.Configuration>>>;
+}
+
+export function Panel({ currentTab, account }: { currentTab: TabWithOtherTab; account: QQNTim.API.Renderer.NT.LoginAccount }) {
     const [config, setConfig] = useState<Required<QQNTim.Configuration>>(env.config);
+    const [pluginsConfig, setPluginsConfig] = useState<Record<string, object>>(config.plugins.config || {});
     const [savedTitle, setSavedTitle] = useState<string>();
 
     const saveConfigAndRestart = () => {
@@ -20,6 +28,14 @@ export function Panel({ currentTab, account }: { currentTab: Tab; account: QQNTi
         fs.writeJSONSync(env.path.configFile, {});
         app.relaunch();
     };
+
+    useEffect(
+        () =>
+            setConfig((prev) => {
+                return { ...prev, plugins: { ...prev.plugins, config: pluginsConfig } };
+            }),
+        [pluginsConfig],
+    );
 
     useEffect(() => {
         document.body.classList.toggle(cl.panel.open.c, !!currentTab.type);
@@ -34,7 +50,7 @@ export function Panel({ currentTab, account }: { currentTab: Tab; account: QQNTi
         });
     }, [currentTab]);
 
-    const panelProps: PanelsProps = {
+    const panelProps: PanelProps = {
         account,
         config,
         setConfig,
@@ -42,7 +58,7 @@ export function Panel({ currentTab, account }: { currentTab: Tab; account: QQNTi
 
     return (
         <>
-            {currentTab.type == "settings" ? <SettingsPanel {...panelProps} /> : currentTab.type == "plugins-manager" ? <PluginsManagerPanel {...panelProps} /> : null}
+            {currentTab.type == "settings" ? <SettingsPanel {...panelProps} /> : currentTab.type == "plugins-manager" ? <PluginsManagerPanel {...panelProps} /> : currentTab.type == "plugin" ? <currentTab.node config={pluginsConfig} setConfig={setPluginsConfig} /> : null}
             <div className={cl.panel.save.c}>
                 <Button onClick={() => resetConfigAndRestart()} small={false} primary={false}>
                     重置所有设置并重启
@@ -55,16 +71,10 @@ export function Panel({ currentTab, account }: { currentTab: Tab; account: QQNTi
     );
 }
 
-interface PanelsProps {
-    account: QQNTim.API.Renderer.NT.LoginAccount;
-    config: Required<QQNTim.Configuration>;
-    setConfig: React.Dispatch<React.SetStateAction<Required<QQNTim.Configuration>>>;
-}
-
-function SettingsPanel({ config, setConfig }: PanelsProps) {
+function SettingsPanel({ config, setConfig }: PanelProps) {
     return (
         <>
-            <Section title="版本信息">
+            <SettingsSection title="版本信息">
                 <div className={cl.panel.settings.versions.c}>
                     {[
                         ["QQNTim", process.versions.qqntim],
@@ -80,8 +90,8 @@ function SettingsPanel({ config, setConfig }: PanelsProps) {
                         </div>
                     ))}
                 </div>
-            </Section>
-            <Section title="选项">
+            </SettingsSection>
+            <SettingsSection title="选项">
                 <SettingsBox>
                     {(
                         [
@@ -120,12 +130,12 @@ function SettingsPanel({ config, setConfig }: PanelsProps) {
                         </SettingsBoxItem>
                     ))}
                 </SettingsBox>
-            </Section>
+            </SettingsSection>
         </>
     );
 }
 
-function PluginsManagerPanel({ account, config, setConfig }: PanelsProps) {
+function PluginsManagerPanel({ account, config, setConfig }: PanelProps) {
     const [existentPlugins, setExistentPlugins] = useState<string[]>(isPluginsExistent());
 
     return Array.from(new Set([...Object.keys(allPlugins), account.uin]))
@@ -136,7 +146,7 @@ function PluginsManagerPanel({ account, config, setConfig }: PanelsProps) {
             const isEmpty = Object.keys(plugins).length == 0;
             if (uin != account.uin && isEmpty) return;
             return (
-                <Section
+                <SettingsSection
                     key={uin}
                     title={uin == "" ? "对所有账号生效的插件" : `仅对账号 ${uin} 生效的插件`}
                     buttons={
@@ -177,64 +187,7 @@ function PluginsManagerPanel({ account, config, setConfig }: PanelsProps) {
                             <SettingsBoxItem title="此处还没有任何插件 :(" isLast={true} />
                         )}
                     </SettingsBox>
-                </Section>
+                </SettingsSection>
             );
         });
-}
-
-function Section({ title, children, buttons }: { title: string; children: ReactNode; buttons?: ReactNode }) {
-    return (
-        <div className={cl.panel.section.c}>
-            <span className={cl.panel.section.header.c}>
-                <h2 className={cl.panel.section.header.title.c}>{title}</h2>
-                {!!buttons && <div className={cl.panel.section.header.buttons.c}>{buttons}</div>}
-            </span>
-            <div className={cl.panel.section.content.c}>{children}</div>
-        </div>
-    );
-}
-
-function SettingsBox({ children }: { children: ReactNode }) {
-    return <div className={cl.panel.box.c}>{children}</div>;
-}
-
-function SettingsBoxItem({ title, description, children, isLast = false }: { title: string; description?: string[]; children?: ReactNode; isLast?: boolean }) {
-    return (
-        <label className={`${cl.panel.box.item.c}${isLast ? ` ${cl.panel.box.item.last.c}` : ""}`}>
-            <span>
-                <span className={cl.panel.box.item.title.c}>{title}</span>
-                {description ? (
-                    <span className={cl.panel.box.item.description.c}>
-                        {description.map((text, idx, array) => {
-                            return (
-                                // rome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                                <Fragment key={idx}>
-                                    <span>{text}</span>
-                                    {idx != array.length - 1 && <br />}
-                                </Fragment>
-                            );
-                        })}
-                    </span>
-                ) : null}
-            </span>
-            <div>{children}</div>
-        </label>
-    );
-}
-
-function Switch({ checked, onToggle }: { checked: boolean; onToggle: (checked: boolean) => void }) {
-    return (
-        <div className={`q-switch${checked ? " is-active" : ""}`} onClick={() => onToggle(!checked)}>
-            <input type="checkbox" checked={checked} onChange={(event) => onToggle(event.target.checked)} />
-            <div className="q-switch__handle" />
-        </div>
-    );
-}
-
-function Button({ onClick, primary, small, children }: { onClick: () => void; primary: boolean; small: boolean; children: ReactNode }) {
-    return (
-        <button className={`q-button q-button--default ${primary ? "q-button--primary" : "q-button--secondary"}${small ? " q-button--small" : ""}`} onClick={() => onClick()}>
-            <span className="q-button__slot-warp">{children}</span>
-        </button>
-    );
 }

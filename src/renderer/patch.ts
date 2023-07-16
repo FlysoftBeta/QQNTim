@@ -1,4 +1,5 @@
 import { handleIpc } from "../common/ipc";
+import { defineModules, getModule } from "../common/patch";
 import { getter, setter } from "../common/watch";
 import { api } from "./api";
 import { contextBridge, ipcRenderer } from "electron";
@@ -54,20 +55,13 @@ export function patchModuleLoader() {
         ipcRenderer: patchIpcRenderer(),
         contextBridge: patchContextBridge(),
     };
+
+    defineModules({ electron: patchedElectron, react: React, "react/jsx-runtime": ReactJSXRuntime, "react-dom": ReactDOM, "react-dom/client": ReactDOMClient });
+
     const loadBackend = (Module as any)._load;
     (Module as any)._load = (request: string, parent: NodeModule, isMain: boolean) => {
         // 重写模块加载以隐藏 `vm` 模块弃用提示
         if (request == "vm") request = "node:vm";
-        console.log(request);
-        return (
-            {
-                electron: patchedElectron,
-                react: React,
-                "react/jsx-runtime": ReactJSXRuntime,
-                "react-dom": ReactDOM,
-                "react-dom/client": ReactDOMClient,
-                "qqntim/renderer": api,
-            }[request] || loadBackend(request, parent, isMain)
-        );
+        return getModule(request) || loadBackend(request, parent, isMain);
     };
 }

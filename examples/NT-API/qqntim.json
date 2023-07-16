@@ -3,5 +3,5 @@
     "id": "example-nt-api",
     "name": "示例插件：NT API",
     "author": "Flysoft",
-    "injections": [{ "type": "renderer", "script": "renderer.js", "page": "main" }]
+    "injections": [{ "type": "renderer", "script": "renderer.js", "page": "main" }, { "type": "renderer", "script": "settings.js", "page": "settings" }]
 }

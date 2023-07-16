@@ -33,6 +33,7 @@ export function getEnvironment(config: QQNTim.Configuration): QQNTim.Environment
             plugins: {
                 whitelist: toStringArray(config.plugins?.whitelist, "QQNTIM_PLUGINS_WHITELIST", undefined),
                 blacklist: toStringArray(config.plugins?.blacklist, "QQNTIM_PLUGINS_BLACKLIST", undefined),
+                config: config.plugins?.config || {},
             },
             pluginLoaders: toStringArray(config.pluginLoaders, "QQNTIM_PLUGIN_LOADER", ["LiteLoader", "LiteLoaderQQNT"]),
             verboseLogging: toBoolean(config.verboseLogging, "QQNTIM_VERBOSE_LOGGING", false),

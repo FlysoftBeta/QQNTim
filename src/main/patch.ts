@@ -1,5 +1,6 @@
 import { env } from "../common/global";
 import { handleIpc } from "../common/ipc";
+import { defineModules, getModule } from "../common/patch";
 import { s } from "../common/sep";
 import { apply, construct, getter, setter } from "../common/watch";
 import { api } from "./api";
@@ -173,13 +174,11 @@ export function patchModuleLoader() {
         ...require("electron"),
         BrowserWindow: patchBrowserWindow(),
     };
+
+    defineModules({ electron: patchedElectron });
+
     const loadBackend = (Module as any)._load;
     (Module as any)._load = (request: string, parent: NodeModule, isMain: boolean) => {
-        return (
-            {
-                electron: patchedElectron,
-                "qqntim/main": api,
-            }[request] || loadBackend(request, parent, isMain)
-        );
+        return getModule(request) || loadBackend(request, parent, isMain);
     };
 }
