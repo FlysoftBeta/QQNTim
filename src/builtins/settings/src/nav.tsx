@@ -43,7 +43,10 @@ export function Navigation({ vueId, onCurrentTabChange }: { vueId: string; onCur
                 const item = (event.target as HTMLElement).closest(".nav-item");
                 if (!item) return;
                 if (item.classList.contains(cl.nav.item.c)) return;
-                setCurrentTab({});
+                item.classList.toggle("nav-item-active", true);
+
+                const title = item.firstElementChild?.nextElementSibling as HTMLElement;
+                if (title) setCurrentTab({ title: title.innerText });
             }),
         );
     }, []);

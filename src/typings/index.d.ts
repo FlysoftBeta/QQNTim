@@ -780,3 +780,7 @@ declare namespace NodeJS {
         readonly qqnt: string;
     }
 }
+
+interface HTMLElement {
+    __VUE__?: any[];
+}
