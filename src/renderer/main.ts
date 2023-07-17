@@ -4,16 +4,17 @@ import { initAPI } from "./api";
 import { nt } from "./api/nt";
 import { attachDebugger } from "./debugger";
 import { applyPlugins } from "./loader";
-import { patchModuleLoader } from "./patch";
+import { patchLogger, patchModuleLoader } from "./patch";
 import { hookVue3 } from "./vueHelper";
 import { ipcRenderer } from "electron";
 
-export const { enabled, preload, debuggerOrigin, webContentsId, plugins, env } = ipcRenderer.sendSync("___!boot");
+export const { enabled, preload, debuggerOrigin, webContentsId, plugins, env, hasColorSupport } = ipcRenderer.sendSync("___!boot");
 
 patchModuleLoader();
 if (enabled) {
     setEnv(env);
     setAllPlugins(plugins);
+    patchLogger();
     watchIpc();
     hookVue3();
     attachDebugger();

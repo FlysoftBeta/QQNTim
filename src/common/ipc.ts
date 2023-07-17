@@ -27,7 +27,7 @@ export function addInterruptIpc(func: QQNTim.IPC.InterruptFunction, options?: QQ
 }
 
 export function watchIpc() {
-    if (env.config.verboseLogging) {
+    if (env.config.verboseLogging && (env.config.useNativeDevTools || (!env.config.useNativeDevTools && !window))) {
         (["in", "out"] as QQNTim.IPC.Direction[]).forEach((type) => {
             addInterruptIpc((args, channel, sender) => console.debug(`[!Watch:IPC?${type == "in" ? "In" : "Out"}${sender ? `:${sender.id.toString()}` : ""}] ${channel}`, printObject(args)), { direction: type });
         });
