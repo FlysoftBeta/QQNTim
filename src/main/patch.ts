@@ -1,8 +1,8 @@
-import { hasColorSupport } from "../common/console";
 import { env } from "../common/global";
 import { handleIpc } from "../common/ipc";
 import { defineModules, getModule } from "../common/patch";
 import { s } from "../common/sep";
+import { hasColorSupport } from "../common/utils/console";
 import { apply, construct, getter, setter } from "../common/watch";
 import { createDebuggerWindow, debuggerOrigin } from "./debugger";
 import { applyPlugins } from "./loader";
@@ -50,10 +50,10 @@ function patchBrowserWindow() {
             return apply(target, thisArg, argArray);
         },
         get(target, p) {
-            return getter("BrowserWindow(static)", target, p as any);
+            return getter(undefined, target, p as any);
         },
         set(target, p, newValue) {
-            return setter("BrowserWindow(static)", target, p as any, newValue);
+            return setter(undefined, target, p as any, newValue);
         },
         construct(target, [options]: [Electron.BrowserWindowConstructorOptions]) {
             let patchedArgs: Electron.BrowserWindowConstructorOptions = {
@@ -83,7 +83,7 @@ function patchBrowserWindow() {
 
             const session = new Proxy(win.webContents.session, {
                 get(target, p) {
-                    const res = getter(`session?${webContentsId}`, target, p as any);
+                    const res = getter(undefined, target, p as any);
                     if (p == "setPreloads")
                         return (newPreloads: string[]) => {
                             thirdpartyPreloads = newPreloads;
@@ -91,17 +91,17 @@ function patchBrowserWindow() {
                     return res;
                 },
                 set(target, p, newValue) {
-                    return setter(`session?${webContentsId}`, target, p as any, newValue);
+                    return setter(undefined, target, p as any, newValue);
                 },
             });
             const webContents = new Proxy(win.webContents, {
                 get(target, p) {
-                    const res = getter(`webContents?${webContentsId}`, target, p as any);
+                    const res = getter(undefined, target, p as any);
                     if (p == "session") return session;
                     return res;
                 },
                 set(target, p, newValue) {
-                    return setter(`webContents?${webContentsId}`, target, p as any, newValue);
+                    return setter(undefined, target, p as any, newValue);
                 },
             });
 
@@ -142,12 +142,12 @@ function patchBrowserWindow() {
 
             return new Proxy(win, {
                 get(target, p) {
-                    const res = getter(`BrowserWindow?${webContentsId}`, target, p as any);
+                    const res = getter(undefined, target, p as any);
                     if (p == "webContents") return webContents;
                     return res;
                 },
                 set(target, p, newValue) {
-                    return setter(`BrowserWindow?${webContentsId}`, target, p as any, newValue);
+                    return setter(undefined, target, p as any, newValue);
                 },
             });
         },
