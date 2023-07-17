@@ -77,9 +77,15 @@ export function patchLogger() {
         }
         ipcRenderer.send("___!log", level, ...serializedArgs);
     };
-    console.debug = (...args: any[]) => log(0, ...args);
-    console.log = (...args: any[]) => log(1, ...args);
-    console.info = (...args: any[]) => log(2, ...args);
-    console.warn = (...args: any[]) => log(3, ...args);
-    console.error = (...args: any[]) => log(4, ...args);
+    (
+        [
+            ["debug", 0],
+            ["log", 1],
+            ["info", 2],
+            ["warn", 3],
+            ["error", 4],
+        ] as [string, number][]
+    ).forEach(([method, level]) => {
+        console[method] = (...args: any[]) => log(level, ...args);
+    });
 }
