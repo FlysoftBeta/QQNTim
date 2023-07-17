@@ -1,13 +1,15 @@
 import { handleIpc } from "../common/ipc";
 import { defineModules, getModule } from "../common/patch";
 import { getter, setter } from "../common/watch";
-import { api } from "./api";
 import { contextBridge, ipcRenderer } from "electron";
 import { Module } from "module";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as ReactDOMClient from "react-dom/client";
 import * as ReactJSXRuntime from "react/jsx-runtime";
+import { env } from "../common/global";
+import { printObject } from "../common/console";
+import { hasColorSupport } from "./main";
 
 function patchIpcRenderer() {
     return new Proxy(ipcRenderer, {
@@ -64,4 +66,26 @@ export function patchModuleLoader() {
         if (request == "vm") request = "node:vm";
         return getModule(request) || loadBackend(request, parent, isMain);
     };
+}
+
+export function patchLogger() {
+    if (env.config.useNativeDevTools) return;
+    const log = (level: number, ...args: any[]) => {
+        const serializedArgs: any[] = [];
+        for (const arg of args) {
+            serializedArgs.push(typeof arg == "string" ? arg : printObject(arg, hasColorSupport));
+        }
+        ipcRenderer.send("___!log", level, ...serializedArgs);
+    };
+    (
+        [
+            ["debug", 0],
+            ["log", 1],
+            ["info", 2],
+            ["warn", 3],
+            ["error", 4],
+        ] as [string, number][]
+    ).forEach(([method, level]) => {
+        console[method] = (...args: any[]) => log(level, ...args);
+    });
 }

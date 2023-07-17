@@ -1,9 +1,9 @@
+import { hasColorSupport } from "../common/console";
 import { env } from "../common/global";
 import { handleIpc } from "../common/ipc";
 import { defineModules, getModule } from "../common/patch";
 import { s } from "../common/sep";
 import { apply, construct, getter, setter } from "../common/watch";
-import { api } from "./api";
 import { createDebuggerWindow, debuggerOrigin } from "./debugger";
 import { applyPlugins } from "./loader";
 import { plugins } from "./plugins";
@@ -16,6 +16,10 @@ const interruptWindowCreation: QQNTim.WindowCreation.InterruptFunction[] = [];
 
 ipcMain.on("___!boot", (event) => {
     if (!event.returnValue) event.returnValue = { enabled: false };
+});
+
+ipcMain.on("___!log", (event, level, ...args) => {
+    console[{ 0: "debug", 1: "log", 2: "info", 3: "warn", 4: "error" }[level] || "log"](`[!Renderer:Log:${event.sender.id}]`, ...args);
 });
 
 ipcMain.handle("___!dialog", (event, method: string, options: object) => dialog[method](BrowserWindow.fromWebContents(event.sender), options));
@@ -120,6 +124,7 @@ function patchBrowserWindow() {
                         webContentsId: webContentsId,
                         plugins: plugins,
                         env: env,
+                        hasColorSupport: hasColorSupport,
                     };
                 } else if (channel == "___!browserwindow_api") {
                     event.returnValue = win[args[0][0]](...args[0][1]);
@@ -127,14 +132,6 @@ function patchBrowserWindow() {
                     event.returnValue = app[args[0][0]](...args[0][1]);
                 }
             });
-            if (!env.config.useNativeDevTools)
-                win.webContents.on("console-message", (_, level, message) => {
-                    message = `[!Renderer:${webContentsId}] ${message}`;
-                    if (level == 0) console.debug(message);
-                    else if (level == 1) console.log(message);
-                    else if (level == 2) console.warn(message);
-                    else if (level == 3) console.error(message);
-                });
 
             const setMenu = win.setMenu;
             win.setMenu = (menu) => {
