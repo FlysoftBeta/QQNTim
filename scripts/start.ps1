@@ -1,6 +1,6 @@
 ﻿$ErrorActionPreference = "Stop"
 
-Set-Location (Split-Path -Parent $MyInvocation.MyCommand.Definition)
+Set-Location ((Split-Path -Parent $MyInvocation.MyCommand.Definition) + "..")
 
 foreach ($RegistryPath in @("HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*")) {
     try {
