@@ -9,7 +9,7 @@ if [ ! "$(whoami)" == "root" ]; then
     exit 0
 fi
 
-qq_installation_dir=$( dirname $( readlink $( which qq || which linuxqq ) ) )
+qq_installation_dir=$( dirname $( readlink $( which qq || which linuxqq ) ) || echo "/var/lib/flatpak/app/com.qq.QQ/current/active/files/extra/QQ"  )
 if [ ! -d "$qq_installation_dir" ]; then
     echo "未找到 QQNT 安装目录。"
 fi
