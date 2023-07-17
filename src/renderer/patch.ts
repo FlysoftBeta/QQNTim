@@ -1,15 +1,15 @@
+import { env } from "../common/global";
 import { handleIpc } from "../common/ipc";
 import { defineModules, getModule } from "../common/patch";
+import { printObject } from "../common/utils/console";
 import { getter, setter } from "../common/watch";
+import { hasColorSupport } from "./main";
 import { contextBridge, ipcRenderer } from "electron";
 import { Module } from "module";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as ReactDOMClient from "react-dom/client";
 import * as ReactJSXRuntime from "react/jsx-runtime";
-import { env } from "../common/global";
-import { printObject } from "../common/console";
-import { hasColorSupport } from "./main";
 
 function patchIpcRenderer() {
     return new Proxy(ipcRenderer, {

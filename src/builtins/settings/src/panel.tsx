@@ -6,7 +6,6 @@ import { enablePlugin, getPluginDescription, isInBlacklist, isInWhitelist, isPlu
 import { shell } from "electron";
 import { allPlugins, app, env, modules, utils } from "qqntim/renderer";
 import { useEffect, useState } from "react";
-import { usePrevious } from "./utils/hooks";
 const { fs } = modules;
 
 interface PanelProps {

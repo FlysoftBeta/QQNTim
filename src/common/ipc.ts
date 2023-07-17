@@ -1,5 +1,6 @@
-import { printObject } from "./console";
 import { env } from "./global";
+import { printObject } from "./utils/console";
+import { isMainProcess } from "./utils/process";
 
 const interruptIpcs: [QQNTim.IPC.InterruptFunction, QQNTim.IPC.InterruptIPCOptions | undefined][] = [];
 
@@ -27,7 +28,7 @@ export function addInterruptIpc(func: QQNTim.IPC.InterruptFunction, options?: QQ
 }
 
 export function watchIpc() {
-    if (env.config.verboseLogging && (env.config.useNativeDevTools || (!env.config.useNativeDevTools && !window))) {
+    if (env.config.verboseLogging && (env.config.useNativeDevTools || (!env.config.useNativeDevTools && isMainProcess))) {
         (["in", "out"] as QQNTim.IPC.Direction[]).forEach((type) => {
             addInterruptIpc((args, channel, sender) => console.debug(`[!Watch:IPC?${type == "in" ? "In" : "Out"}${sender ? `:${sender.id.toString()}` : ""}] ${channel}`, printObject(args)), { direction: type });
         });
