@@ -1,5 +1,4 @@
 import { ntCall } from "./call";
-import { ntInterrupt } from "./interrupt";
 import { NTWatcher } from "./watcher";
 import { exists } from "fs-extra";
 
