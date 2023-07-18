@@ -1,7 +1,7 @@
+import { addInterruptIpc } from "../../../common/ipc";
 import { ntCall } from "./call";
 import { constructGroup, constructMessage, constructUser } from "./constructor";
 import { destructFaceElement, destructImageElement, destructPeer, destructRawElement, destructTextElement } from "./destructor";
-import { ntInterrupt } from "./interrupt";
 import { ntMedia } from "./media";
 import { NTWatcher } from "./watcher";
 import { EventEmitter } from "events";
@@ -22,39 +22,30 @@ class NT extends NTEventEmitter implements QQNTim.API.Renderer.NT {
     }
 
     private listenNewMessages() {
-        ntInterrupt(
+        addInterruptIpc(
             (args) => {
                 const messages = (args?.[1]?.[0]?.payload?.msgList as any[]).map((msg): QQNTim.API.Renderer.NT.Message => constructMessage(msg));
                 this.emit("new-messages", messages);
             },
-            "ns-ntApi",
-            "nodeIKernelMsgListener/onRecvMsg",
-            "in",
-            "request",
+            { eventName: "ns-ntApi", cmdName: "nodeIKernelMsgListener/onRecvMsg", direction: "in", type: "request" },
         );
     }
 
     private listenContactListChange() {
-        ntInterrupt(
+        addInterruptIpc(
             (args) => {
                 this.friendsList = [];
                 ((args?.[1]?.[0]?.payload?.data || []) as any[]).forEach((category) => this.friendsList.push(...((category?.buddyList || []) as any[]).map((friend) => constructUser(friend))));
                 this.emit("friends-list-updated", this.friendsList);
             },
-            "ns-ntApi",
-            "nodeIKernelBuddyListener/onBuddyListChange",
-            "in",
-            "request",
+            { eventName: "ns-ntApi", cmdName: "nodeIKernelBuddyListener/onBuddyListChange", direction: "in", type: "request" },
         );
-        ntInterrupt(
+        addInterruptIpc(
             (args) => {
                 this.groupsList = ((args[1]?.[0]?.payload?.groupList || []) as any[]).map((group) => constructGroup(group));
                 this.emit("groups-list-updated", this.groupsList);
             },
-            "ns-ntApi",
-            "nodeIKernelGroupListener/onGroupListUpdate",
-            "in",
-            "request",
+            { eventName: "ns-ntApi", cmdName: "nodeIKernelGroupListener/onGroupListUpdate", direction: "in", type: "request" },
         );
     }
 

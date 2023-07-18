@@ -7,7 +7,7 @@ const interruptIpcs: [QQNTim.IPC.InterruptFunction, QQNTim.IPC.InterruptIPCOptio
 function interruptIpc(args: QQNTim.IPC.Args<any>, direction: QQNTim.IPC.Direction, channel: string, sender?: Electron.WebContents) {
     for (const [func, options] of interruptIpcs) {
         if (options?.cmdName && (!args[1] || (args[1][0]?.cmdName != options?.cmdName && args[1][0] != options?.cmdName))) continue;
-        if (options?.eventName && (!args[0] || args[0].eventName != options?.eventName)) continue;
+        if (options?.eventName && (!args[0] || !args[0].eventName.startsWith(`${options?.eventName}-`))) continue;
         if (options?.type && (!args[0] || args[0].type != options?.type)) continue;
         if (options?.direction && options?.direction != direction) continue;
 

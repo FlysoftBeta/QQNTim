@@ -274,15 +274,6 @@ declare namespace QQNTim {
                  */
                 ntCall(eventName: string, cmd: string, args: any[]): Promise<IPC.Response>;
                 /**
-                 * 拦截 NT API 调用
-                 * @param callback 回调函数
-                 * @param eventName 事件名称 (如 `ns-ntApi` 或 `ns-fsApi` 等)
-                 * @param cmdName 命令名称
-                 * @param direction 方向 (接收或发送)
-                 * @param type 类型 (`request` 或 `response`)
-                 */
-                ntInterrupt(callback: QQNTim.IPC.InterruptFunction, eventName: string, cmdName: string, direction?: QQNTim.IPC.Direction, type?: QQNTim.IPC.Type): void;
-                /**
                  * 获取与 DOM 元素相关联的 Vue 组件 ID
                  * @param element 元素
                  * @example

@@ -8,7 +8,6 @@ import { dialogApi } from "./dialog";
 import { getVueId } from "./getVueId";
 import { nt } from "./nt";
 import { ntCall } from "./nt/call";
-import { ntInterrupt } from "./nt/interrupt";
 import { waitForElement } from "./waitForElement";
 import { windowLoadPromise } from "./windowLoadPromise";
 import * as fs from "fs-extra";
@@ -37,7 +36,6 @@ export function initAPI() {
             waitForElement: waitForElement,
             getVueId: getVueId,
             ntCall: ntCall,
-            ntInterrupt: ntInterrupt,
         },
         windowLoadPromise: windowLoadPromise,
     };
