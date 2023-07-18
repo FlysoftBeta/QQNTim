@@ -9,9 +9,10 @@ find . -exec touch -d @0 {} +
 
 # 打包 node_modules
 zip -Xyqr9 ../node_modules.zip .
-rm -rf .
 
 popd > /dev/null
+
+rm -rf ./dist/_/node_modules
 
 # 生成 MD5 校验和
 (md5sum -b ./dist/_/node_modules.zip | cut -d" " -f1) > ./dist/_/node_modules.zip.md5
