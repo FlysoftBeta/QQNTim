@@ -127,24 +127,5 @@ async function unpackPackage(packages: Packages, rootDir: string, name: string, 
     await Promise.all(promises);
 }
 
-async function packChii() {
-    // TODO: https://github.com/evanw/esbuild/issues/3234
-    //
-    // const chiiDir = `${__dirname}${s}dist${s}_${s}node_modules${s}chii`;
-    // const chiiJSFile = `${chiiDir}${s}server${s}index.js`;
-    // const bundleContent = await build({
-    //     ...commonOptions,
-    //     entryPoints: [chiiJSFile],
-    //     external: [],
-    //     absWorkingDir: chiiDir,
-    //     write: false,
-    // }).then((res) => {
-    //     return res.outputFiles[0].contents;
-    // });
-    // await emptyDir(dirname(chiiJSFile));
-    // await emptyDir(`${chiiDir}${s}node_modules${s}chii${s}node_modules`);
-    // await writeFile(chiiJSFile, bundleContent);
-}
-
 const packages = collectDeps();
-prepareDistDir().then(() => Promise.all([buildBundles(), buildBuiltinPlugins(), Promise.all(unpackedPackages.map((unpackedPackage) => unpackPackage(packages, `dist${s}_`, unpackedPackage)))]).then(() => packChii()));
+prepareDistDir().then(() => Promise.all([buildBundles(), buildBuiltinPlugins(), Promise.all(unpackedPackages.map((unpackedPackage) => unpackPackage(packages, `dist${s}_`, unpackedPackage)))]));

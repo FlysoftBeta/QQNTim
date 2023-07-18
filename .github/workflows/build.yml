@@ -34,16 +34,16 @@ jobs:
                       ${{ runner.os }}-yarn-
 
             - name: Install Yarn dependencies
-              run: yarn
+              run: yarn install
 
             - name: Build
-              run: yarn build
+              run: yarn build:linux
 
             - name: Compress files
               run: |
                   mkdir upload
                   pushd dist
-                  tar -zcvf ../upload/qqntim-build.tar.gz .
+                  tar -zcvf ../upload/qqntim-build.tar.gz . 
                   zip -r9 ../upload/qqntim-build.zip .
                   popd
 

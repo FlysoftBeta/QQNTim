@@ -4,14 +4,11 @@
     "version": "3.0.0",
     "license": "LGPL-3.0-or-later",
     "packageManager": "yarn@3.6.1",
-    "workspaces": [
-        "src/electron",
-        "src/typings",
-        "src/builtins/*"
-    ],
+    "workspaces": ["src/electron", "src/typings", "src/builtins/*"],
     "scripts": {
         "dev": "TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=development ts-node ./build.ts",
-        "build": "TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=production ts-node ./build.ts",
+        "build:win": "TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=production ts-node ./build.ts && powershell -ExecutionPolicy Unrestricted -File ./scripts/pack.ps1",
+        "build:linux": "TS_NODE_FILES=1 TS_NODE_TRANSPILE_ONLY=1 NODE_ENV=production ts-node ./build.ts && chmod +x ./scripts/pack.sh && ./scripts/pack.sh",
         "install:win": "QQNTIM_INSTALLER_NO_KILL_QQ=1 cmd /c start \"\" /wait cmd /c dist\\\\install.cmd",
         "install:linux": "chmod +x ./dist/install.sh && QQNTIM_INSTALLER_NO_KILL_QQ=1 ./dist/install.sh",
         "start:win": "powershell -ExecutionPolicy Unrestricted -File ./scripts/start.ps1",
