@@ -1,7 +1,8 @@
 ﻿$ErrorActionPreference = "Stop"
 
-Set-Location ((Split-Path -Parent $MyInvocation.MyCommand.Definition) + "..")
+Set-Location ((Split-Path -Parent $MyInvocation.MyCommand.Definition) + "\..")
 
+# 从注册表获取 QQ 安装路径
 foreach ($RegistryPath in @("HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*", "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*")) {
     try {
         foreach ($Item in (Get-ItemProperty $RegistryPath)) {
