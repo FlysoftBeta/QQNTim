@@ -47,10 +47,14 @@ fi
 
 echo "正在复制文件……"
 
-diff "$qq_applauncher_dir/node_modules.zip.md5" "./node_modules.zip.md5" > /dev/null 2>&1
-[ $? != 0 ] && unzip -qo ./node_modules.zip -d "$qq_applauncher_dir/node_modules"
-
-cp -rf ./qqntim.js ./qqntim-renderer.js ./node_modules.zip.md5 ./builtins "$qq_applauncher_dir"
+if [ -f "./node_modules.zip.md5" -a -f "./node_modules.zip" ]; then
+    diff "$qq_applauncher_dir/node_modules.zip.md5" "./node_modules.zip.md5" > /dev/null 2>&1
+    [ $? != 0 ] && unzip -qo ./node_modules.zip -d "$qq_applauncher_dir/node_modules"
+    cp -f ../node_modules.zip.md5 "$qq_applauncher_dir"
+elif [ -d "./node_modules" ]; then
+    cp -rf ./node_modules "$qq_applauncher_dir"
+fi
+cp -rf ./qqntim.js ./qqntim-renderer.js ./builtins "$qq_applauncher_dir"
 
 echo "正在修补 package.json……"
 sed -i "s#\.\/app_launcher\/index\.js#\.\/app_launcher\/qqntim\.js#g" "$qq_app_dir/package.json"
