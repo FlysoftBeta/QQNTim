@@ -61,26 +61,32 @@ if ($env:QQNTIM_INSTALLER_NO_KILL_QQ -ne "1") {
 
 Write-Output "正在复制文件……"
 # 如果 node_modules 不存在或已经过期则执行复制
-if ((Test-Path "$QQAppLauncherDir\node_modules.zip.md5") -eq $false -or (Get-Content "$QQAppLauncherDir\node_modules.zip.md5" -Encoding UTF8 -Force) -ne (Get-Content .\node_modules.zip.md5 -Encoding UTF8 -Force)) {
-    $SourceZipPath = "$CD\node_modules.zip";
-    $DestinationDirPath = "$QQAppLauncherDir\node_modules"
-    # 清空原有 node_modules 文件夹
-    if ((Test-Path $DestinationDirPath) -eq $true) {
-        Remove-Item $DestinationDirPath -Recurse -Force
+if ((Test-Path .\node_modules.zip.md5) -eq $true -and (Test-Path .\node_modules.zip) -eq $true) {
+    if ((Test-Path "$QQAppLauncherDir\node_modules.zip.md5") -eq $false -or (Get-Content "$QQAppLauncherDir\node_modules.zip.md5" -Encoding UTF8 -Force) -ne (Get-Content .\node_modules.zip.md5 -Encoding UTF8 -Force)) {
+        $SourceZipPath = "$CD\node_modules.zip";
+        $DestinationDirPath = "$QQAppLauncherDir\node_modules"
+        # 清空原有 node_modules 文件夹
+        if ((Test-Path $DestinationDirPath) -eq $true) {
+            Remove-Item $DestinationDirPath -Recurse -Force
+        }
+        New-Item $DestinationDirPath -ItemType Directory -Force | Out-Null
+        try {
+            # 回退 1 - 仅支持 .NET Framework 4.5 及以上
+            Add-Type -AssemblyName System.IO.Compression.Filesystem
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($SourceZipPath, $DestinationDirPath)
+        }
+        catch { 
+            # 回退 2 - 使用系统 COM 复制 API
+            $Shell = New-Object -ComObject Shell.Application
+            $Shell.NameSpace($DestinationDirPath).CopyHere($Shell.NameSpace($SourceZipPath).Items())
+        }
     }
-    New-Item $DestinationDirPath -ItemType Directory -Force | Out-Null
-    try {
-        # 回退 1 - 仅支持 .NET Framework 4.5 及以上
-        Add-Type -AssemblyName System.IO.Compression.Filesystem
-        [System.IO.Compression.ZipFile]::ExtractToDirectory($SourceZipPath, $DestinationDirPath)
-    }
-    catch { 
-        # 回退 2 - 使用系统 COM 复制 API
-        $Shell = New-Object -ComObject Shell.Application
-        $Shell.NameSpace($DestinationDirPath).CopyHere($Shell.NameSpace($SourceZipPath).Items())
-    }
+    Copy-Item ".\node_modules.zip.md5" $QQAppLauncherDir -Recurse -Force
 }
-Copy-Item ".\qqntim.js", ".\qqntim-renderer.js", ".\node_modules.zip.md5", ".\builtins" $QQAppLauncherDir -Recurse -Force
+elseif ((Test-Path .\node_modules) -eq $true) {
+    Copy-Item ".\node_modules" $QQAppLauncherDir -Recurse -Force
+}
+Copy-Item ".\qqntim.js", ".\qqntim-renderer.js", ".\builtins" $QQAppLauncherDir -Recurse -Force
 
 Write-Output "正在修补 package.json……"
 # 使用 UTF-8 without BOM 进行保存

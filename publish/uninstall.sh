@@ -51,7 +51,8 @@ if [ "$QQNTIM_UNINSTALLER_NO_KILL_QQ" != "1" ]; then
 fi
 
 echo "正在移除文件……"
-rm -rf "$qq_applauncher_dir/qqntim.js" "$qq_applauncher_dir/qqntim-renderer.js" "$qq_applauncher_dir/node_modules.zip.md5" "$qq_applauncher_dir/node_modules" "$qq_applauncher_dir/builtins"
+[ -f "$qq_applauncher_dir/node_modules.zip.md5" ] && rm -f "$qq_applauncher_dir/node_modules.zip.md5"
+rm -rf "$qq_applauncher_dir/qqntim.js" "$qq_applauncher_dir/qqntim-renderer.js" "$qq_applauncher_dir/node_modules" "$qq_applauncher_dir/builtins"
 
 echo "正在还原 package.json……"
 sed -i "s#\.\/app_launcher\/qqntim\.js#\.\/app_launcher\/index\.js#g" "$qq_app_dir/package.json"

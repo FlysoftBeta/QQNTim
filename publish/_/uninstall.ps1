@@ -60,7 +60,10 @@ if ($env:QQNTIM_UNINSTALLER_NO_KILL_QQ -ne "1") {
 }
 
 Write-Output "正在移除文件……"
-Remove-Item "$QQAppLauncherDir\qqntim.js", "$QQAppLauncherDir\qqntim-renderer.js", "$QQAppLauncherDir\node_modules", "$QQAppLauncherDir\node_modules.zip.md5", "$QQAppLauncherDir\builtins" -Recurse -Force
+if ((Test-Path "$QQAppLauncherDir\node_modules.zip.md5") -eq $true) {
+    Remove-Item "$QQAppLauncherDir\node_modules.zip.md5" -Force
+}
+Remove-Item "$QQAppLauncherDir\qqntim.js", "$QQAppLauncherDir\qqntim-renderer.js", "$QQAppLauncherDir\node_modules", "$QQAppLauncherDir\builtins" -Recurse -Force
 
 Write-Output "正在还原 package.json……"
 $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
