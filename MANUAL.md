@@ -67,12 +67,21 @@ chmod +x ./uninstall.sh
 
 **[Plugins Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy) 中拥有很多功能丰富的插件，欢迎下载。**
 
-还有一些其他的插件：
+支持 QQNTim 3.0 及以上版本的插件：
 
-| 名称                                                                       | 说明                       | 作者                                |
-| -------------------------------------------------------------------------- | -------------------------- | ----------------------------------- |
-| [QQNTim-Plugin-NTHttp](https://github.com/Rei1mu/QQNTim-Plugin-NTHttp)     | WebSocket+Http 的通信实现  | [Rei1mu](https://github.com/Rei1mu) |
-| [QQNTim-Plugin-NoUpdate](https://github.com/Rei1mu/QQNTim-Plugin-NoUpdate) | 取消提示自动更新的烦人弹窗 | [Rei1mu](https://github.com/Rei1mu) |
+| 名称                                                                                                     | 说明                                          | 作者                                         |
+| -------------------------------------------------------------------------------------------------------- | --------------------------------------------- | -------------------------------------------- |
+| [QQNTim-Plugin-Markdown](https://github.com/Flysoft-Studio/QQNTim-Plugin-Markdown)                       | 显示 Markdown 消息/LaTeX 渲染插件             | [Flysoft](https://github.com/Flysoft-Studio) |
+| [QQNTim-Plugin-No-Revoked-Messages](https://github.com/Flysoft-Studio/QQNTim-Plugin-No-Revoked-Messages) | 支持消息持久化保存的防撤回插件                | [Flysoft](https://github.com/Flysoft-Studio) |
+| [QQNTim-Plugins-Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy)                            | 插件商城（注意：只有壁纸插件支持 QQNTim 3.0） | [Flysoft](https://github.com/Flysoft-Studio) |
+
+仅支持 QQNTim 2.2 及以下版本的插件：
+
+| 名称                                                                          | 说明                                                   | 作者                                         |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------- |
+| [QQNTim-Plugin-NTHttp](https://github.com/Rei1mu/QQNTim-Plugin-NTHttp)        | WebSocket+Http 的通信实现                              | [Rei1mu](https://github.com/Rei1mu)          |
+| [QQNTim-Plugin-NoUpdate](https://github.com/Rei1mu/QQNTim-Plugin-NoUpdate)    | 取消提示自动更新的烦人弹窗                             | [Rei1mu](https://github.com/Rei1mu)          |
+| [QQNTim-Plugins-Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy) | 插件商城（注意：壁纸插件不支持 QQNTim 2.2 及以下版本） | [Flysoft](https://github.com/Flysoft-Studio) |
 
 ### 安装插件
 
