@@ -43,6 +43,7 @@ fi
 if [ "$QQNTIM_INSTALLER_NO_KILL_QQ" != "1" ]; then
     echo "正在关闭 QQ……"
     pkill QQ > /dev/null 2>&1
+fi
 
 echo "正在复制文件……"
 
