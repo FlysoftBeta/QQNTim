@@ -6,7 +6,7 @@ pushd "$( dirname "${BASH_SOURCE[0]}" )/_" > /dev/null
 if [ ! "$(whoami)" == "root" ]; then
     echo "正在提升权限……"
     popd > /dev/null
-    sudo QQNTIM_UNINSTALLER_NO_KILL_QQ="$QQNTIM_UNINSTALLER_NO_KILL_QQ" "${BASH_SOURCE[0]}"
+    sudo "${BASH_SOURCE[0]}"
     exit 0
 fi
 
@@ -45,9 +45,9 @@ case $choice in
   *) ;;
 esac
 
-if [ "$QQNTIM_UNINSTALLER_NO_KILL_QQ" != "1" ]; then
-    echo "正在关闭 QQ……"
-    killall QQ > /dev/null 2>&1
+if pgrep -x "QQ" > /dev/null; then
+    echo "正在关闭QQ…"
+    pkill -x "QQ"
 fi
 
 echo "正在移除文件……"
