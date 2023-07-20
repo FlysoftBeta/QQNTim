@@ -1,5 +1,4 @@
 import { addInterruptIpc } from "../../../common/ipc";
-import { webContentsId } from "../../main";
 
 export class NTWatcher<T extends string | number> {
     private pendingList = {} as Record<T, Function>;
@@ -13,7 +12,7 @@ export class NTWatcher<T extends string | number> {
                     return false;
                 }
             },
-            { type: type, eventName: `${eventName}-${webContentsId}`, cmdName: cmdName, direction: direction },
+            { type: type, eventName: eventName, cmdName: cmdName, direction: direction },
         );
     }
     wait(id: T) {
