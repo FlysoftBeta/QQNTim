@@ -47,7 +47,7 @@ fi
 
 echo "正在复制文件……"
 
-#清理安装目录
+# 清理安装目录
 if [ -d "$qq_applauncher_dir/node_modules" ]; then
     rm -rf
 else
