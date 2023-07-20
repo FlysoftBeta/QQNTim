@@ -42,16 +42,21 @@ fi
 
 if [ "$QQNTIM_INSTALLER_NO_KILL_QQ" != "1" ]; then
     echo "正在关闭 QQ……"
-    killall QQ > /dev/null 2>&1
+    pkill QQ > /dev/null 2>&1
 fi
 
 echo "正在复制文件……"
 
+# 清理安装目录
+if [ -d "$qq_applauncher_dir/node_modules" ]; then
+    rm -rf
+else
+    mkdir $qq_applauncher_dir/node_modules
+fi
+
 if [ -f "./node_modules.zip.md5" -a -f "./node_modules.zip" ]; then
     diff "$qq_applauncher_dir/node_modules.zip.md5" "./node_modules.zip.md5" > /dev/null 2>&1
     [ $? != 0 ]
-    rm -r $qq_applauncher_dir/node_modules
-    mkdir $qq_applauncher_dir/node_modules
     unzip -qo ./node_modules.zip -d "$qq_applauncher_dir/node_modules"
     cp -f ./node_modules.zip.md5 "$qq_applauncher_dir"
 elif [ -d "./node_modules" ]; then

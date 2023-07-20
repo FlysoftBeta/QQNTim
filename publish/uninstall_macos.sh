@@ -47,7 +47,7 @@ esac
 
 if [ "$QQNTIM_UNINSTALLER_NO_KILL_QQ" != "1" ]; then
     echo "正在关闭 QQ……"
-    killall QQ > /dev/null 2>&1
+    pkill QQ > /dev/null 2>&1
 fi
 
 echo "正在移除文件……"
