@@ -50,7 +50,7 @@ chmod +x ./install.sh
 chmod +x ./uninstall.sh
 ./uninstall.sh
 ```
-在 macOS 下，请运行 `install_macos.sh` 安装或运行 `uninstall_macos.sh` 卸载。
+在 macOS 下，请运行 `install_macos.sh` 安装或运行 `uninstall_macos.sh` 卸载（将文件拖动到 `终端.app` 窗口内按回车运行）。
 需要输入管理员密码鉴权，同时在弹出的通知中选择允许终端修改App，或前往 `系统设置->隐私与安全性->App管理` 中打开/添加 `终端` 来允许终端修改文件。
 
 安装后，打开 "设置" 页面：
