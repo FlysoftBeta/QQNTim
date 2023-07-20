@@ -29,7 +29,7 @@ if (($null -eq $QQInstallDir) -or ((Test-Path $QQInstallDir) -eq $false)) {
 }
 
 $QQExecutableFile = "$QQInstallDir\QQ.exe"
-$QQExecutableBackupFile = "$QQInstallDir\QQ.exe.bak"
+$QQExecutablePatchedFile = "$QQInstallDir\QQPatched.exe"
 $QQExecutableHashFile = "$QQInstallDir\QQ.exe.md5"
 $QQAppDir = "$QQInstallDir\resources\app"
 $QQAppLauncherDir = "$QQAppDir\app_launcher"
@@ -57,6 +57,7 @@ else {
 if ($env:QQNTIM_INSTALLER_NO_KILL_QQ -ne "1") {
     Write-Output "正在关闭 QQ……"
     Stop-Process -Name QQ -ErrorAction SilentlyContinue
+    Stop-Process -Name QQPatched -ErrorAction SilentlyContinue
 }
 
 Write-Output "正在复制文件……"
@@ -95,9 +96,11 @@ $Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
 
 # For QQ 9.9.1+
 # 如果 QQ.exe 未被修补或已被新安装覆盖则进行修补
+if ((Test-Path "$QQAppLauncherDir\QQ.exe.bak") -eq $true) {
+    Move-Item "$QQAppLauncherDir\QQ.exe.bak" $QQExecutableFile -Force
+}
 if ((Test-Path $QQExecutableHashFile) -eq $false -or (Get-Content $QQExecutableHashFile -Encoding UTF8 -Force) -replace "`r`n", "" -ne (Get-FileHash $QQExecutableFile -Algorithm MD5).Hash) {
     Write-Output "正在修补 QQ.exe，这可能需要一些时间……"
-    Copy-Item $QQExecutableFile $QQExecutableBackupFile -Force
     # 引入 crypt32.dll 定义
     $Crypt32Def = @"
 [DllImport("Crypt32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -128,8 +131,7 @@ public static extern bool CryptBinaryToString(
     if ([PKI.Crypt32]::CryptBinaryToString($QQBin, $QQBin.Length, $HexRawEncoding, $null, [ref]$pcchString)) {
         $QQHex = New-Object Text.StringBuilder $pcchString
         [void][PKI.Crypt32]::CryptBinaryToString($QQBin, $QQBin.Length, $HexRawEncoding, $QQHex, [ref]$pcchString)
-        # 替换 package.json[NUL]index.js[NUL]launcher.js[NUL]launcher.node 为 index.js[NUL][NUL][NUL][NUL][NUL]index.js[NUL]launcher.js[NUL]launcher.node
-        $PatchedQQHex = $QQHex.ToString() -replace "7061636b6167652e6a736f6e00696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500", "696e6465782e6a730000000000696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500"
+        $PatchedQQHex = $QQHex.ToString() -replace "7061636b6167652e6a736f6e00696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500", "696e6465782e6a730000000000696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500" -replace "6c61756e636865722e6a736f6e002d312e002d322e007061636b6167652e6a736f6e002d332e002d342e002d352e002d36006170705f6c61756e636865725c002d37002d38002d390000", "00000000000000000000000000000000000000000000000000000000000000000000002d332e002d342e002d352e002d36006170705f6c61756e636865725c002d37002d38002d390000"
         # Hex String 转 Byte[]
         $pcbBinary = 0 # Size
         $pdwFlags = 0
@@ -138,11 +140,15 @@ public static extern bool CryptBinaryToString(
             [void][PKI.Crypt32]::CryptStringToBinary($PatchedQQHex, $PatchedQQHex.Length, $HexRawEncoding, $PatchedQQBin, [ref]$pcbBinary, 0, [ref]$pdwFlags)
 
             # 写出文件
-            [System.IO.File]::WriteAllBytes($QQExecutableFile, $PatchedQQBin)
+            [System.IO.File]::WriteAllBytes($QQExecutablePatchedFile, $PatchedQQBin)
 
             # 写出 MD5
             $QQFileHash = (Get-FileHash $QQExecutableFile -Algorithm MD5).Hash
             [System.IO.File]::WriteAllLines($QQExecutableHashFile, $QQFileHash, $Utf8NoBomEncoding)
+
+            # 镜像劫持
+            New-Item "HKLM:Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\QQ.exe" -Force | Out-Null
+            New-ItemProperty "HKLM:Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\QQ.exe" -Name "Debugger" -PropertyType String -Value $QQExecutablePatchedFile | Out-Null
         }
         else {
             throw $((New-Object ComponentModel.Win32Exception ([Runtime.InteropServices.Marshal]::GetLastWin32Error())).Message)

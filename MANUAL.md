@@ -80,11 +80,12 @@ chmod +x <uninstall_macos.sh>    <----将 uninstall_macos.sh 文件拖进终端�
 
 支持 QQNTim 3.0 及以上版本的插件：
 
-| 名称                                                                                                     | 说明                                          | 作者                                         |
-| -------------------------------------------------------------------------------------------------------- | --------------------------------------------- | -------------------------------------------- |
-| [QQNTim-Plugin-Markdown](https://github.com/Flysoft-Studio/QQNTim-Plugin-Markdown)                       | 显示 Markdown 消息/LaTeX 渲染插件             | [Flysoft](https://github.com/Flysoft-Studio) |
-| [QQNTim-Plugin-No-Revoked-Messages](https://github.com/Flysoft-Studio/QQNTim-Plugin-No-Revoked-Messages) | 支持消息持久化保存的防撤回插件                | [Flysoft](https://github.com/Flysoft-Studio) |
-| [QQNTim-Plugins-Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy)                            | 插件商城（注意：只有壁纸插件支持 QQNTim 3.0） | [Flysoft](https://github.com/Flysoft-Studio) |
+| 名称                                                                                                     | 说明                                                  | 作者                                         |
+| -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------- |
+| [QQNTim-Plugin-Markdown](https://github.com/Flysoft-Studio/QQNTim-Plugin-Markdown)                       | 显示 Markdown 消息/LaTeX 渲染插件                     | [Flysoft](https://github.com/Flysoft-Studio) |
+| [QQNTim-Plugin-Wallpaper](https://github.com/Flysoft-Studio/QQNTim-Plugin-Wallpaper)                     | 自定义你的壁纸                                        | [Flysoft](https://github.com/Flysoft-Studio) |
+| [QQNTim-Plugin-No-Revoked-Messages](https://github.com/Flysoft-Studio/QQNTim-Plugin-No-Revoked-Messages) | 支持消息持久化保存的防撤回插件                        | [Flysoft](https://github.com/Flysoft-Studio) |
+| [QQNTim-Plugins-Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy)                            | 插件商城（注意：只有 GaussianUI 插件支持 QQNTim 3.0） | [Flysoft](https://github.com/Flysoft-Studio) |
 
 仅支持 QQNTim 2.2 及以下版本的插件：
 
