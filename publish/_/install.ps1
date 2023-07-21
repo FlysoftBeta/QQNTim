@@ -128,8 +128,7 @@ public static extern bool CryptBinaryToString(
     if ([PKI.Crypt32]::CryptBinaryToString($QQBin, $QQBin.Length, $HexRawEncoding, $null, [ref]$pcchString)) {
         $QQHex = New-Object Text.StringBuilder $pcchString
         [void][PKI.Crypt32]::CryptBinaryToString($QQBin, $QQBin.Length, $HexRawEncoding, $QQHex, [ref]$pcchString)
-        # 替换 package.json[NUL]index.js[NUL]launcher.js[NUL]launcher.node 为 index.js[NUL][NUL][NUL][NUL][NUL]index.js[NUL]launcher.js[NUL]launcher.node
-        $PatchedQQHex = $QQHex.ToString() -replace "7061636b6167652e6a736f6e00696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500", "696e6465782e6a730000000000696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500"
+        $PatchedQQHex = $QQHex.ToString() -replace "7061636b6167652e6a736f6e00696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500", "696e6465782e6a730000000000696e6465782e6a73006c61756e636865722e6a73006c61756e636865722e6e6f646500" -replace "7061636b6167652e488d942400020000488902c742086a736f6e", "6c61756e63686572488d942400020000488902c742082e6a7300"
         # Hex String 转 Byte[]
         $pcbBinary = 0 # Size
         $pdwFlags = 0
