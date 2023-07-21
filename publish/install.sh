@@ -6,12 +6,16 @@ pushd "$( dirname "${BASH_SOURCE[0]}" )/_" > /dev/null
 if [ ! "$(whoami)" == "root" ]; then
     echo "正在提升权限……"
     popd > /dev/null
-    sudo QQNTIM_INSTALLER_NO_KILL_QQ="$QQNTIM_INSTALLER_NO_KILL_QQ" QQNTIM_INSTALLER_NO_DELAYED_EXIT="$QQNTIM_INSTALLER_NO_DELAYED_EXIT" "${BASH_SOURCE[0]}"
+    sudo QQNTIM_INSTALLER_NO_KILL_QQ="$QQNTIM_INSTALLER_NO_KILL_QQ" "${BASH_SOURCE[0]}"
     exit 0
 fi
 
 # 获取 QQ 安装路径
-qq_installation_dir=$( dirname $( readlink $( which qq || which linuxqq ) ) 2>/dev/null || echo "/var/lib/flatpak/app/com.qq.QQ/current/active/files/extra/QQ" )
+if [ -d "$QQ_APP_DIR" ]; then
+    qq_installation_dir="$QQ_APP_DIR"
+else
+    qq_installation_dir=$( dirname $( readlink $( which qq || which linuxqq ) ) 2>/dev/null || echo "/var/lib/flatpak/app/com.qq.QQ/current/active/files/extra/QQ" )
+fi
 
 if [ ! -d "$qq_installation_dir" ]; then
     echo "未找到 QQNT 安装目录。"
@@ -21,21 +25,30 @@ qq_app_dir="$qq_installation_dir/resources/app"
 qq_applauncher_dir="$qq_app_dir/app_launcher"
 qqntim_flag_file="$qq_applauncher_dir/qqntim-flag.txt"
 
+# 清理旧版文件，恢复被修改的入口文件
+if [ -f "$qq_applauncher_dir/index.js.bak" ]; then
+    echo "正在清理旧版 QQNTim……"
+    mv -f "$qq_applauncher_dir/index.js.bak" "$qq_applauncher_dir/index.js"
+    touch "$qqntim_flag_file"
+fi
+
 # 询问用户，如果存在旧版则不提示
 if [ ! -f "$qqntim_flag_file" ]; then
-    read -p "是否要安装 QQNTim (y/n)？" choice
-    case $choice in
-    y) ;;
-    Y) ;;
-    *) exit -1 ;;
-    esac
+    if [ "$QQNTIM_NOCONFIRM" != "1" ]; then
+        read -p "是否要安装 QQNTim (y/N)?" choice
+        case $choice in
+        y) ;;
+        Y) ;;
+        *) exit -1 ;;
+        esac
+    fi
 else
     echo "检测到已有安装，正在更新……"
 fi
 
 if [ "$QQNTIM_INSTALLER_NO_KILL_QQ" != "1" ]; then
     echo "正在关闭 QQ……"
-    killall -w qq linuxqq > /dev/null 2>&1
+    killall -w qq linuxqq > /dev/null 2>&1 || true
 fi
 
 echo "正在复制文件……"
