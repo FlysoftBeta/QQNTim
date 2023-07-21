@@ -21,13 +21,6 @@ qq_app_dir="$qq_installation_dir/resources/app"
 qq_applauncher_dir="$qq_app_dir/app_launcher"
 qqntim_flag_file="$qq_applauncher_dir/qqntim-flag.txt"
 
-# 清理旧版文件，恢复被修改的入口文件
-if [ -f "$qq_applauncher_dir/index.js.bak" ]; then
-    echo "正在清理旧版 QQNTim……"
-    mv -f "$qq_applauncher_dir/index.js.bak" "$qq_applauncher_dir/index.js"
-    touch "$qqntim_flag_file"
-fi
-
 # 询问用户，如果存在旧版则不提示
 if [ ! -f "$qqntim_flag_file" ]; then
     read -p "是否要安装 QQNTim (y/n)？" choice
