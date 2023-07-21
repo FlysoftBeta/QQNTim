@@ -35,13 +35,6 @@ $QQAppLauncherDir = "$QQAppDir\app_launcher"
 $QQNTimFlagFile = "$QQAppLauncherDir\qqntim-flag.txt"
 $SuccessFlagFile = "$env:TEMP\qqntim-uninstall-successful.tmp"
 
-# 清理旧版文件，恢复被修改的入口文件
-if ((Test-Path "$QQAppLauncherDir\index.js.bak") -eq $true) {
-    Write-Output "正在清理旧版 QQNTim……"
-    Move-Item "$QQAppLauncherDir\index.js.bak" "$QQAppLauncherDir\index.js" -Force
-    "" | Out-File $QQNTimFlagFile -Encoding UTF8 -Force
-}
-
 if ((Test-Path $QQNTimFlagFile) -eq $false) {
     throw "QQNTim 未被安装。"
 }
