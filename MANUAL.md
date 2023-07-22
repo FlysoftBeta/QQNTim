@@ -86,6 +86,7 @@ chmod +x <uninstall_macos.sh>    <----将 uninstall_macos.sh 文件拖进终端�
 | [QQNTim-Plugin-Wallpaper](https://github.com/Flysoft-Studio/QQNTim-Plugin-Wallpaper)                     | 自定义你的壁纸                                        | [Flysoft](https://github.com/Flysoft-Studio) |
 | [QQNTim-Plugin-No-Revoked-Messages](https://github.com/Flysoft-Studio/QQNTim-Plugin-No-Revoked-Messages) | 支持消息持久化保存的防撤回插件                        | [Flysoft](https://github.com/Flysoft-Studio) |
 | [QQNTim-Plugins-Galaxy](https://github.com/FlysoftBeta/QQNTim-Plugins-Galaxy)                            | 插件商城（注意：只有 GaussianUI 插件支持 QQNTim 3.0） | [Flysoft](https://github.com/Flysoft-Studio) |
+| [QQNTim-Plugins-Cool-Theme](https://github.com/HuanLinOTO/QQNTim-Plugin-Cool-Theme) | Cool 主题 | [HuanLinOTO](https://github.com/HuanLinOTO) |
 
 仅支持 QQNTim 2.2 及以下版本的插件：
 
