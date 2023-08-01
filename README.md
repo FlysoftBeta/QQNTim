@@ -1,10 +1,10 @@
-# 已复活 - QQNT-Improved - PC 端 QQNT 插件管理器
+# QQNT-Improved - PC 端 QQNT 插件管理器
+
+此项目已废弃，我们正在全力开发全新 QQ 客户端——QPlugged，敬请期待。
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/bb8c6d1f5c2647ae38e8/maintainability)](https://codeclimate.com/github/Flysoft-Studio/QQNTim/maintainability) [![License](https://img.shields.io/github/license/FlysoftBeta/QQNTim)](https://github.com/Flysoft-Studio/QQNTim/blob/dev/COPYING.LESSER) [![Build](https://img.shields.io/github/actions/workflow/status/Flysoft-Studio/QQNTim/build.yml)](https://github.com/Flysoft-Studio/QQNTim/actions/workflows/build.yml)
 
 ![截图](.github/screenshot.png)
-
-已跑路。
 
 <!-- **注意:** 我们注意到 QQNT (Windows) 最近在进行大幅度修改。为了防止我们的前功尽弃，我们将适当减小更新频率。 -->
 
