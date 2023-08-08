@@ -192,7 +192,7 @@ __metadata:
   dependencies:
     "@flysoftbeta/qqntim-typings": "workspace:*"
     "@types/node": ^20.4.2
-    "@types/react": ^18.2.14
+    "@types/react": ^18.2.19
     "@types/react-dom": ^18.2.7
     "@types/unzipper": ^0.10.6
     unzipper: ^0.10.14
@@ -205,7 +205,7 @@ __metadata:
   dependencies:
     "@types/fs-extra": ^11.0.1
     "@types/node": ^20.4.2
-    "@types/react": ^18.2.15
+    "@types/react": ^18.2.19
     "@types/react-dom": ^18.2.7
     typed-emitter: ^2.1.0
     typescript: ^5.1.6
@@ -433,7 +433,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^18.2.14":
+"@types/react@npm:*":
   version: 18.2.14
   resolution: "@types/react@npm:18.2.14"
   dependencies:
@@ -444,14 +444,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18.2.15":
-  version: 18.2.15
-  resolution: "@types/react@npm:18.2.15"
+"@types/react@npm:^18.2.19":
+  version: 18.2.19
+  resolution: "@types/react@npm:18.2.19"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: 36989f638201bfe2f4110b06c119180f6df9c0e13d7060481e82e7a745f81745a01ae543c478a25b61e0767cb52e82da2ad5b0dedacabf99339e523d06176705
+  checksum: 1ef657b90c7413451bbac2fd2fbce4f8a093941bc5041d344ab9833bc113c8eebf6318dae8aeeb1a0f922f15bc772507e6aaa0c7b51847b5f7302921c8dd6740
   languageName: node
   linkType: hard
 
@@ -2315,7 +2315,7 @@ __metadata:
     "@flysoftbeta/qqntim-typings": "workspace:*"
     "@types/fs-extra": ^11.0.1
     "@types/node": ^20.4.2
-    "@types/react": ^18.2.14
+    "@types/react": ^18.2.19
     "@types/react-dom": ^18.2.7
     "@types/semver": ^7.5.0
     "@yarnpkg/sdks": ^3.0.0-rc.48
