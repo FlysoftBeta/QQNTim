@@ -191,7 +191,7 @@ __metadata:
   resolution: "@flysoftbeta/qqntim-plugin-settings@workspace:src/builtins/settings"
   dependencies:
     "@flysoftbeta/qqntim-typings": "workspace:*"
-    "@types/node": ^20.5.1
+    "@types/node": ^20.5.3
     "@types/react": ^18.2.14
     "@types/react-dom": ^18.2.7
     "@types/unzipper": ^0.10.6
@@ -204,7 +204,7 @@ __metadata:
   resolution: "@flysoftbeta/qqntim-typings@workspace:src/typings"
   dependencies:
     "@types/fs-extra": ^11.0.1
-    "@types/node": ^20.5.1
+    "@types/node": ^20.5.3
     "@types/react": ^18.2.15
     "@types/react-dom": ^18.2.7
     typed-emitter: ^2.1.0
@@ -410,10 +410,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.5.1":
-  version: 20.5.1
-  resolution: "@types/node@npm:20.5.1"
-  checksum: 3dbe611cd67afa987102c8558ee70f848949c5dcfee5f60abc073e55c0d7b048e391bf06bb1e0dc052cb7210ca97136ac496cbaf6e89123c989de6bd125fde82
+"@types/node@npm:^20.5.3":
+  version: 20.5.3
+  resolution: "@types/node@npm:20.5.3"
+  checksum: fe67a0fd7402218bdf91523a2b1c2e41d619f7294b1a471e0a778b8bc7bb3fcf291aed12041bcbe9622d50a3d1295a9adea0e7e19bb9386a246bf66071404721
   languageName: node
   linkType: hard
 
@@ -2270,7 +2270,7 @@ __metadata:
     "@electron/remote": ^2.0.10
     "@flysoftbeta/qqntim-typings": "workspace:*"
     "@types/fs-extra": ^11.0.1
-    "@types/node": ^20.5.1
+    "@types/node": ^20.5.3
     "@types/react": ^18.2.14
     "@types/react-dom": ^18.2.7
     "@types/semver": ^7.5.0
