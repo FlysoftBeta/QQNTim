@@ -7,7 +7,7 @@
     },
     "dependencies": {
         "@types/fs-extra": "^11.0.1",
-        "@types/node": "^20.5.3",
+        "@types/node": "^20.5.6",
         "@types/react": "^18.2.21",
         "@types/react-dom": "^18.2.7",
         "typed-emitter": "^2.1.0"
