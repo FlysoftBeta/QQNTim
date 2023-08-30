@@ -194,7 +194,7 @@ __metadata:
     "@types/node": ^20.5.6
     "@types/react": ^18.2.21
     "@types/react-dom": ^18.2.7
-    "@types/unzipper": ^0.10.6
+    "@types/unzipper": ^0.10.7
     unzipper: ^0.10.14
   languageName: unknown
   linkType: soft
@@ -485,12 +485,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/unzipper@npm:^0.10.6":
-  version: 0.10.6
-  resolution: "@types/unzipper@npm:0.10.6"
+"@types/unzipper@npm:^0.10.7":
+  version: 0.10.7
+  resolution: "@types/unzipper@npm:0.10.7"
   dependencies:
     "@types/node": "*"
-  checksum: 192ec7127f6cfdff4b0ede8129b44220f95cef488faf48759c8a49a34d451301f300ff34164891c6ec43cfdb2df1637e418744549880db7c43fb4f0d4670a721
+  checksum: 440b2a9139f3f63374e829163795185b22ecd964f5eced3c494cf67b1abcbc4d58f142898f13068554f8baec7d09e15a34aa68715560f6feb2b0dc545afadb7a
   languageName: node
   linkType: hard
 
