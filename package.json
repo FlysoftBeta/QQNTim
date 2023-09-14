@@ -35,7 +35,7 @@
         "@types/node": "^20.5.6",
         "@types/react": "^18.2.21",
         "@types/react-dom": "^18.2.7",
-        "@types/semver": "^7.5.0",
+        "@types/semver": "^7.5.2",
         "@yarnpkg/sdks": "^3.0.0-rc.50",
         "esbuild": "^0.19.2",
         "rome": "12.1.3",
