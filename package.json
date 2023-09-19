@@ -31,7 +31,7 @@
         "supports-color": "^9.4.0"
     },
     "devDependencies": {
-        "@types/fs-extra": "^11.0.1",
+        "@types/fs-extra": "^11.0.2",
         "@types/node": "^20.6.2",
         "@types/react": "^18.2.21",
         "@types/react-dom": "^18.2.7",
