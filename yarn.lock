@@ -471,10 +471,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/semver@npm:^7.1.0, @types/semver@npm:^7.5.0":
+"@types/semver@npm:^7.1.0":
   version: 7.5.0
   resolution: "@types/semver@npm:7.5.0"
   checksum: 0a64b9b9c7424d9a467658b18dd70d1d781c2d6f033096a6e05762d20ebbad23c1b69b0083b0484722aabf35640b78ccc3de26368bcae1129c87e9df028a22e2
+  languageName: node
+  linkType: hard
+
+"@types/semver@npm:^7.5.2":
+  version: 7.5.2
+  resolution: "@types/semver@npm:7.5.2"
+  checksum: 743aa8a2b58e20b329c19bd2459152cb049d12fafab7279b90ac11e0f268c97efbcb606ea0c681cca03f79015381b40d9b1244349b354270bec3f939ed49f6e9
   languageName: node
   linkType: hard
 
@@ -2273,7 +2280,7 @@ __metadata:
     "@types/node": ^20.6.2
     "@types/react": ^18.2.21
     "@types/react-dom": ^18.2.7
-    "@types/semver": ^7.5.0
+    "@types/semver": ^7.5.2
     "@yarnpkg/sdks": ^3.0.0-rc.50
     axios: ^1.4.0
     chii: ^1.9.0
